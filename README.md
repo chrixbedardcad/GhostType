@@ -8,7 +8,7 @@
 
 GhostType is a lightweight background service that hooks into your chat application (primarily Firestorm Second Life viewer) and provides real-time spelling correction, language translation, and creative text rewriting — powered by your choice of LLM provider.
 
-Type in French, hit **F3**, get it corrected. Switch to English, hit **F3**, corrected too. Need to translate? **F4**. Want a funny reply? **Ctrl+F3**. Accept with **F5** or dismiss with **Escape**. That simple.
+Type in French, hit **F6**, get it corrected. Switch to English, hit **F6**, corrected too. Need to translate? **F7**. Want a funny reply? **F8**. Undo with **Ctrl+Z** or cancel with **Escape**. That simple.
 
 ---
 
@@ -34,7 +34,7 @@ Type in French, hit **F3**, get it corrected. Switch to English, hit **F3**, cor
 - **Translate** — Instantly translates between French and English (or any configured language pair)
 - **Rewrite** — Rewrites your text using customizable prompt templates (funny, formal, sarcastic, flirty, poetic, and more)
 - **Multi-Provider** — Works with Anthropic Claude, OpenAI GPT, Google Gemini, xAI Grok, or local Ollama models
-- **Hotkey Driven** — F3 to correct, F4 to translate, Ctrl+F3 to rewrite, F5 to accept, Escape to cancel
+- **Hotkey Driven** — F6 to correct, F7 to translate, F8 to rewrite, Ctrl+F8 to cycle templates, Escape to cancel
 - **Configurable** — JSON config file for API keys, providers, hotkeys, prompts, overlay settings, and custom rewrite templates
 - **Lightweight** — Single binary, runs in the background, under 50 MB memory, near-zero CPU at idle
 - **Cross-Platform** — Windows first, Linux and macOS coming in future releases
@@ -65,7 +65,7 @@ On first run, GhostType creates a default `config.json` in the same directory. O
 ghosttype.exe
 ```
 
-GhostType starts minimized in your system tray. Open Firestorm, type something in chat, and press **F3**.
+GhostType starts minimized in your system tray. Open Firestorm, type something in chat, and press **F6**.
 
 ---
 
@@ -73,12 +73,12 @@ GhostType starts minimized in your system tray. Open Firestorm, type something i
 
 | Hotkey | Action |
 |--------|--------|
-| **F3** | Correct spelling and grammar |
-| **F4** | Translate to target language |
-| **Ctrl+F3** | Rewrite using active template |
-| **Ctrl+F4** | Cycle through rewrite templates |
-| **F5** | Accept and replace text |
-| **Escape** | Dismiss and cancel |
+| **F6** | Correct spelling and grammar |
+| **F7** | Translate to target language |
+| **F8** | Rewrite using active template |
+| **Ctrl+F8** | Cycle through rewrite templates |
+| **Escape** | Cancel in-progress operation |
+| **Ctrl+Z** | Undo replacement (native) |
 
 All hotkeys are configurable in `config.json`.
 
@@ -97,11 +97,10 @@ GhostType is configured entirely through `config.json`. Here is a full example:
   "languages": ["fr", "en"],
   "default_translate_target": "en",
   "hotkeys": {
-    "correct": "F3",
-    "translate": "F4",
-    "rewrite": "Ctrl+F3",
-    "cycle_template": "Ctrl+F4",
-    "apply": "F5",
+    "correct": "F6",
+    "translate": "F7",
+    "rewrite": "F8",
+    "cycle_template": "Ctrl+F8",
     "cancel": "Escape"
   },
   "target_window": "Firestorm",
@@ -158,7 +157,7 @@ You can add your own rewrite styles by editing the `rewrite_templates` array in 
 }
 ```
 
-Cycle through templates in real-time with **Ctrl+F4**. The overlay shows which template is currently active.
+Cycle through templates in real-time with **Ctrl+F8**. The overlay shows which template is currently active.
 
 ---
 
@@ -193,7 +192,7 @@ go test ./...
 3. When you press a hotkey, it selects all text in the active chat input, copies it to clipboard, and reads it.
 4. The text is sent to your configured LLM provider with the appropriate prompt.
 5. The corrected/translated/rewritten result appears in an overlay near the chat input.
-6. Press **F5** to accept (replaces your original text) or **Escape** to dismiss.
+6. The result auto-replaces your text. Press **Escape** to cancel, or **Ctrl+Z** to undo.
 7. Your original clipboard content is preserved and restored.
 
 ---
@@ -217,7 +216,7 @@ go test ./...
 | GhostType doesn't respond to hotkeys | Make sure the target window (Firestorm) is focused and the window title matches `target_window` in `config.json`. |
 | API errors | Check your API key in `config.json`. Check `ghosttype.log` for details. Verify your provider account has credits. |
 | Slow corrections | Response time depends on provider and network. Try a faster model or switch to a local Ollama instance. |
-| Hotkey conflicts | If F3/F5 conflict with other apps, change the hotkeys in `config.json`. |
+| Hotkey conflicts | If F6/F7/F8 conflict with other apps, change the hotkeys in `config.json`. |
 
 ---
 

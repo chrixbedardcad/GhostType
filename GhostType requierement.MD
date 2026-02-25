@@ -46,17 +46,17 @@ Designed specifically for virtual world chat (Firestorm) but works anywhere
 
 Three Operating Modes
 
-Mode 1 — Correct (F3)
+Mode 1 — Correct (F6)
 
 Detects the language of the typed text (French or English). Fixes all spelling, grammar, and syntax errors. Preserves the original meaning and language. Returns only the corrected text. This is the core use case.
 
-Mode 2 — Translate (F4)
+Mode 2 — Translate (F7)
 
 Translates the typed text to the configured target language. Auto-detects source language. User configures default target language in config.json. Useful for switching between French and English chat in Firestorm.
 
-Mode 3 — Rewrite (Ctrl+F3)
+Mode 3 — Rewrite (F8)
 
-Sends the typed text to the LLM with a creative prompt template. User cycles through available templates with Ctrl+F4. Templates are fully configurable in config.json. Examples: funny reply, formal tone, sarcastic, flirty, poetic, ELI5, pirate speak, or any custom prompt the user defines.
+Sends the typed text to the LLM with a creative prompt template. User cycles through available templates with Ctrl+F8. Templates are fully configurable in config.json. Examples: funny reply, formal tone, sarcastic, flirty, poetic, ELI5, pirate speak, or any custom prompt the user defines.
 
 
 
@@ -66,17 +66,17 @@ Full Hotkey Map
 
 
 
-F3: Capture text and send for correction (Mode 1)
+F6: Capture text and send for correction (Mode 1)
 
-F4: Capture text and send for translation (Mode 2)
+F7: Capture text and send for translation (Mode 2)
 
-Ctrl+F3: Capture text and send for rewrite using active template (Mode 3)
+F8: Capture text and send for rewrite using active template (Mode 3)
 
-Ctrl+F4: Cycle through rewrite templates (overlay shows current template name)
+Ctrl+F8: Cycle through rewrite templates (overlay shows current template name)
 
-F5: Accept and replace original text with result
+Escape: Cancel in-progress operation
 
-Escape: Dismiss overlay and cancel pending operation
+Ctrl+Z: Undo replacement (native, handled by target app)
 
 
 
@@ -86,7 +86,7 @@ Detailed Flow
 
 User types text in target application chat input field.
 
-User presses the hotkey for the desired mode (F3, F4, or Ctrl+F3).
+User presses the hotkey for the desired mode (F6, F7, or F8).
 
 Service selects all text in chat input (Ctrl+A), copies to clipboard (Ctrl+C), reads clipboard.
 
@@ -96,11 +96,32 @@ Service receives the result from the LLM.
 
 Overlay window appears near the chat input showing the result. For correction mode, changed words are highlighted. For translation mode, the full translation is shown. For rewrite mode, the rewritten text is shown with the template name.
 
-User presses F5 to accept: service selects all text in chat input (Ctrl+A), pastes the result from memory, dismisses overlay.
+Result auto-replaces the original text. User presses Ctrl+Z (native undo) to revert if needed.
 
-User presses Escape to dismiss: clears stored result, hides overlay, no changes made.
+User presses Escape to cancel: clears stored result, hides overlay, no changes made.
 
 
+
+
+
+Default Hotkey Rationale
+
+F6, F7, and F8 were chosen as the default hotkeys because they are three consecutive function keys that are virtually unused across Windows, Linux, and macOS applications, making them safe defaults with near-zero conflict risk.
+
+Why other function keys were avoided:
+
+F1 — Help in nearly every application
+F2 — Rename (Explorer, IDEs, spreadsheets)
+F3 — Search/Find in browsers, Explorer, and many editors
+F4 — Mostly safe alone, but Alt+F4 closes windows, creating accidental-close risk
+F5 — Refresh in browsers and Explorer
+F10 — Activates the menu bar in most Windows applications
+F11 — Fullscreen toggle in browsers and many apps
+F12 — Developer tools in browsers, Save As in Office
+
+F6, F7, and F8 have no standard system-wide or application-wide bindings, making them ideal for a background service that must coexist with other software.
+
+All hotkeys are fully configurable in config.json, so users can remap them to any key combination if needed.
 
 
 
@@ -162,15 +183,13 @@ Configuration File (config.json)
 
 &nbsp; "hotkeys": {
 
-&nbsp;   "correct": "F3",
+&nbsp;   "correct": "F6",
 
-&nbsp;   "translate": "F4",
+&nbsp;   "translate": "F7",
 
-&nbsp;   "rewrite": "Ctrl+F3",
+&nbsp;   "rewrite": "F8",
 
-&nbsp;   "cycle\_template": "Ctrl+F4",
-
-&nbsp;   "apply": "F5",
+&nbsp;   "cycle\_template": "Ctrl+F8",
 
 &nbsp;   "cancel": "Escape"
 
@@ -308,9 +327,7 @@ System tray icon for quick access
 
 JSON config file for LLM provider, API key, model, hotkeys
 
-F3 hotkey for correction mode only
-
-F5 hotkey to replace text
+F6 hotkey for correction mode only
 
 Escape to cancel
 
@@ -332,7 +349,7 @@ v0.2 — Translation and Overlay
 
 
 
-Add translation mode (F4)
+Add translation mode (F7)
 
 Transparent overlay window replaces the app window for showing results
 
@@ -350,9 +367,9 @@ v0.3 — Rewrite Mode and Polish
 
 
 
-Add rewrite mode (Ctrl+F3) with configurable templates
+Add rewrite mode (F8) with configurable templates
 
-Template cycling (Ctrl+F4)
+Template cycling (Ctrl+F8)
 
 Config hot-reload without restart
 
@@ -444,7 +461,7 @@ Performance Targets
 
 Hotkey response time: < 50ms from keypress to API call initiated
 
-Total correction cycle (F3 to result ready): < 3 seconds (network dependent)
+Total correction cycle (F6 to result ready): < 3 seconds (network dependent)
 
 Overlay render time: < 100ms
 
@@ -508,9 +525,9 @@ Unit tests for LLM API request/response formatting per provider (Anthropic, Open
 
 Unit tests for mode routing logic
 
-Integration test: mock LLM API, verify full F3 to F5 cycle
+Integration test: mock LLM API, verify full F6 correction cycle
 
-Integration test: mock LLM API, verify F4 translation cycle
+Integration test: mock LLM API, verify F7 translation cycle
 
 Manual testing in Firestorm on Windows
 
@@ -620,7 +637,7 @@ How to Use This Spec with Claude Code
 
 Open Claude Code in your project directory and paste this prompt:
 
-"Read the specification document GhostType\_Spec.md and build the MVP (v0.1). This is a Windows desktop application in Go. Start with the project structure and go.mod, then implement each module in this order: (1) config loading and validation with tests, (2) LLM client interface with Anthropic and OpenAI implementations and tests, (3) clipboard read/write, (4) Windows window detection for Firestorm, (5) Windows keyboard hooks for F3, F5, and Escape, (6) main app window UI showing results, (7) system tray icon, (8) main.go wiring everything together. Only implement correction mode (F3) for the MVP. Target Windows only. Use Fyne for the GUI."
+"Read the specification document GhostType\_Spec.md and build the MVP (v0.1). This is a Windows desktop application in Go. Start with the project structure and go.mod, then implement each module in this order: (1) config loading and validation with tests, (2) LLM client interface with Anthropic and OpenAI implementations and tests, (3) clipboard read/write, (4) Windows window detection for Firestorm, (5) Windows keyboard hooks for F6 and Escape, (6) main app window UI showing results, (7) system tray icon, (8) main.go wiring everything together. Only implement correction mode (F6) for the MVP. Target Windows only. Use Fyne for the GUI."
 
 
 
