@@ -1,0 +1,24 @@
+2026/02/25 18:47:42.204601 ==============================================
+2026/02/25 18:47:42.205120   GhostType POC v0.1.2 — F7 Clipboard Workflow
+2026/02/25 18:47:42.205120   (No LLM — uses test message)
+2026/02/25 18:47:42.205120   Log file: logs\ghosttype-poc-20260225-184742.log
+2026/02/25 18:47:42.205120 ==============================================
+2026/02/25 18:47:42.205120 INFO  Creating clipboard, keyboard, hotkey managers
+2026/02/25 18:47:42.205120 INFO  Registering Ctrl+G hotkey...
+2026/02/25 18:47:42.206387 [hotkey] Registered "correct": key=Ctrl+G id=1 mod=0x2 vk=0x47
+2026/02/25 18:47:42.206387 INFO  Ctrl+G hotkey registered OK
+2026/02/25 18:47:42.206387 INFO  Registering Ctrl+B diagnostic ping hotkey...
+2026/02/25 18:47:42.207596 [hotkey] Registered "ping": key=Ctrl+B id=2 mod=0x2 vk=0x42
+2026/02/25 18:47:42.207596 INFO  Ctrl+B hotkey registered OK
+2026/02/25 18:47:42.207596 INFO  Registering Escape hotkey...
+2026/02/25 18:47:42.207596 [hotkey] Registered "quit": key=Escape id=3 mod=0x0 vk=0x1B
+2026/02/25 18:47:42.207596 INFO  Escape hotkey registered OK
+2026/02/25 18:47:42.207596 INFO  Ctrl+G registered! Press Ctrl+G in any text field to test.
+2026/02/25 18:47:42.207596 INFO  Text will be uppercased with [CORRECTED] prefix.
+2026/02/25 18:47:42.207596 INFO  Press Ctrl+B to test hotkey delivery (ping)
+2026/02/25 18:47:42.207596 INFO  Press Escape to exit.
+2026/02/25 18:47:42.207596 [hotkey] Entering message loop (registered hotkeys: 3)
+2026/02/25 18:49:09.739290 [hotkey] GetMessage: msg=0x0312 wParam=0x2 lParam=0x420002
+2026/02/25 18:49:09.740317 [hotkey] WM_HOTKEY received: id=2
+2026/02/25 18:49:09.740317 [hotkey] Dispatching handler for "ping" (id=2)
+2026/02/25 18:49:09.740882 INFO  Ctrl+B ping — hotkey delivery confirmed
