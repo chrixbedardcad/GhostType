@@ -26,6 +26,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/chrixbedardcad/GhostType/internal/version"
 )
 
 var (
@@ -67,7 +69,7 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 
 	log.Println("==============================================")
-	log.Println("  GhostType POC v0.1.2 — F7 Clipboard Workflow")
+	log.Printf("  GhostType POC v%s — Ctrl+G Clipboard Workflow", version.Version)
 	log.Println("  (No LLM — uses test message)")
 	log.Printf("  Log file: %s", *logFile)
 	log.Println("==============================================")
