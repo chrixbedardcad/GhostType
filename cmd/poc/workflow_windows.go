@@ -28,16 +28,16 @@ func runLive() {
 	RunWindowsLive()
 }
 
-// RunWindowsLive registers F6 as a global hotkey and runs the clipboard
+// RunWindowsLive registers F7 as a global hotkey and runs the clipboard
 // workflow with a simple test message (no LLM).
 func RunWindowsLive() {
 	cb := clipboard.NewWindowsClipboard()
 	kb := keyboard.NewWindowsSimulator()
 	hk := hotkey.NewWindowsManager()
 
-	err := hk.Register("correct", "F6", func() {
-		fmt.Println("[F6] Correction triggered!")
-		winBeep(800, 100) // Short beep to confirm F6 press
+	err := hk.Register("correct", "F7", func() {
+		fmt.Println("[F7] Correction triggered!")
+		winBeep(800, 100) // Short beep to confirm F7 press
 
 		// Step 1: Save original clipboard
 		if err := cb.Save(); err != nil {
@@ -93,7 +93,7 @@ func RunWindowsLive() {
 		fmt.Println("[OK] Done!")
 	})
 	if err != nil {
-		fmt.Printf("Failed to register F6: %v\n", err)
+		fmt.Printf("Failed to register F7: %v\n", err)
 		return
 	}
 
@@ -108,7 +108,7 @@ func RunWindowsLive() {
 		return
 	}
 
-	fmt.Println("F6 registered! Press F6 in any text field to test.")
+	fmt.Println("F7 registered! Press F7 in any text field to test.")
 	fmt.Println("Text will be uppercased with [CORRECTED] prefix.")
 	fmt.Println("Press Escape to exit.")
 

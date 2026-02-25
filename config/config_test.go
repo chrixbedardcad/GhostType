@@ -22,14 +22,14 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.TimeoutMs != 5000 {
 		t.Errorf("expected default timeout_ms 5000, got %d", cfg.TimeoutMs)
 	}
-	if cfg.Hotkeys.Correct != "F6" {
-		t.Errorf("expected default correct hotkey 'F6', got '%s'", cfg.Hotkeys.Correct)
+	if cfg.Hotkeys.Correct != "F7" {
+		t.Errorf("expected default correct hotkey 'F7', got '%s'", cfg.Hotkeys.Correct)
 	}
-	if cfg.Hotkeys.Translate != "F7" {
-		t.Errorf("expected default translate hotkey 'F7', got '%s'", cfg.Hotkeys.Translate)
+	if cfg.Hotkeys.Translate != "F8" {
+		t.Errorf("expected default translate hotkey 'F8', got '%s'", cfg.Hotkeys.Translate)
 	}
-	if cfg.Hotkeys.Rewrite != "F8" {
-		t.Errorf("expected default rewrite hotkey 'F8', got '%s'", cfg.Hotkeys.Rewrite)
+	if cfg.Hotkeys.Rewrite != "F9" {
+		t.Errorf("expected default rewrite hotkey 'F9', got '%s'", cfg.Hotkeys.Rewrite)
 	}
 	if cfg.TargetWindow != "Firestorm" {
 		t.Errorf("expected default target_window 'Firestorm', got '%s'", cfg.TargetWindow)

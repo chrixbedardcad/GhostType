@@ -20,7 +20,7 @@ import (
 	"github.com/chrixbedardcad/GhostType/mode"
 )
 
-// TestFullCorrectionPipeline tests the complete F6 correction workflow
+// TestFullCorrectionPipeline tests the complete F7 correction workflow
 // with a mock LLM server.
 func TestFullCorrectionPipeline(t *testing.T) {
 	// 1. Set up mock LLM server
@@ -67,7 +67,7 @@ func TestFullCorrectionPipeline(t *testing.T) {
 	// 4. Create mode router
 	router := mode.NewRouter(cfg, client)
 
-	// 5. Simulate F6 correction
+	// 5. Simulate F7 correction
 	inputText := "Helo, how are yu tday?"
 	result, err := router.Process(context.Background(), mode.ModeCorrect, inputText)
 	if err != nil {
@@ -82,7 +82,7 @@ func TestFullCorrectionPipeline(t *testing.T) {
 	t.Logf("Output: %s", result)
 }
 
-// TestFullTranslationPipeline tests the F7 translation workflow.
+// TestFullTranslationPipeline tests the F8 translation workflow.
 func TestFullTranslationPipeline(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		resp := map[string]interface{}{
@@ -137,7 +137,7 @@ func TestFullTranslationPipeline(t *testing.T) {
 	t.Logf("Output: %s", result)
 }
 
-// TestFullRewritePipeline tests the F8 rewrite workflow.
+// TestFullRewritePipeline tests the F9 rewrite workflow.
 func TestFullRewritePipeline(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		resp := map[string]interface{}{

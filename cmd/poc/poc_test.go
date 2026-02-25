@@ -26,7 +26,7 @@ func TestCorrectText(t *testing.T) {
 	}
 }
 
-// TestPOC_ClipboardWorkflow simulates the full F6 workflow
+// TestPOC_ClipboardWorkflow simulates the full F7 workflow
 // using a mock clipboard.
 func TestPOC_ClipboardWorkflow(t *testing.T) {
 	var store string = "user's important data"
@@ -81,7 +81,7 @@ func TestPOC_ClipboardWorkflow(t *testing.T) {
 		t.Errorf("Clipboard not restored! Got %q", restored)
 	}
 
-	t.Log("PASS: Full F6 workflow verified")
+	t.Log("PASS: Full F7 workflow verified")
 	t.Logf("  Captured: %q → Corrected: %q → Clipboard restored: %q", captured, corrected, restored)
 }
 

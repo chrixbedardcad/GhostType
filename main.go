@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	fmt.Println("GhostType - AI-powered multilingual auto-correction")
+	fmt.Printf("GhostType v%s - AI-powered multilingual auto-correction\n", Version)
 	fmt.Println("====================================================")
 
 	// Determine config path (same directory as executable)

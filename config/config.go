@@ -76,11 +76,11 @@ func DefaultConfig() Config {
 		},
 		DefaultTranslateTarget: "en",
 		Hotkeys: Hotkeys{
-			Correct:        "F6",
-			Translate:      "F7",
-			ToggleLanguage: "Ctrl+F7",
-			Rewrite:        "F8",
-			CycleTemplate:  "Ctrl+F8",
+			Correct:        "F7",
+			Translate:      "F8",
+			ToggleLanguage: "Ctrl+F8",
+			Rewrite:        "F9",
+			CycleTemplate:  "Ctrl+F9",
 			Cancel:         "Escape",
 		},
 		TargetWindow: "Firestorm",
@@ -172,7 +172,7 @@ func applyDefaults(cfg *Config) {
 		cfg.TargetWindow = "Firestorm"
 	}
 	if cfg.Hotkeys.Correct == "" {
-		cfg.Hotkeys.Correct = "F6"
+		cfg.Hotkeys.Correct = "F7"
 	}
 	if cfg.Hotkeys.Cancel == "" {
 		cfg.Hotkeys.Cancel = "Escape"

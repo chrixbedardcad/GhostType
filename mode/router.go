@@ -13,9 +13,9 @@ import (
 type Mode int
 
 const (
-	ModeCorrect   Mode = iota // F6 - spelling/grammar correction
-	ModeTranslate             // F7 - translation
-	ModeRewrite               // F8 - creative rewrite
+	ModeCorrect   Mode = iota // F7 - spelling/grammar correction
+	ModeTranslate             // F8 - translation
+	ModeRewrite               // F9 - creative rewrite
 )
 
 func (m Mode) String() string {

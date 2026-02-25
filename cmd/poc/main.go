@@ -1,12 +1,12 @@
-// cmd/poc/main.go — Proof of Concept: F6 clipboard correction workflow
+// cmd/poc/main.go — Proof of Concept: F7 clipboard correction workflow
 //
-// This POC demonstrates the F6 correction pipeline WITHOUT any LLM calls.
+// This POC demonstrates the F7 correction pipeline WITHOUT any LLM calls.
 // Instead of calling an LLM, it uses a simple test message to prove
 // the clipboard workflow works end-to-end.
 //
 // The workflow:
-//   1. F6 hotkey registered as global hotkey (Windows)
-//   2. On F6: Ctrl+A → Ctrl+C → read clipboard → replace with test message → Ctrl+A → Ctrl+V
+//   1. F7 hotkey registered as global hotkey (Windows)
+//   2. On F7: Ctrl+A → Ctrl+C → read clipboard → replace with test message → Ctrl+A → Ctrl+V
 //   3. Original clipboard content is preserved and restored
 //
 // Build for Windows:
@@ -30,7 +30,7 @@ func main() {
 	flag.Parse()
 
 	fmt.Println("==============================================")
-	fmt.Println("  GhostType POC — F6 Clipboard Workflow")
+	fmt.Println("  GhostType POC v0.1.0 — F7 Clipboard Workflow")
 	fmt.Println("  (No LLM — uses test message)")
 	fmt.Println("==============================================")
 	fmt.Println()
@@ -56,7 +56,7 @@ func beep() {
 	fmt.Print("\a") // ASCII BEL character — terminal beep
 }
 
-// runTestMode simulates the full F6 clipboard workflow without any
+// runTestMode simulates the full F7 clipboard workflow without any
 // platform-specific APIs. Works on any OS.
 func runTestMode() {
 	fmt.Println("Running in TEST MODE (simulated clipboard)")

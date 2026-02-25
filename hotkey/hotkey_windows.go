@@ -24,9 +24,9 @@ const (
 	modShift = 0x0004
 
 	vkEscape = 0x1B
-	vkF6     = 0x75
 	vkF7     = 0x76
 	vkF8     = 0x77
+	vkF9     = 0x78
 )
 
 const wmHotkey = 0x0312
@@ -63,7 +63,7 @@ func NewWindowsManager() *WindowsManager {
 	}
 }
 
-// parseKey converts a key string like "F6" or "Ctrl+F7" into modifier and vk code.
+// parseKey converts a key string like "F7" or "Ctrl+F8" into modifier and vk code.
 func parseKey(key string) (uint32, uint32, error) {
 	var mod uint32
 	parts := strings.Split(key, "+")
@@ -88,9 +88,9 @@ func parseKey(key string) (uint32, uint32, error) {
 }
 
 var keyMap = map[string]uint32{
-	"f6":     vkF6,
 	"f7":     vkF7,
 	"f8":     vkF8,
+	"f9":     vkF9,
 	"escape": vkEscape,
 }
 
