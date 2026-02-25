@@ -4,6 +4,7 @@ package hotkey
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"sync"
 	"syscall"
@@ -106,11 +107,13 @@ func (m *WindowsManager) Register(name string, key string, handler Handler) erro
 	id := m.nextID
 	m.nextID++
 
-	ret, _, _ := procRegisterHotKey.Call(0, uintptr(id), uintptr(mod), uintptr(vk))
+	ret, _, err := procRegisterHotKey.Call(0, uintptr(id), uintptr(mod), uintptr(vk))
 	if ret == 0 {
+		log.Printf("[hotkey] RegisterHotKey FAILED for %q (key=%s id=%d mod=0x%X vk=0x%X): %v", name, key, id, mod, vk, err)
 		return fmt.Errorf("failed to register hotkey '%s' (id=%d)", key, id)
 	}
 
+	log.Printf("[hotkey] Registered %q: key=%s id=%d mod=0x%X vk=0x%X", name, key, id, mod, vk)
 	m.hotkeys[name] = registration{id: id, handler: handler}
 	return nil
 }
@@ -121,36 +124,50 @@ func (m *WindowsManager) Unregister(name string) error {
 
 	reg, ok := m.hotkeys[name]
 	if !ok {
+		log.Printf("[hotkey] Unregister %q: not found (no-op)", name)
 		return nil
 	}
 
+	log.Printf("[hotkey] Unregistering %q (id=%d)", name, reg.id)
 	procUnregisterHotKey.Call(0, uintptr(reg.id))
 	delete(m.hotkeys, name)
 	return nil
 }
 
 func (m *WindowsManager) Listen() error {
+	log.Printf("[hotkey] Entering message loop (registered hotkeys: %d)", len(m.hotkeys))
 	var message msg
 	for {
 		select {
 		case <-m.stopChan:
+			log.Printf("[hotkey] stopChan signalled — exiting message loop")
 			return nil
 		default:
 		}
 
 		ret, _, _ := procGetMessage.Call(uintptr(unsafe.Pointer(&message)), 0, 0, 0)
 		if ret == 0 {
+			log.Printf("[hotkey] GetMessage returned 0 (WM_QUIT) — exiting message loop")
 			break
 		}
 
+		log.Printf("[hotkey] GetMessage: msg=0x%04X wParam=0x%X lParam=0x%X", message.message, message.wParam, message.lParam)
+
 		if message.message == wmHotkey {
 			id := int(message.wParam)
+			log.Printf("[hotkey] WM_HOTKEY received: id=%d", id)
 			m.mu.Lock()
-			for _, reg := range m.hotkeys {
+			matched := false
+			for name, reg := range m.hotkeys {
 				if reg.id == id {
+					log.Printf("[hotkey] Dispatching handler for %q (id=%d)", name, id)
 					go reg.handler()
+					matched = true
 					break
 				}
+			}
+			if !matched {
+				log.Printf("[hotkey] WARNING: no registered handler for hotkey id=%d", id)
 			}
 			m.mu.Unlock()
 		}
