@@ -1,26 +1,58 @@
-GhostType
-AI-powered multilingual auto-correction, translation, and creative rewriting for virtual world chat.
-GhostType is a lightweight background service that hooks into your chat application (primarily Firestorm Second Life viewer) and provides real-time spelling correction, language translation, and creative text rewriting powered by your choice of LLM provider.
-Type in French, hit F3, get it corrected. Switch to English, hit F3, corrected too. Need to translate? F4. Want a funny reply? Ctrl+F3. Accept with F5 or dismiss with Escape. That simple.
+<p align="center">
+  <img src="GhostType_logo.png" alt="GhostType Logo" width="300">
+</p>
 
-Features
+# GhostType
 
-Correct — Auto-detects French or English and fixes spelling, grammar, and syntax errors
-Translate — Instantly translates between French and English (or any configured language pair)
-Rewrite — Rewrites your text using customizable prompt templates (funny, formal, sarcastic, flirty, poetic, and more)
-Multi-Provider — Works with Anthropic Claude, OpenAI GPT, Google Gemini, xAI Grok, or local Ollama models
-Hotkey Driven — F3 to correct, F4 to translate, Ctrl+F3 to rewrite, F5 to accept, Escape to cancel
-Configurable — JSON config file for API keys, providers, hotkeys, prompts, overlay settings, and custom rewrite templates
-Lightweight — Single binary, runs in the background, under 50MB memory, near-zero CPU at idle
-Cross-Platform — Windows first, Linux and macOS coming in future releases
+**AI-powered multilingual auto-correction, translation, and creative rewriting for virtual world chat.**
 
+GhostType is a lightweight background service that hooks into your chat application (primarily Firestorm Second Life viewer) and provides real-time spelling correction, language translation, and creative text rewriting — powered by your choice of LLM provider.
 
-Quick Start
-1. Download
-Download the latest release for your platform from the Releases page.
-2. Configure
-On first run, GhostType creates a default config.json in the same directory. Open it and add your API key:
-json{
+Type in French, hit **F3**, get it corrected. Switch to English, hit **F3**, corrected too. Need to translate? **F4**. Want a funny reply? **Ctrl+F3**. Accept with **F5** or dismiss with **Escape**. That simple.
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Hotkeys](#hotkeys)
+- [Configuration](#configuration)
+- [Supported Providers](#supported-providers)
+- [Custom Rewrite Templates](#custom-rewrite-templates)
+- [Building from Source](#building-from-source)
+- [How It Works](#how-it-works)
+- [Roadmap](#roadmap)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+
+---
+
+## Features
+
+- **Correct** — Auto-detects French or English and fixes spelling, grammar, and syntax errors
+- **Translate** — Instantly translates between French and English (or any configured language pair)
+- **Rewrite** — Rewrites your text using customizable prompt templates (funny, formal, sarcastic, flirty, poetic, and more)
+- **Multi-Provider** — Works with Anthropic Claude, OpenAI GPT, Google Gemini, xAI Grok, or local Ollama models
+- **Hotkey Driven** — F3 to correct, F4 to translate, Ctrl+F3 to rewrite, F5 to accept, Escape to cancel
+- **Configurable** — JSON config file for API keys, providers, hotkeys, prompts, overlay settings, and custom rewrite templates
+- **Lightweight** — Single binary, runs in the background, under 50 MB memory, near-zero CPU at idle
+- **Cross-Platform** — Windows first, Linux and macOS coming in future releases
+
+---
+
+## Quick Start
+
+### 1. Download
+
+Download the latest release for your platform from the [Releases](https://github.com/chrixbedardcad/GhostType/releases) page.
+
+### 2. Configure
+
+On first run, GhostType creates a default `config.json` in the same directory. Open it and add your API key:
+
+```json
+{
   "llm_provider": "anthropic",
   "api_key": "YOUR_API_KEY_HERE",
   "model": "claude-sonnet-4-5-20250929"
@@ -28,17 +60,36 @@ json{
 ```
 
 ### 3. Run
-```
+
+```bash
 ghosttype.exe
-GhostType starts minimized in your system tray. Open Firestorm, type something in chat, and press F3.
+```
 
-Hotkeys
-HotkeyActionF3Correct spelling and grammarF4Translate to target languageCtrl+F3Rewrite using active templateCtrl+F4Cycle through rewrite templatesF5Accept and replace textEscapeDismiss and cancel
-All hotkeys are configurable in config.json.
+GhostType starts minimized in your system tray. Open Firestorm, type something in chat, and press **F3**.
 
-Configuration
-GhostType is configured entirely through config.json. Here is a full example:
-json{
+---
+
+## Hotkeys
+
+| Hotkey | Action |
+|--------|--------|
+| **F3** | Correct spelling and grammar |
+| **F4** | Translate to target language |
+| **Ctrl+F3** | Rewrite using active template |
+| **Ctrl+F4** | Cycle through rewrite templates |
+| **F5** | Accept and replace text |
+| **Escape** | Dismiss and cancel |
+
+All hotkeys are configurable in `config.json`.
+
+---
+
+## Configuration
+
+GhostType is configured entirely through `config.json`. Here is a full example:
+
+```json
+{
   "llm_provider": "anthropic",
   "api_key": "sk-ant-xxxxx",
   "model": "claude-sonnet-4-5-20250929",
@@ -58,11 +109,11 @@ json{
     "correct": "Detect the language. Fix spelling and grammar. Return ONLY corrected text.",
     "translate": "Translate to {target_language}. Return ONLY the translation.",
     "rewrite_templates": [
-      {"name": "funny", "prompt": "Rewrite as a funny, witty reply. Return ONLY the text."},
-      {"name": "formal", "prompt": "Rewrite in a formal tone. Return ONLY the text."},
-      {"name": "sarcastic", "prompt": "Rewrite with heavy sarcasm. Return ONLY the text."},
-      {"name": "flirty", "prompt": "Rewrite in a playful, flirty tone. Return ONLY the text."},
-      {"name": "poetic", "prompt": "Rewrite as a romantic poet. Return ONLY the text."}
+      { "name": "funny", "prompt": "Rewrite as a funny, witty reply. Return ONLY the text." },
+      { "name": "formal", "prompt": "Rewrite in a formal tone. Return ONLY the text." },
+      { "name": "sarcastic", "prompt": "Rewrite with heavy sarcasm. Return ONLY the text." },
+      { "name": "flirty", "prompt": "Rewrite in a playful, flirty tone. Return ONLY the text." },
+      { "name": "poetic", "prompt": "Rewrite as a romantic poet. Return ONLY the text." }
     ]
   },
   "overlay": {
@@ -78,66 +129,106 @@ json{
   "log_level": "info",
   "log_file": "ghosttype.log"
 }
-Supported Providers
-ProviderConfig ValueNotesAnthropic ClaudeanthropicRecommended. Excellent multilingual support.OpenAI GPTopenaiGPT-4o or GPT-4 Turbo recommended.Google GeminigeminiGood for multilingual tasks.xAI GrokxaiFast inference.Ollama (local)ollamaFree, private, no API key needed. Requires Ollama running locally.
-Set api_endpoint to override the default endpoint for any provider, useful for proxies or custom deployments.
+```
 
-Adding Custom Rewrite Templates
-You can add your own rewrite styles by editing the rewrite_templates array in config.json:
-json{
+---
+
+## Supported Providers
+
+| Provider | Config Value | Notes |
+|----------|-------------|-------|
+| Anthropic Claude | `anthropic` | Recommended. Excellent multilingual support. |
+| OpenAI GPT | `openai` | GPT-4o or GPT-4 Turbo recommended. |
+| Google Gemini | `gemini` | Good for multilingual tasks. |
+| xAI Grok | `xai` | Fast inference. |
+| Ollama (local) | `ollama` | Free, private, no API key needed. Requires Ollama running locally. |
+
+Set `api_endpoint` to override the default endpoint for any provider — useful for proxies or custom deployments.
+
+---
+
+## Custom Rewrite Templates
+
+You can add your own rewrite styles by editing the `rewrite_templates` array in `config.json`:
+
+```json
+{
   "name": "pirate",
   "prompt": "Rewrite this as a pirate would say it. Return ONLY the rewritten text."
 }
-Cycle through templates in real-time with Ctrl+F4. The overlay shows which template is currently active.
+```
 
-Building from Source
-Requirements
+Cycle through templates in real-time with **Ctrl+F4**. The overlay shows which template is currently active.
 
-Go 1.22 or later
-Windows 10/11 (MVP target)
+---
 
-Build
-bashgit clone https://github.com/yourusername/ghosttype.git
-cd ghosttype
+## Building from Source
+
+### Requirements
+
+- Go 1.22 or later
+- Windows 10/11 (MVP target)
+
+### Build
+
+```bash
+git clone https://github.com/chrixbedardcad/GhostType.git
+cd GhostType
 go mod download
 go build -o ghosttype.exe
-Run Tests
-bashgo test ./...
+```
 
-How It Works
+### Run Tests
 
-GhostType runs in the background and watches for hotkey presses.
-It only activates when the configured target window (default: Firestorm) is focused.
-When you press a hotkey, it selects all text in the active chat input, copies it to clipboard, and reads it.
-The text is sent to your configured LLM provider with the appropriate prompt.
-The corrected/translated/rewritten result appears in an overlay near the chat input.
-Press F5 to accept (replaces your original text) or Escape to dismiss.
-Your original clipboard content is preserved and restored.
+```bash
+go test ./...
+```
 
+---
 
-Roadmap
-v0.1 — MVP (current)
-Windows desktop app. Correction mode only. Anthropic and OpenAI support. Results shown in app window.
-v0.2 — Translation and Overlay
-Translation mode. Transparent overlay window. Ollama support. Linux support.
-v0.3 — Rewrite Mode
-Creative rewrite mode with templates. Config hot-reload. Correction history. macOS support.
-v0.4 — More Providers
-Gemini and xAI support. GUI config panel. Additional languages.
-v0.5 — Power Features
-Real-time Grammarly-style correction. Usage stats. Custom provider plugins.
+## How It Works
 
-Troubleshooting
-GhostType doesn't respond to hotkeys: Make sure the target window (Firestorm) is focused and the window title matches the target_window value in config.json.
-API errors: Check your API key in config.json. Check ghosttype.log for detailed error messages. Verify your provider account has available credits.
-Slow corrections: LLM response time depends on your provider and network. Try a faster model or switch to a local Ollama instance for instant responses.
-Hotkey conflicts: If F3/F5 conflict with other applications, change the hotkeys in config.json.
+1. GhostType runs in the background and watches for hotkey presses.
+2. It only activates when the configured target window (default: Firestorm) is focused.
+3. When you press a hotkey, it selects all text in the active chat input, copies it to clipboard, and reads it.
+4. The text is sent to your configured LLM provider with the appropriate prompt.
+5. The corrected/translated/rewritten result appears in an overlay near the chat input.
+6. Press **F5** to accept (replaces your original text) or **Escape** to dismiss.
+7. Your original clipboard content is preserved and restored.
 
-License
+---
+
+## Roadmap
+
+| Version | Focus | Highlights |
+|---------|-------|------------|
+| **v0.1** | MVP (current) | Windows desktop app. Correction mode. Anthropic and OpenAI support. |
+| **v0.2** | Translation & Overlay | Translation mode. Transparent overlay. Ollama support. Linux. |
+| **v0.3** | Rewrite Mode | Creative rewrite templates. Config hot-reload. macOS. |
+| **v0.4** | More Providers | Gemini and xAI support. GUI config panel. Additional languages. |
+| **v0.5** | Power Features | Real-time Grammarly-style correction. Usage stats. Custom plugins. |
+
+---
+
+## Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| GhostType doesn't respond to hotkeys | Make sure the target window (Firestorm) is focused and the window title matches `target_window` in `config.json`. |
+| API errors | Check your API key in `config.json`. Check `ghosttype.log` for details. Verify your provider account has credits. |
+| Slow corrections | Response time depends on provider and network. Try a faster model or switch to a local Ollama instance. |
+| Hotkey conflicts | If F3/F5 conflict with other apps, change the hotkeys in `config.json`. |
+
+---
+
+## License
+
 MIT
 
-Author
+## Author
+
 Chris
 
-Acknowledgments
-Inspired by the UX patterns of Grammarly, LanguageTool, Espanso, Raycast AI, and macOS inline autocorrect. Built for the Second Life community.
+## Acknowledgments
+
+Inspired by the UX patterns of [Grammarly](https://www.grammarly.com/), [LanguageTool](https://languagetool.org/), [Espanso](https://espanso.org/), [Raycast AI](https://www.raycast.com/), and macOS inline autocorrect. Built for the Second Life community.
