@@ -21,9 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/signal"
 	"strings"
-	"syscall"
 )
 
 var testMode = flag.Bool("test", false, "Run in test mode with simulated clipboard (no Windows APIs needed)")
@@ -42,19 +40,7 @@ func main() {
 		return
 	}
 
-	// On non-Windows, just show instructions
-	fmt.Println("This POC requires Windows for live hotkey support.")
-	fmt.Println("Use '-test' flag to run the simulated demo:")
-	fmt.Println("  go run ./cmd/poc -test")
-	fmt.Println()
-	fmt.Println("On Windows, build and run:")
-	fmt.Println("  go build -o ghosttype-poc.exe ./cmd/poc")
-	fmt.Println("  ghosttype-poc.exe")
-	fmt.Println()
-
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-	<-sigChan
+	runLive()
 }
 
 // correctText is the simple test replacement — no LLM needed.

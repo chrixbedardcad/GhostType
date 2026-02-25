@@ -24,9 +24,8 @@ func winBeep(freq, durationMs uint32) {
 	procBeep.Call(uintptr(freq), uintptr(durationMs))
 }
 
-func init() {
-	// On Windows, override main to use live hotkey mode
-	// This is called before main() when built on Windows
+func runLive() {
+	RunWindowsLive()
 }
 
 // RunWindowsLive registers F6 as a global hotkey and runs the clipboard
