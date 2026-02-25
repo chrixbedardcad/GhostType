@@ -4,6 +4,7 @@ package main
 
 import (
 	"os"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -30,6 +31,11 @@ func runLive() {
 // RunWindowsLive registers Ctrl+G as a global hotkey and runs the clipboard
 // workflow with a simple test message (no LLM).
 func RunWindowsLive() {
+	// Windows RegisterHotKey and GetMessageW must run on the same OS thread.
+	// Without this, Go's scheduler can move the goroutine between threads,
+	// causing the message loop to stop receiving hotkey events after the first press.
+	runtime.LockOSThread()
+
 	logInfo("Creating clipboard, keyboard, hotkey managers")
 	cb := clipboard.NewWindowsClipboard()
 	kb := keyboard.NewWindowsSimulator()

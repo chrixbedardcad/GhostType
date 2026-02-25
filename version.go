@@ -1,3 +1,6 @@
 package main
 
-const Version = "0.1.5"
+import "github.com/chrixbedardcad/GhostType/internal/version"
+
+// Version re-exported from the single source of truth in internal/version.
+var Version = version.Version
