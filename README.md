@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="GhostType_logo.png" alt="GhostType Logo" width="300">
+</p>
+
 # GhostType
 
 **AI-powered multilingual auto-correction, translation, and creative rewriting for virtual world chat.**
