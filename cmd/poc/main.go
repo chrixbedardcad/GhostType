@@ -23,16 +23,38 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
+	"time"
 )
 
 var (
 	testMode = flag.Bool("test", false, "Run in test mode with simulated clipboard (no Windows APIs needed)")
-	logFile  = flag.String("log", "ghosttype-poc.log", "Path to debug log file")
+	logFile  = flag.String("log", "", "Path to debug log file (default: logs/ghosttype-poc-<timestamp>.log)")
 )
+
+// Log-level helper functions — conventional format: datetime LEVEL message
+func logInfo(format string, v ...any)  { log.Printf("INFO  "+format, v...) }
+func logWarn(format string, v ...any)  { log.Printf("WARN  "+format, v...) }
+func logError(format string, v ...any) { log.Printf("ERROR "+format, v...) }
+func logDebug(format string, v ...any) { log.Printf("DEBUG "+format, v...) }
 
 func main() {
 	flag.Parse()
+
+	// Generate timestamped log path if none specified
+	if *logFile == "" {
+		ts := time.Now().Format("20060102-150405")
+		*logFile = filepath.Join("logs", fmt.Sprintf("ghosttype-poc-%s.log", ts))
+	}
+
+	// Ensure log directory exists
+	if dir := filepath.Dir(*logFile); dir != "." {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to create log directory %s: %v\n", dir, err)
+			os.Exit(1)
+		}
+	}
 
 	// Set up logging to both stdout and log file
 	f, err := os.OpenFile(*logFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
@@ -45,7 +67,7 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 
 	log.Println("==============================================")
-	log.Println("  GhostType POC v0.1.0 — F7 Clipboard Workflow")
+	log.Println("  GhostType POC v0.1.2 — F7 Clipboard Workflow")
 	log.Println("  (No LLM — uses test message)")
 	log.Printf("  Log file: %s", *logFile)
 	log.Println("==============================================")

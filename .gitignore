@@ -13,6 +13,7 @@ ghosttype
 
 # Runtime files
 ghosttype.log
+logs/*.log
 config.json
 
 # Test binary, built with `go test -c`
