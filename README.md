@@ -8,7 +8,7 @@
 
 GhostType is a lightweight background service that hooks into your chat application (primarily Firestorm Second Life viewer) and provides real-time spelling correction, language translation, and creative text rewriting — powered by your choice of LLM provider.
 
-Type in French, hit **F6**, get it corrected. Switch to English, hit **F6**, corrected too. Need to translate? **F7**. Want a funny reply? **F8**. Undo with **Ctrl+Z** or cancel with **Escape**. That simple.
+Type in French, hit **F6**, get it corrected. Switch to English, hit **F6**, corrected too. Need to translate? **F7**. Want to change the target language? **Ctrl+F7** — a tiny floating label near your cursor shows "To French" or "To English". Want a funny reply? **F8**. Want to switch rewrite style? **Ctrl+F8** — a floating label shows "Funny", "Professional", etc. Undo with **Ctrl+Z** or cancel with **Escape**. That simple.
 
 ---
 
@@ -34,7 +34,7 @@ Type in French, hit **F6**, get it corrected. Switch to English, hit **F6**, cor
 - **Translate** — Instantly translates between French and English (or any configured language pair)
 - **Rewrite** — Rewrites your text using customizable prompt templates (funny, formal, sarcastic, flirty, poetic, and more)
 - **Multi-Provider** — Works with Anthropic Claude, OpenAI GPT, Google Gemini, xAI Grok, or local Ollama models
-- **Hotkey Driven** — F6 to correct, F7 to translate, F8 to rewrite, Ctrl+F8 to cycle templates, Escape to cancel
+- **Hotkey Driven** — F6 to correct, F7 to translate, F8 to rewrite, Ctrl+F7 to toggle translation language, Ctrl+F8 to cycle rewrite templates, Escape to cancel
 - **Configurable** — JSON config file for API keys, providers, hotkeys, prompts, overlay settings, and custom rewrite templates
 - **Lightweight** — Single binary, runs in the background, under 50 MB memory, near-zero CPU at idle
 - **Cross-Platform** — Windows first, Linux and macOS coming in future releases
@@ -73,10 +73,11 @@ GhostType starts minimized in your system tray. Open Firestorm, type something i
 
 | Hotkey | Action |
 |--------|--------|
-| **F6** | Correct spelling and grammar |
-| **F7** | Translate to target language |
-| **F8** | Rewrite using active template |
-| **Ctrl+F8** | Cycle through rewrite templates |
+| **F6** | Correct spelling, grammar, and syntax |
+| **Ctrl+F7** | Toggle translation target language (shows cursor notification) |
+| **F7** | Translate to selected target language |
+| **Ctrl+F8** | Toggle rewrite template (shows cursor notification) |
+| **F8** | Rewrite using selected template |
 | **Escape** | Cancel in-progress operation |
 | **Ctrl+Z** | Undo replacement (native) |
 
@@ -94,11 +95,16 @@ GhostType is configured entirely through `config.json`. Here is a full example:
   "api_key": "sk-ant-xxxxx",
   "model": "claude-sonnet-4-5-20250929",
   "api_endpoint": "",
-  "languages": ["fr", "en"],
+  "languages": ["en", "fr"],
+  "language_names": {
+    "en": "English",
+    "fr": "French"
+  },
   "default_translate_target": "en",
   "hotkeys": {
     "correct": "F6",
     "translate": "F7",
+    "toggle_language": "Ctrl+F7",
     "rewrite": "F8",
     "cycle_template": "Ctrl+F8",
     "cancel": "Escape"
@@ -157,7 +163,7 @@ You can add your own rewrite styles by editing the `rewrite_templates` array in 
 }
 ```
 
-Cycle through templates in real-time with **Ctrl+F8**. The overlay shows which template is currently active.
+Cycle through templates in real-time with **Ctrl+F8**. A brief floating label appears near your cursor showing the newly selected template name (e.g., "Funny", "Professional"). Similarly, toggle the translation target language with **Ctrl+F7** — a label appears showing "To French", "To English", etc.
 
 ---
 
@@ -189,11 +195,12 @@ go test ./...
 
 1. GhostType runs in the background and watches for hotkey presses.
 2. It only activates when the configured target window (default: Firestorm) is focused.
-3. When you press a hotkey, it selects all text in the active chat input, copies it to clipboard, and reads it.
-4. The text is sent to your configured LLM provider with the appropriate prompt.
-5. The corrected/translated/rewritten result appears in an overlay near the chat input.
-6. The result auto-replaces your text. Press **Escape** to cancel, or **Ctrl+Z** to undo.
-7. Your original clipboard content is preserved and restored.
+3. Before translating, you can press **Ctrl+F7** to toggle the translation target language. A brief floating label appears near your cursor showing the new target (e.g., "To French"). Before rewriting, you can press **Ctrl+F8** to toggle the rewrite template. A floating label appears showing the template name (e.g., "Funny", "Professional").
+4. When you press an action hotkey (**F6**, **F7**, or **F8**), GhostType selects all text in the active chat input, copies it to clipboard, and reads it.
+5. The text is sent to your configured LLM provider with the appropriate prompt.
+6. The corrected/translated/rewritten result appears in an overlay near the chat input.
+7. The result auto-replaces your text. Press **Escape** to cancel, or **Ctrl+Z** to undo.
+8. Your original clipboard content is preserved and restored.
 
 ---
 
@@ -202,8 +209,8 @@ go test ./...
 | Version | Focus | Highlights |
 |---------|-------|------------|
 | **v0.1** | MVP (current) | Windows desktop app. Correction mode. Anthropic and OpenAI support. |
-| **v0.2** | Translation & Overlay | Translation mode. Transparent overlay. Ollama support. Linux. |
-| **v0.3** | Rewrite Mode | Creative rewrite templates. Config hot-reload. macOS. |
+| **v0.2** | Translation & Overlay | Translation mode. Ctrl+F7 toggle language with cursor notification. Transparent overlay. Ollama support. Linux. |
+| **v0.3** | Rewrite Mode | Creative rewrite templates. Ctrl+F8 toggle template with cursor notification. Config hot-reload. macOS. |
 | **v0.4** | More Providers | Gemini and xAI support. GUI config panel. Additional languages. |
 | **v0.5** | Power Features | Real-time Grammarly-style correction. Usage stats. Custom plugins. |
 

@@ -52,11 +52,11 @@ Detects the language of the typed text (French or English). Fixes all spelling, 
 
 Mode 2 — Translate (F7)
 
-Translates the typed text to the configured target language. Auto-detects source language. User configures default target language in config.json. Useful for switching between French and English chat in Firestorm.
+Translates the typed text to the currently selected target language. Auto-detects source language. User configures default target language in config.json and can toggle through the languages list at any time with Ctrl+F7 — a brief floating label near the cursor confirms the new target (e.g., "To French"). Useful for switching between French and English chat in Firestorm.
 
 Mode 3 — Rewrite (F8)
 
-Sends the typed text to the LLM with a creative prompt template. User cycles through available templates with Ctrl+F8. Templates are fully configurable in config.json. Examples: funny reply, formal tone, sarcastic, flirty, poetic, ELI5, pirate speak, or any custom prompt the user defines.
+Sends the typed text to the LLM with a creative prompt template. User toggles through available templates with Ctrl+F8 — a brief floating label near the cursor shows the newly selected template name (e.g., "Funny", "Professional"). Templates are fully configurable in config.json. Examples: funny reply, formal tone, sarcastic, flirty, poetic, ELI5, pirate speak, or any custom prompt the user defines.
 
 
 
@@ -68,11 +68,13 @@ Full Hotkey Map
 
 F6: Capture text and send for correction (Mode 1)
 
-F7: Capture text and send for translation (Mode 2)
+Ctrl+F7: Toggle translation target language. Cycles through the languages list in config.json. Shows a brief cursor-near notification displaying the new target language name (e.g., "To French", "To English"). Does not perform any text action, just switches the target.
+
+F7: Capture text and send for translation to the currently selected target language (Mode 2)
+
+Ctrl+F8: Toggle rewrite template. Cycles through the rewrite_templates list in config.json. Shows a brief cursor-near notification displaying the template name (e.g., "Funny", "Professional", "Casual"). Does not perform any text action, just switches the active template.
 
 F8: Capture text and send for rewrite using active template (Mode 3)
-
-Ctrl+F8: Cycle through rewrite templates (overlay shows current template name)
 
 Escape: Cancel in-progress operation
 
@@ -85,6 +87,8 @@ Detailed Flow
 
 
 User types text in target application chat input field.
+
+Optionally, user presses Ctrl+F7 to toggle the translation target language or Ctrl+F8 to toggle the rewrite template. A brief floating label appears near the cursor confirming the selection (e.g., "To French" or "Funny").
 
 User presses the hotkey for the desired mode (F6, F7, or F8).
 
@@ -135,7 +139,9 @@ Service starts on boot or manually, reads config.json.
 
 Service runs in background, monitoring for hotkey presses when target window is active.
 
-On hotkey press, service captures text, determines mode, sends to LLM API.
+User can press Ctrl+F7 to toggle the translation target language or Ctrl+F8 to toggle the rewrite template. A brief floating label appears near the cursor confirming the selection.
+
+On action hotkey press (F6, F7, F8), service captures text, determines mode, sends to LLM API.
 
 LLM returns result, service displays in overlay.
 
@@ -151,7 +157,9 @@ Window Detection Module — Detects if the target application is the active/focu
 
 Text Capture Module — Grabs current chat input text via clipboard. Selects all text in the active input field (Ctrl+A / Cmd+A), copies to clipboard, reads clipboard content. Saves and restores original clipboard content to avoid disrupting user workflow.
 
-Mode Router — Determines which prompt to use based on the hotkey pressed. Routes to correction, translation, or rewrite prompt. Manages the active rewrite template selection.
+Cursor Notification Module — Displays a tiny, semi-transparent floating label near the mouse cursor position when the user presses Ctrl+F7 or Ctrl+F8. The label shows the name of the newly selected language (e.g., "To French") or template (e.g., "Funny"). It appears for 2 seconds and fades out. On Windows this is implemented as a small borderless, always-on-top, transparent window positioned near the cursor using GetCursorPos. This is NOT a full overlay, just a minimal floating label.
+
+Mode Router — Determines which prompt to use based on the hotkey pressed. Routes to correction, translation, or rewrite prompt. Manages the active rewrite template selection and active translation target language.
 
 LLM API Client Module — Sends requests to configured provider. Supports: OpenAI, Anthropic (Claude), Google Gemini, xAI (Grok), Ollama (local). Handles authentication, request formatting, response parsing per provider. Implements timeout and retry logic. Provider-agnostic interface so adding new providers is straightforward.
 
@@ -177,7 +185,15 @@ Configuration File (config.json)
 
 &nbsp; "api\_endpoint": "",
 
-&nbsp; "languages": \["fr", "en"],
+&nbsp; "languages": \["en", "fr"],
+
+&nbsp; "language\_names": {
+
+&nbsp;   "en": "English",
+
+&nbsp;   "fr": "French"
+
+&nbsp; },
 
 &nbsp; "default\_translate\_target": "en",
 
@@ -186,6 +202,8 @@ Configuration File (config.json)
 &nbsp;   "correct": "F6",
 
 &nbsp;   "translate": "F7",
+
+&nbsp;   "toggle\_language": "Ctrl+F7",
 
 &nbsp;   "rewrite": "F8",
 
@@ -351,6 +369,8 @@ v0.2 — Translation and Overlay
 
 Add translation mode (F7)
 
+Ctrl+F7 toggle translation target language with cursor notification
+
 Transparent overlay window replaces the app window for showing results
 
 Overlay positioned near target application chat input
@@ -368,6 +388,8 @@ v0.3 — Rewrite Mode and Polish
 
 
 Add rewrite mode (F8) with configurable templates
+
+Ctrl+F8 toggle rewrite template with cursor notification
 
 Template cycling (Ctrl+F8)
 
@@ -574,6 +596,12 @@ ghosttype/
 &nbsp; clipboard/
 
 &nbsp;   clipboard.go           — Clipboard read/write with preservation
+
+&nbsp; cursor/
+
+&nbsp;   cursor.go              — Interface for cursor position and floating label
+
+&nbsp;   cursor\_windows.go      — Windows implementation using GetCursorPos and borderless window
 
 &nbsp; mode/
 
