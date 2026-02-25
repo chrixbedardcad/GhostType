@@ -130,10 +130,22 @@ func RunWindowsLive() {
 	}
 	logInfo("F7 hotkey registered OK")
 
+	logInfo("Registering F8 diagnostic ping hotkey...")
+	err = hk.Register("ping", "F8", func() {
+		logInfo("F8 ping — hotkey delivery confirmed")
+		winBeep(600, 200)
+	})
+	if err != nil {
+		logError("Failed to register F8: %v", err)
+		return
+	}
+	logInfo("F8 hotkey registered OK")
+
 	logInfo("Registering Escape hotkey...")
 	err = hk.Register("quit", "Escape", func() {
 		logInfo("Escape pressed — exiting cleanly.")
 		hk.Unregister("correct")
+		hk.Unregister("ping")
 		hk.Unregister("quit")
 		os.Exit(0)
 	})
@@ -145,6 +157,7 @@ func RunWindowsLive() {
 
 	logInfo("F7 registered! Press F7 in any text field to test.")
 	logInfo("Text will be uppercased with [CORRECTED] prefix.")
+	logInfo("Press F8 to test hotkey delivery (ping)")
 	logInfo("Press Escape to exit.")
 
 	hk.Listen()
