@@ -8,6 +8,13 @@
 *.so
 *.dylib
 
+# Built binary (Linux/macOS)
+ghosttype
+
+# Runtime files
+ghosttype.log
+config.json
+
 # Test binary, built with `go test -c`
 *.test
 
