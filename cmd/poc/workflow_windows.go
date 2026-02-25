@@ -27,7 +27,7 @@ func runLive() {
 	RunWindowsLive()
 }
 
-// RunWindowsLive registers F7 as a global hotkey and runs the clipboard
+// RunWindowsLive registers Ctrl+F7 as a global hotkey and runs the clipboard
 // workflow with a simple test message (no LLM).
 func RunWindowsLive() {
 	logInfo("Creating clipboard, keyboard, hotkey managers")
@@ -35,8 +35,8 @@ func RunWindowsLive() {
 	kb := keyboard.NewWindowsSimulator()
 	hk := hotkey.NewWindowsManager()
 
-	logInfo("Registering F7 hotkey...")
-	err := hk.Register("correct", "F7", func() {
+	logInfo("Registering Ctrl+F7 hotkey...")
+	err := hk.Register("correct", "Ctrl+F7", func() {
 		logInfo("---- Correction triggered! ----")
 		winBeep(800, 100) // Short beep to confirm F7 press
 
@@ -125,21 +125,21 @@ func RunWindowsLive() {
 		logInfo("---- Correction complete! ----")
 	})
 	if err != nil {
-		logError("Failed to register F7: %v", err)
+		logError("Failed to register Ctrl+F7: %v", err)
 		return
 	}
-	logInfo("F7 hotkey registered OK")
+	logInfo("Ctrl+F7 hotkey registered OK")
 
-	logInfo("Registering F8 diagnostic ping hotkey...")
-	err = hk.Register("ping", "F8", func() {
-		logInfo("F8 ping — hotkey delivery confirmed")
+	logInfo("Registering Ctrl+F8 diagnostic ping hotkey...")
+	err = hk.Register("ping", "Ctrl+F8", func() {
+		logInfo("Ctrl+F8 ping — hotkey delivery confirmed")
 		winBeep(600, 200)
 	})
 	if err != nil {
-		logError("Failed to register F8: %v", err)
+		logError("Failed to register Ctrl+F8: %v", err)
 		return
 	}
-	logInfo("F8 hotkey registered OK")
+	logInfo("Ctrl+F8 hotkey registered OK")
 
 	logInfo("Registering Escape hotkey...")
 	err = hk.Register("quit", "Escape", func() {
@@ -155,9 +155,9 @@ func RunWindowsLive() {
 	}
 	logInfo("Escape hotkey registered OK")
 
-	logInfo("F7 registered! Press F7 in any text field to test.")
+	logInfo("Ctrl+F7 registered! Press Ctrl+F7 in any text field to test.")
 	logInfo("Text will be uppercased with [CORRECTED] prefix.")
-	logInfo("Press F8 to test hotkey delivery (ping)")
+	logInfo("Press Ctrl+F8 to test hotkey delivery (ping)")
 	logInfo("Press Escape to exit.")
 
 	hk.Listen()
