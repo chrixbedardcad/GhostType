@@ -89,11 +89,11 @@ func RunWindowsLive() {
 			return
 		}
 
-		logDebug("Step 4: Clipboard text (%d chars): %q", len(text), text)
+		logInfo("Captured text (%d chars): %q", len(text), text)
 
 		// Step 5: Apply simple correction (no LLM)
 		corrected := correctText(text)
-		logDebug("Step 5: Corrected text: %q", corrected)
+		logInfo("Corrected text: %q", corrected)
 
 		// Step 6: Write result to clipboard
 		logDebug("Step 6: Writing corrected text to clipboard...")
