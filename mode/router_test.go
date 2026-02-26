@@ -32,10 +32,13 @@ func newTestConfig() *config.Config {
 		Model:                  "claude-sonnet-4-5-20250929",
 		Languages:              []string{"en", "fr"},
 		LanguageNames:          map[string]string{"en": "English", "fr": "French"},
+		TranslateTargets:       []string{"en|fr"},
+		ParsedTargets:          []config.TranslateTarget{{LangA: "en", LangB: "fr"}},
 		DefaultTranslateTarget: "en",
 		Prompts: config.Prompts{
-			Correct:   "Fix spelling and grammar. Return ONLY corrected text.",
-			Translate: "Detect language and translate between {language_a} and {language_b}. Return ONLY the translation.",
+			Correct:         "Fix spelling and grammar. Return ONLY corrected text.",
+			Translate:       "Detect language and translate between {language_a} and {language_b}. Return ONLY the translation.",
+			TranslateSingle: "Translate to {target_language}. Return ONLY the translation.",
 			RewriteTemplates: []config.RewriteTemplate{
 				{Name: "funny", Prompt: "Rewrite as funny. Return ONLY the text."},
 				{Name: "formal", Prompt: "Rewrite as formal. Return ONLY the text."},
@@ -67,15 +70,14 @@ func TestRouter_ProcessCorrect(t *testing.T) {
 	}
 }
 
-func TestRouter_ProcessTranslate(t *testing.T) {
+func TestRouter_ProcessTranslatePair(t *testing.T) {
 	cfg := newTestConfig()
 	mock := &mockClient{
 		response: &llm.Response{Text: "Bonjour, comment allez-vous?", Provider: "mock", Model: "test"},
 	}
 	router := NewRouter(cfg, mock)
 
-	// Default target is "en" (English)
-	result, err := router.Process(context.Background(), ModeTranslate, "Bonjour")
+	result, err := router.Process(context.Background(), ModeTranslate, "Hello")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -84,8 +86,44 @@ func TestRouter_ProcessTranslate(t *testing.T) {
 		t.Errorf("expected translated text, got '%s'", result)
 	}
 
-	// Verify prompt was built with language pair
+	// Pair target uses Translate prompt with {language_a}/{language_b}
 	expectedPrompt := "Detect language and translate between English and French. Return ONLY the translation."
+	if mock.lastReq.Prompt != expectedPrompt {
+		t.Errorf("expected prompt %q, got %q", expectedPrompt, mock.lastReq.Prompt)
+	}
+}
+
+func TestRouter_ProcessTranslateSingle(t *testing.T) {
+	cfg := &config.Config{
+		Languages:              []string{"en", "fr", "es"},
+		LanguageNames:          map[string]string{"en": "English", "fr": "French", "es": "Spanish"},
+		TranslateTargets:       []string{"en|fr", "es"},
+		ParsedTargets:          []config.TranslateTarget{{LangA: "en", LangB: "fr"}, {LangA: "es"}},
+		DefaultTranslateTarget: "es",
+		Prompts: config.Prompts{
+			Correct:         "Fix errors.",
+			Translate:       "Detect language and translate between {language_a} and {language_b}.",
+			TranslateSingle: "Translate to {target_language}.",
+		},
+		MaxTokens: 256,
+	}
+	mock := &mockClient{
+		response: &llm.Response{Text: "Hola", Provider: "mock", Model: "test"},
+	}
+	router := NewRouter(cfg, mock)
+
+	// Default target is "es" which is at index 1 (single target)
+	if router.CurrentTranslateIdx() != 1 {
+		t.Fatalf("expected default target index 1, got %d", router.CurrentTranslateIdx())
+	}
+
+	_, err := router.Process(context.Background(), ModeTranslate, "Hello")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Single target uses TranslateSingle prompt with {target_language}
+	expectedPrompt := "Translate to Spanish."
 	if mock.lastReq.Prompt != expectedPrompt {
 		t.Errorf("expected prompt %q, got %q", expectedPrompt, mock.lastReq.Prompt)
 	}
@@ -143,31 +181,43 @@ func TestRouter_ProcessLLMError(t *testing.T) {
 }
 
 func TestRouter_ToggleTranslateTarget(t *testing.T) {
-	cfg := newTestConfig()
+	cfg := &config.Config{
+		Languages:              []string{"en", "fr", "es"},
+		LanguageNames:          map[string]string{"en": "English", "fr": "French", "es": "Spanish"},
+		TranslateTargets:       []string{"en|fr", "es"},
+		ParsedTargets:          []config.TranslateTarget{{LangA: "en", LangB: "fr"}, {LangA: "es"}},
+		DefaultTranslateTarget: "en",
+		Prompts: config.Prompts{
+			Correct:         "Fix errors.",
+			Translate:       "Translate between {language_a} and {language_b}.",
+			TranslateSingle: "Translate to {target_language}.",
+		},
+		MaxTokens: 256,
+	}
 	mock := &mockClient{}
 	router := NewRouter(cfg, mock)
 
-	// Default is "en" (index 0)
-	if router.CurrentTranslateTarget() != "en" {
-		t.Errorf("expected default target 'en', got '%s'", router.CurrentTranslateTarget())
+	// Default is index 0 (en|fr pair)
+	if router.CurrentTranslateIdx() != 0 {
+		t.Errorf("expected default target index 0, got %d", router.CurrentTranslateIdx())
 	}
 
-	// Toggle to "fr"
-	name := router.ToggleTranslateTarget()
-	if name != "French" {
-		t.Errorf("expected 'French', got '%s'", name)
+	// Toggle to index 1 (es single)
+	label := router.ToggleTranslateTarget()
+	if label != "Spanish" {
+		t.Errorf("expected 'Spanish', got '%s'", label)
 	}
-	if router.CurrentTranslateTarget() != "fr" {
-		t.Errorf("expected target 'fr', got '%s'", router.CurrentTranslateTarget())
+	if router.CurrentTranslateIdx() != 1 {
+		t.Errorf("expected index 1, got %d", router.CurrentTranslateIdx())
 	}
 
-	// Toggle back to "en"
-	name = router.ToggleTranslateTarget()
-	if name != "English" {
-		t.Errorf("expected 'English', got '%s'", name)
+	// Toggle back to index 0 (en|fr pair)
+	label = router.ToggleTranslateTarget()
+	if label != "English ↔ French" {
+		t.Errorf("expected 'English ↔ French', got '%s'", label)
 	}
-	if router.CurrentTranslateTarget() != "en" {
-		t.Errorf("expected target 'en', got '%s'", router.CurrentTranslateTarget())
+	if router.CurrentTranslateIdx() != 0 {
+		t.Errorf("expected index 0, got %d", router.CurrentTranslateIdx())
 	}
 }
 
@@ -200,10 +250,12 @@ func TestRouter_CycleTemplate(t *testing.T) {
 	}
 }
 
-func TestRouter_BilingualTranslatePrompt(t *testing.T) {
+func TestRouter_PairTranslatePrompt(t *testing.T) {
 	cfg := &config.Config{
 		Languages:              []string{"en", "fr"},
 		LanguageNames:          map[string]string{"en": "English", "fr": "French"},
+		TranslateTargets:       []string{"en|fr"},
+		ParsedTargets:          []config.TranslateTarget{{LangA: "en", LangB: "fr"}},
 		DefaultTranslateTarget: "en",
 		Prompts: config.Prompts{
 			Correct:   "Fix errors.",
@@ -227,14 +279,66 @@ func TestRouter_BilingualTranslatePrompt(t *testing.T) {
 	}
 }
 
-func TestRouter_TranslateLegacyTargetLanguage(t *testing.T) {
+func TestRouter_SetTranslateTarget(t *testing.T) {
+	cfg := &config.Config{
+		Languages:              []string{"en", "fr", "es"},
+		LanguageNames:          map[string]string{"en": "English", "fr": "French", "es": "Spanish"},
+		TranslateTargets:       []string{"en|fr", "es"},
+		ParsedTargets:          []config.TranslateTarget{{LangA: "en", LangB: "fr"}, {LangA: "es"}},
+		DefaultTranslateTarget: "en",
+		Prompts: config.Prompts{
+			Correct:         "Fix errors.",
+			Translate:       "Translate between {language_a} and {language_b}.",
+			TranslateSingle: "Translate to {target_language}.",
+		},
+		MaxTokens: 256,
+	}
+	mock := &mockClient{}
+	router := NewRouter(cfg, mock)
+
+	// Default index is 0 (en|fr pair)
+	if router.CurrentTranslateIdx() != 0 {
+		t.Errorf("expected default index 0, got %d", router.CurrentTranslateIdx())
+	}
+
+	// Set to index 1 (es single)
+	label := router.SetTranslateTarget(1)
+	if label != "Spanish" {
+		t.Errorf("expected 'Spanish', got '%s'", label)
+	}
+	if router.CurrentTranslateIdx() != 1 {
+		t.Errorf("expected index 1, got %d", router.CurrentTranslateIdx())
+	}
+
+	// Set back to index 0 (pair)
+	label = router.SetTranslateTarget(0)
+	if label != "English ↔ French" {
+		t.Errorf("expected 'English ↔ French', got '%s'", label)
+	}
+
+	// Out-of-bounds returns empty
+	label = router.SetTranslateTarget(-1)
+	if label != "" {
+		t.Errorf("expected empty for negative index, got '%s'", label)
+	}
+	label = router.SetTranslateTarget(99)
+	if label != "" {
+		t.Errorf("expected empty for out-of-range index, got '%s'", label)
+	}
+}
+
+func TestRouter_BackwardCompatEmptyTargets(t *testing.T) {
+	// When TranslateTargets is empty but Languages has values,
+	// applyDefaults should derive targets. Simulating that here.
 	cfg := &config.Config{
 		Languages:              []string{"en", "fr"},
 		LanguageNames:          map[string]string{"en": "English", "fr": "French"},
+		TranslateTargets:       []string{"en|fr"},
+		ParsedTargets:          []config.TranslateTarget{{LangA: "en", LangB: "fr"}},
 		DefaultTranslateTarget: "en",
 		Prompts: config.Prompts{
 			Correct:   "Fix errors.",
-			Translate: "Translate to {target_language}.",
+			Translate: "Translate between {language_a} and {language_b}.",
 		},
 		MaxTokens: 256,
 	}
@@ -243,53 +347,15 @@ func TestRouter_TranslateLegacyTargetLanguage(t *testing.T) {
 	}
 	router := NewRouter(cfg, mock)
 
+	// Should work as a pair derived from languages
 	_, err := router.Process(context.Background(), ModeTranslate, "Hello")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	expected := "Translate to English."
+	expected := "Translate between English and French."
 	if mock.lastReq.Prompt != expected {
 		t.Errorf("expected prompt %q, got %q", expected, mock.lastReq.Prompt)
-	}
-}
-
-func TestRouter_SetTranslateTarget(t *testing.T) {
-	cfg := newTestConfig()
-	mock := &mockClient{}
-	router := NewRouter(cfg, mock)
-
-	// Default index is 0 ("en")
-	if router.CurrentTranslateIdx() != 0 {
-		t.Errorf("expected default index 0, got %d", router.CurrentTranslateIdx())
-	}
-
-	// Set to index 1 ("fr")
-	name := router.SetTranslateTarget(1)
-	if name != "French" {
-		t.Errorf("expected 'French', got '%s'", name)
-	}
-	if router.CurrentTranslateIdx() != 1 {
-		t.Errorf("expected index 1, got %d", router.CurrentTranslateIdx())
-	}
-	if router.CurrentTranslateTarget() != "fr" {
-		t.Errorf("expected 'fr', got '%s'", router.CurrentTranslateTarget())
-	}
-
-	// Set back to index 0
-	name = router.SetTranslateTarget(0)
-	if name != "English" {
-		t.Errorf("expected 'English', got '%s'", name)
-	}
-
-	// Out-of-bounds returns empty
-	name = router.SetTranslateTarget(-1)
-	if name != "" {
-		t.Errorf("expected empty for negative index, got '%s'", name)
-	}
-	name = router.SetTranslateTarget(99)
-	if name != "" {
-		t.Errorf("expected empty for out-of-range index, got '%s'", name)
 	}
 }
 

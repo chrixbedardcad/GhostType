@@ -115,7 +115,10 @@ func main() {
 
 	fmt.Println("")
 	fmt.Printf("Active mode: %s\n", cfg.ActiveMode)
-	fmt.Printf("Translate target: %s\n", router.CurrentTranslateTarget())
+	targetLabels := cfg.TranslateTargetLabels()
+	if idx := router.CurrentTranslateIdx(); idx < len(targetLabels) {
+		fmt.Printf("Translate target: %s\n", targetLabels[idx])
+	}
 	fmt.Printf("Rewrite template: %s\n", router.CurrentTemplateName())
 	fmt.Println("")
 	fmt.Println("Hotkeys:")
