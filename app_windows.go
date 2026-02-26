@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"log/slog"
 	"os"
@@ -18,7 +19,11 @@ import (
 	"github.com/chrixbedardcad/GhostType/hotkey"
 	"github.com/chrixbedardcad/GhostType/keyboard"
 	"github.com/chrixbedardcad/GhostType/mode"
+	"github.com/chrixbedardcad/GhostType/tray"
 )
+
+//go:embed GhostType_icon_512.png
+var appIconPNG []byte
 
 var (
 	kernel32Win = syscall.NewLazyDLL("kernel32.dll")
@@ -204,8 +209,7 @@ func runApp(cfg *config.Config, router *mode.Router) {
 	// Protected by mu. Can be changed at runtime (e.g., from tray menu).
 	activeMode := cfg.ActiveMode
 
-	// SetActiveMode changes the active mode at runtime.
-	// Exported for future use by tray menu (#56).
+	// setActiveMode changes the active mode at runtime.
 	setActiveMode := func(modeName string) {
 		mu.Lock()
 		activeMode = modeName
@@ -214,7 +218,62 @@ func runApp(cfg *config.Config, router *mode.Router) {
 		fmt.Printf("Active mode: %s\n", modeName)
 		winBeep(600, 80)
 	}
-	_ = setActiveMode // will be used by tray menu in #56
+
+	// Build language name list for the tray menu.
+	langNames := make([]string, len(cfg.Languages))
+	for i, code := range cfg.Languages {
+		name := cfg.LanguageNames[code]
+		if name == "" {
+			name = code
+		}
+		langNames[i] = name
+	}
+
+	// Build template name list for the tray menu.
+	templNames := make([]string, len(cfg.Prompts.RewriteTemplates))
+	for i, t := range cfg.Prompts.RewriteTemplates {
+		templNames[i] = t.Name
+	}
+
+	// Pointer indirection so OnExit can reference stopTray before it's assigned.
+	var stopTrayFn func()
+
+	trayCfg := tray.Config{
+		IconPNG: appIconPNG,
+		OnModeChange: func(modeName string) {
+			setActiveMode(modeName)
+		},
+		OnLangSelect: func(idx int) {
+			name := router.SetTranslateTarget(idx)
+			setActiveMode("translate")
+			slog.Info("Translation target changed", "target", name)
+			fmt.Printf("Translation target: %s\n", name)
+		},
+		OnTemplSelect: func(idx int) {
+			name := router.SetTemplate(idx)
+			setActiveMode("rewrite")
+			slog.Info("Rewrite template changed", "template", name)
+			fmt.Printf("Rewrite template: %s\n", name)
+		},
+		OnExit: func() {
+			hk.Stop()
+			if stopTrayFn != nil {
+				stopTrayFn()
+			}
+		},
+		GetActiveMode: func() string {
+			mu.Lock()
+			defer mu.Unlock()
+			return activeMode
+		},
+		GetLangIdx:     router.CurrentTranslateIdx,
+		GetTemplateIdx: router.CurrentTemplateIdx,
+		Languages:      cfg.Languages,
+		LanguageNames:  langNames,
+		TemplateNames:  templNames,
+	}
+
+	stopTrayFn = tray.Start(trayCfg)
 
 	// Register main action hotkey — dispatches based on active mode.
 	err := hk.Register("action", cfg.Hotkeys.Correct, func() {
@@ -308,6 +367,7 @@ func runApp(cfg *config.Config, router *mode.Router) {
 		<-sigChan
 		fmt.Println("\nGhostType shutting down.")
 		slog.Info("GhostType shutting down")
+		stopTrayFn()
 		hk.Stop()
 	}()
 

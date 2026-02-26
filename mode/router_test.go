@@ -254,6 +254,84 @@ func TestRouter_TranslateLegacyTargetLanguage(t *testing.T) {
 	}
 }
 
+func TestRouter_SetTranslateTarget(t *testing.T) {
+	cfg := newTestConfig()
+	mock := &mockClient{}
+	router := NewRouter(cfg, mock)
+
+	// Default index is 0 ("en")
+	if router.CurrentTranslateIdx() != 0 {
+		t.Errorf("expected default index 0, got %d", router.CurrentTranslateIdx())
+	}
+
+	// Set to index 1 ("fr")
+	name := router.SetTranslateTarget(1)
+	if name != "French" {
+		t.Errorf("expected 'French', got '%s'", name)
+	}
+	if router.CurrentTranslateIdx() != 1 {
+		t.Errorf("expected index 1, got %d", router.CurrentTranslateIdx())
+	}
+	if router.CurrentTranslateTarget() != "fr" {
+		t.Errorf("expected 'fr', got '%s'", router.CurrentTranslateTarget())
+	}
+
+	// Set back to index 0
+	name = router.SetTranslateTarget(0)
+	if name != "English" {
+		t.Errorf("expected 'English', got '%s'", name)
+	}
+
+	// Out-of-bounds returns empty
+	name = router.SetTranslateTarget(-1)
+	if name != "" {
+		t.Errorf("expected empty for negative index, got '%s'", name)
+	}
+	name = router.SetTranslateTarget(99)
+	if name != "" {
+		t.Errorf("expected empty for out-of-range index, got '%s'", name)
+	}
+}
+
+func TestRouter_SetTemplate(t *testing.T) {
+	cfg := newTestConfig()
+	mock := &mockClient{}
+	router := NewRouter(cfg, mock)
+
+	// Default index is 0 ("funny")
+	if router.CurrentTemplateIdx() != 0 {
+		t.Errorf("expected default index 0, got %d", router.CurrentTemplateIdx())
+	}
+
+	// Set to index 1 ("formal")
+	name := router.SetTemplate(1)
+	if name != "formal" {
+		t.Errorf("expected 'formal', got '%s'", name)
+	}
+	if router.CurrentTemplateIdx() != 1 {
+		t.Errorf("expected index 1, got %d", router.CurrentTemplateIdx())
+	}
+	if router.CurrentTemplateName() != "formal" {
+		t.Errorf("expected 'formal', got '%s'", router.CurrentTemplateName())
+	}
+
+	// Set to index 2 ("sarcastic")
+	name = router.SetTemplate(2)
+	if name != "sarcastic" {
+		t.Errorf("expected 'sarcastic', got '%s'", name)
+	}
+
+	// Out-of-bounds returns empty
+	name = router.SetTemplate(-1)
+	if name != "" {
+		t.Errorf("expected empty for negative index, got '%s'", name)
+	}
+	name = router.SetTemplate(99)
+	if name != "" {
+		t.Errorf("expected empty for out-of-range index, got '%s'", name)
+	}
+}
+
 func TestRouter_ModeString(t *testing.T) {
 	tests := []struct {
 		mode     Mode

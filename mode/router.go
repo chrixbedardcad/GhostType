@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"sync"
 
 	"github.com/chrixbedardcad/GhostType/config"
 	"github.com/chrixbedardcad/GhostType/llm"
@@ -34,6 +35,7 @@ func (m Mode) String() string {
 
 // Router manages mode selection and dispatches text processing to the LLM.
 type Router struct {
+	mu                    sync.Mutex
 	cfg                   *config.Config
 	client                llm.Client
 	currentTranslateIdx   int
@@ -101,6 +103,7 @@ func (r *Router) Process(ctx context.Context, mode Mode, text string) (string, e
 // buildTranslatePrompt builds the bilingual translation prompt.
 // It substitutes {language_a} and {language_b} from the configured language pair.
 // Also supports legacy {target_language} placeholder for backwards compatibility.
+// Caller must NOT hold r.mu — this method reads the index under lock internally.
 func (r *Router) buildTranslatePrompt() string {
 	prompt := r.cfg.Prompts.Translate
 
@@ -118,8 +121,15 @@ func (r *Router) buildTranslatePrompt() string {
 		prompt = strings.ReplaceAll(prompt, "{language_b}", nameB)
 	}
 
-	// Legacy support: also replace {target_language} if present.
-	targetLang := r.CurrentTranslateTarget()
+	// Copy index under lock to avoid holding mu during string work.
+	r.mu.Lock()
+	idx := r.currentTranslateIdx
+	r.mu.Unlock()
+
+	targetLang := ""
+	if len(r.cfg.Languages) > 0 {
+		targetLang = r.cfg.Languages[idx]
+	}
 	targetName := r.cfg.LanguageNames[targetLang]
 	if targetName == "" {
 		targetName = targetLang
@@ -130,12 +140,16 @@ func (r *Router) buildTranslatePrompt() string {
 }
 
 // buildRewritePrompt returns the prompt for the current rewrite template.
+// Caller must NOT hold r.mu — this method reads the index under lock internally.
 func (r *Router) buildRewritePrompt() string {
 	templates := r.cfg.Prompts.RewriteTemplates
 	if len(templates) == 0 {
 		return "Rewrite this text. Return ONLY the rewritten text."
 	}
-	return templates[r.currentTemplateIdx].Prompt
+	r.mu.Lock()
+	idx := r.currentTemplateIdx
+	r.mu.Unlock()
+	return templates[idx].Prompt
 }
 
 // ToggleTranslateTarget cycles to the next translation target language.
@@ -144,8 +158,11 @@ func (r *Router) ToggleTranslateTarget() string {
 	if len(r.cfg.Languages) == 0 {
 		return ""
 	}
+	r.mu.Lock()
 	r.currentTranslateIdx = (r.currentTranslateIdx + 1) % len(r.cfg.Languages)
-	target := r.cfg.Languages[r.currentTranslateIdx]
+	idx := r.currentTranslateIdx
+	r.mu.Unlock()
+	target := r.cfg.Languages[idx]
 	name := r.cfg.LanguageNames[target]
 	if name == "" {
 		name = target
@@ -158,7 +175,34 @@ func (r *Router) CurrentTranslateTarget() string {
 	if len(r.cfg.Languages) == 0 {
 		return ""
 	}
-	return r.cfg.Languages[r.currentTranslateIdx]
+	r.mu.Lock()
+	idx := r.currentTranslateIdx
+	r.mu.Unlock()
+	return r.cfg.Languages[idx]
+}
+
+// SetTranslateTarget sets the translation target to the given index.
+// Returns the language name at that index.
+func (r *Router) SetTranslateTarget(idx int) string {
+	if len(r.cfg.Languages) == 0 || idx < 0 || idx >= len(r.cfg.Languages) {
+		return ""
+	}
+	r.mu.Lock()
+	r.currentTranslateIdx = idx
+	r.mu.Unlock()
+	target := r.cfg.Languages[idx]
+	name := r.cfg.LanguageNames[target]
+	if name == "" {
+		name = target
+	}
+	return name
+}
+
+// CurrentTranslateIdx returns the current translation target index.
+func (r *Router) CurrentTranslateIdx() int {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.currentTranslateIdx
 }
 
 // CycleTemplate cycles to the next rewrite template.
@@ -168,8 +212,11 @@ func (r *Router) CycleTemplate() string {
 	if len(templates) == 0 {
 		return ""
 	}
+	r.mu.Lock()
 	r.currentTemplateIdx = (r.currentTemplateIdx + 1) % len(templates)
-	return templates[r.currentTemplateIdx].Name
+	idx := r.currentTemplateIdx
+	r.mu.Unlock()
+	return templates[idx].Name
 }
 
 // CurrentTemplateName returns the name of the current rewrite template.
@@ -178,5 +225,28 @@ func (r *Router) CurrentTemplateName() string {
 	if len(templates) == 0 {
 		return ""
 	}
-	return templates[r.currentTemplateIdx].Name
+	r.mu.Lock()
+	idx := r.currentTemplateIdx
+	r.mu.Unlock()
+	return templates[idx].Name
+}
+
+// SetTemplate sets the rewrite template to the given index.
+// Returns the template name at that index.
+func (r *Router) SetTemplate(idx int) string {
+	templates := r.cfg.Prompts.RewriteTemplates
+	if len(templates) == 0 || idx < 0 || idx >= len(templates) {
+		return ""
+	}
+	r.mu.Lock()
+	r.currentTemplateIdx = idx
+	r.mu.Unlock()
+	return templates[idx].Name
+}
+
+// CurrentTemplateIdx returns the current rewrite template index.
+func (r *Router) CurrentTemplateIdx() int {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.currentTemplateIdx
 }
