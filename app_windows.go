@@ -38,7 +38,7 @@ func processMode(
 	m mode.Mode,
 	cfg *config.Config,
 	router *mode.Router,
-	cb *clipboard.WindowsClipboard,
+	cb *clipboard.Clipboard,
 	kb *keyboard.WindowsSimulator,
 	mu *sync.Mutex,
 	cancelLLM *context.CancelFunc,
