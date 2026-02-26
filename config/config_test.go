@@ -22,8 +22,8 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.TimeoutMs != 5000 {
 		t.Errorf("expected default timeout_ms 5000, got %d", cfg.TimeoutMs)
 	}
-	if cfg.Hotkeys.Correct != "F7" {
-		t.Errorf("expected default correct hotkey 'F7', got '%s'", cfg.Hotkeys.Correct)
+	if cfg.Hotkeys.Correct != "Ctrl+G" {
+		t.Errorf("expected default correct hotkey 'Ctrl+G', got '%s'", cfg.Hotkeys.Correct)
 	}
 	if cfg.Hotkeys.Translate != "F8" {
 		t.Errorf("expected default translate hotkey 'F8', got '%s'", cfg.Hotkeys.Translate)
