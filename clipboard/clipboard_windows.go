@@ -28,7 +28,21 @@ const (
 
 // NewWindowsClipboard creates a Clipboard using native Windows clipboard API.
 func NewWindowsClipboard() *Clipboard {
-	return New(windowsRead, windowsWrite)
+	return New(windowsRead, windowsWrite).WithClear(windowsClear)
+}
+
+func windowsClear() error {
+	ret, _, _ := procOpenClipboard.Call(0)
+	if ret == 0 {
+		return fmt.Errorf("failed to open clipboard")
+	}
+	defer procCloseClipboard.Call()
+
+	ret, _, _ = procEmptyClipboard.Call()
+	if ret == 0 {
+		return fmt.Errorf("failed to empty clipboard")
+	}
+	return nil
 }
 
 func windowsRead() (string, error) {
