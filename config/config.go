@@ -9,6 +9,17 @@ import (
 	"strings"
 )
 
+// TranslateTarget represents a parsed translate target.
+// A pair (e.g. "en|fr") has both LangA and LangB set.
+// A single target (e.g. "es") has only LangA set.
+type TranslateTarget struct {
+	LangA string // always set
+	LangB string // empty for single-target mode
+}
+
+// IsPair returns true if this target is a bilingual pair.
+func (t TranslateTarget) IsPair() bool { return t.LangB != "" }
+
 // RewriteTemplate defines a named rewrite prompt template.
 type RewriteTemplate struct {
 	Name   string `json:"name"`
@@ -29,6 +40,7 @@ type Hotkeys struct {
 type Prompts struct {
 	Correct          string            `json:"correct"`
 	Translate        string            `json:"translate"`
+	TranslateSingle  string            `json:"translate_single"`
 	RewriteTemplates []RewriteTemplate `json:"rewrite_templates"`
 }
 
@@ -51,6 +63,8 @@ type Config struct {
 	APIEndpoint            string            `json:"api_endpoint"`
 	Languages              []string          `json:"languages"`
 	LanguageNames          map[string]string `json:"language_names"`
+	TranslateTargets       []string          `json:"translate_targets"`
+	ParsedTargets          []TranslateTarget `json:"-"`
 	DefaultTranslateTarget string            `json:"default_translate_target"`
 	ActiveMode             string            `json:"active_mode"`
 	Hotkeys                Hotkeys           `json:"hotkeys"`
@@ -86,8 +100,9 @@ func DefaultConfig() Config {
 			Cancel:         "Escape",
 		},
 		Prompts: Prompts{
-			Correct:   "Detect the language of the following text (French or English). Fix all spelling and grammar errors while preserving the original meaning and language. Return ONLY the corrected text with no explanation.",
-			Translate: "The two configured languages are {language_a} and {language_b}. Detect the language of the following text and translate it to the OTHER language. If it is {language_a}, translate to {language_b}. If it is {language_b}, translate to {language_a}. Preserve the tone and intent. Return ONLY the translation with no explanation.",
+			Correct:         "Detect the language of the following text (French or English). Fix all spelling and grammar errors while preserving the original meaning and language. Return ONLY the corrected text with no explanation.",
+			Translate:       "The two configured languages are {language_a} and {language_b}. Detect the language of the following text and translate it to the OTHER language. If it is {language_a}, translate to {language_b}. If it is {language_b}, translate to {language_a}. Preserve the tone and intent. Return ONLY the translation with no explanation.",
+			TranslateSingle: "Translate the following text to {target_language}. Preserve the tone and intent. Return ONLY the translation with no explanation.",
 			RewriteTemplates: []RewriteTemplate{
 				{Name: "funny", Prompt: "Rewrite this as a funny, witty reply. Keep it short and punchy. Return ONLY the rewritten text."},
 				{Name: "formal", Prompt: "Rewrite this in a formal, professional tone. Return ONLY the rewritten text."},
@@ -187,6 +202,25 @@ func applyDefaults(cfg *Config) {
 	if cfg.LanguageNames == nil {
 		cfg.LanguageNames = map[string]string{"en": "English", "fr": "French"}
 	}
+
+	// Derive translate_targets from languages if not explicitly set.
+	if len(cfg.TranslateTargets) == 0 {
+		if len(cfg.Languages) >= 2 {
+			cfg.TranslateTargets = []string{cfg.Languages[0] + "|" + cfg.Languages[1]}
+		} else if len(cfg.Languages) == 1 {
+			cfg.TranslateTargets = []string{cfg.Languages[0]}
+		}
+	}
+
+	// Parse translate_targets into ParsedTargets.
+	cfg.ParsedTargets = make([]TranslateTarget, len(cfg.TranslateTargets))
+	for i, raw := range cfg.TranslateTargets {
+		parts := strings.SplitN(raw, "|", 2)
+		cfg.ParsedTargets[i].LangA = strings.TrimSpace(parts[0])
+		if len(parts) == 2 {
+			cfg.ParsedTargets[i].LangB = strings.TrimSpace(parts[1])
+		}
+	}
 }
 
 // validate checks that the config has all required fields.
@@ -241,5 +275,39 @@ func validate(cfg *Config) error {
 		}
 	}
 
+	// Validate translate target language codes exist in LanguageNames.
+	for _, target := range cfg.ParsedTargets {
+		if _, ok := cfg.LanguageNames[target.LangA]; !ok {
+			return fmt.Errorf("translate target language %q not found in language_names", target.LangA)
+		}
+		if target.LangB != "" {
+			if _, ok := cfg.LanguageNames[target.LangB]; !ok {
+				return fmt.Errorf("translate target language %q not found in language_names", target.LangB)
+			}
+		}
+	}
+
 	return nil
+}
+
+// TranslateTargetLabels returns display labels for each parsed target.
+// Pairs are shown as "English ↔ French", singles as "Spanish".
+func (cfg *Config) TranslateTargetLabels() []string {
+	labels := make([]string, len(cfg.ParsedTargets))
+	for i, t := range cfg.ParsedTargets {
+		nameA := cfg.LanguageNames[t.LangA]
+		if nameA == "" {
+			nameA = t.LangA
+		}
+		if t.IsPair() {
+			nameB := cfg.LanguageNames[t.LangB]
+			if nameB == "" {
+				nameB = t.LangB
+			}
+			labels[i] = nameA + " ↔ " + nameB
+		} else {
+			labels[i] = nameA
+		}
+	}
+	return labels
 }

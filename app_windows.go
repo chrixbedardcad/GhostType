@@ -219,15 +219,8 @@ func runApp(cfg *config.Config, router *mode.Router) {
 		winBeep(600, 80)
 	}
 
-	// Build language name list for the tray menu.
-	langNames := make([]string, len(cfg.Languages))
-	for i, code := range cfg.Languages {
-		name := cfg.LanguageNames[code]
-		if name == "" {
-			name = code
-		}
-		langNames[i] = name
-	}
+	// Build target labels for the tray menu.
+	targetLabels := cfg.TranslateTargetLabels()
 
 	// Build template name list for the tray menu.
 	templNames := make([]string, len(cfg.Prompts.RewriteTemplates))
@@ -243,11 +236,11 @@ func runApp(cfg *config.Config, router *mode.Router) {
 		OnModeChange: func(modeName string) {
 			setActiveMode(modeName)
 		},
-		OnLangSelect: func(idx int) {
-			name := router.SetTranslateTarget(idx)
+		OnTargetSelect: func(idx int) {
+			label := router.SetTranslateTarget(idx)
 			setActiveMode("translate")
-			slog.Info("Translation target changed", "target", name)
-			fmt.Printf("Translation target: %s\n", name)
+			slog.Info("Translation target changed", "target", label)
+			fmt.Printf("Translation target: %s\n", label)
 		},
 		OnTemplSelect: func(idx int) {
 			name := router.SetTemplate(idx)
@@ -266,10 +259,9 @@ func runApp(cfg *config.Config, router *mode.Router) {
 			defer mu.Unlock()
 			return activeMode
 		},
-		GetLangIdx:     router.CurrentTranslateIdx,
+		GetTargetIdx:   router.CurrentTranslateIdx,
 		GetTemplateIdx: router.CurrentTemplateIdx,
-		Languages:      cfg.Languages,
-		LanguageNames:  langNames,
+		TargetLabels:   targetLabels,
 		TemplateNames:  templNames,
 	}
 
@@ -304,9 +296,9 @@ func runApp(cfg *config.Config, router *mode.Router) {
 
 	if cfg.Hotkeys.ToggleLanguage != "" {
 		err = hk.Register("toggle_language", cfg.Hotkeys.ToggleLanguage, func() {
-			name := router.ToggleTranslateTarget()
-			slog.Info("Translation target toggled", "target", name)
-			fmt.Printf("Translation target: %s\n", name)
+			label := router.ToggleTranslateTarget()
+			slog.Info("Translation target toggled", "target", label)
+			fmt.Printf("Translation target: %s\n", label)
 			winBeep(600, 80)
 		})
 		if err != nil {

@@ -176,19 +176,18 @@ type Config struct {
 	IconPNG []byte
 
 	// Callbacks — called on the tray's OS thread.
-	OnModeChange  func(modeName string) // "correct", "translate", "rewrite"
-	OnLangSelect  func(idx int)
-	OnTemplSelect func(idx int)
-	OnExit        func()
+	OnModeChange   func(modeName string) // "correct", "translate", "rewrite"
+	OnTargetSelect func(idx int)
+	OnTemplSelect  func(idx int)
+	OnExit         func()
 
 	// State readers — called to build the menu each time.
 	GetActiveMode  func() string // returns "correct", "translate", or "rewrite"
-	GetLangIdx     func() int
+	GetTargetIdx   func() int
 	GetTemplateIdx func() int
 
 	// Static data for building menu items.
-	Languages     []string // language codes
-	LanguageNames []string // display names, parallel to Languages
+	TargetLabels  []string // translate target display labels
 	TemplateNames []string // rewrite template display names
 }
 
@@ -380,21 +379,19 @@ func (ts *trayState) showMenu() {
 		uintptr(idModeCorrect), uintptr(idModeRewrite),
 		uintptr(activeID), 0) // 0 = MF_BYCOMMAND
 
-	// Language section.
-	if len(ts.cfg.Languages) > 0 {
+	// Language/target section.
+	if len(ts.cfg.TargetLabels) > 0 {
 		procAppendMenuW.Call(hMenu, mfSeparator, 0, 0)
 		procAppendMenuW.Call(hMenu, mfString|mfGrayed, 0, uintptr(unsafe.Pointer(utf16Ptr("Language:"))))
 
-		langIdx := ts.cfg.GetLangIdx()
-		for i, name := range ts.cfg.LanguageNames {
+		targetIdx := ts.cfg.GetTargetIdx()
+		for i, name := range ts.cfg.TargetLabels {
 			label := "  " + name
 			procAppendMenuW.Call(hMenu, mfString, uintptr(idLangBase+i), uintptr(unsafe.Pointer(utf16Ptr(label))))
 		}
-		if len(ts.cfg.LanguageNames) > 0 {
-			procCheckMenuRadioItem.Call(hMenu,
-				uintptr(idLangBase), uintptr(idLangBase+len(ts.cfg.LanguageNames)-1),
-				uintptr(idLangBase+langIdx), 0)
-		}
+		procCheckMenuRadioItem.Call(hMenu,
+			uintptr(idLangBase), uintptr(idLangBase+len(ts.cfg.TargetLabels)-1),
+			uintptr(idLangBase+targetIdx), 0)
 	}
 
 	// Template section.
@@ -429,8 +426,8 @@ func (ts *trayState) handleMenuCommand(id int) {
 	switch {
 	case id >= idLangBase && id < idTemplBase:
 		idx := id - idLangBase
-		if ts.cfg.OnLangSelect != nil {
-			ts.cfg.OnLangSelect(idx)
+		if ts.cfg.OnTargetSelect != nil {
+			ts.cfg.OnTargetSelect(idx)
 		}
 		ts.updateTooltip()
 
