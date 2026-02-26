@@ -13,6 +13,7 @@ type Clipboard struct {
 	// read and write functions are injectable for testing and platform abstraction
 	readFn  func() (string, error)
 	writeFn func(text string) error
+	clearFn func() error
 }
 
 // New creates a new Clipboard with the given platform-specific read/write functions.
@@ -21,6 +22,27 @@ func New(readFn func() (string, error), writeFn func(text string) error) *Clipbo
 		readFn:  readFn,
 		writeFn: writeFn,
 	}
+}
+
+// WithClear sets a platform-specific clear function and returns the Clipboard
+// for chaining. If not set, Clear() falls back to writing an empty string.
+func (c *Clipboard) WithClear(fn func() error) *Clipboard {
+	c.clearFn = fn
+	return c
+}
+
+// Clear empties the clipboard. Uses the platform-specific clearFn if available,
+// otherwise falls back to writing an empty string.
+func (c *Clipboard) Clear() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.clearFn != nil {
+		return c.clearFn()
+	}
+	if c.writeFn != nil {
+		return c.writeFn("")
+	}
+	return fmt.Errorf("clipboard clear not available: no clear or write function set")
 }
 
 // Read returns the current clipboard text content.

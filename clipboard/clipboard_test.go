@@ -112,3 +112,67 @@ func TestClipboard_WriteError(t *testing.T) {
 		t.Fatal("expected write error")
 	}
 }
+
+func TestClipboard_Clear(t *testing.T) {
+	var store string
+	cb := New(
+		func() (string, error) { return store, nil },
+		func(text string) error { store = text; return nil },
+	)
+
+	// Write something, then clear, verify read returns ""
+	if err := cb.Write("hello"); err != nil {
+		t.Fatalf("unexpected write error: %v", err)
+	}
+	if err := cb.Clear(); err != nil {
+		t.Fatalf("unexpected clear error: %v", err)
+	}
+	got, err := cb.Read()
+	if err != nil {
+		t.Fatalf("unexpected read error: %v", err)
+	}
+	if got != "" {
+		t.Errorf("expected empty string after clear, got %q", got)
+	}
+}
+
+func TestClipboard_ClearFallback(t *testing.T) {
+	var store string = "content"
+	cb := New(
+		func() (string, error) { return store, nil },
+		func(text string) error { store = text; return nil },
+	)
+	// No clearFn set — should fall back to writeFn("")
+	if err := cb.Clear(); err != nil {
+		t.Fatalf("unexpected clear error: %v", err)
+	}
+	if store != "" {
+		t.Errorf("expected store to be empty after fallback clear, got %q", store)
+	}
+}
+
+func TestClipboard_ClearWithCustomFn(t *testing.T) {
+	called := false
+	cb := New(
+		func() (string, error) { return "", nil },
+		func(text string) error { return nil },
+	).WithClear(func() error {
+		called = true
+		return nil
+	})
+
+	if err := cb.Clear(); err != nil {
+		t.Fatalf("unexpected clear error: %v", err)
+	}
+	if !called {
+		t.Error("expected custom clearFn to be called")
+	}
+}
+
+func TestClipboard_ClearNilFunctions(t *testing.T) {
+	cb := New(nil, nil)
+	err := cb.Clear()
+	if err == nil {
+		t.Fatal("expected error when both clearFn and writeFn are nil")
+	}
+}

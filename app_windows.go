@@ -30,6 +30,57 @@ func winBeep(freq, durationMs uint32) {
 	procBeep.Call(uintptr(freq), uintptr(durationMs))
 }
 
+// captureText detects whether the user has an active text selection. It clears
+// the clipboard, copies, and checks. If text was copied the user had a selection.
+// Otherwise it falls back to select-all + copy.
+// Returns the captured text, whether the user had an active selection, and any error.
+func captureText(
+	modeName string,
+	cb *clipboard.Clipboard,
+	kb *keyboard.WindowsSimulator,
+) (text string, hadSelection bool, err error) {
+	// Clear clipboard so we can detect whether Ctrl+C actually grabbed something.
+	if err := cb.Clear(); err != nil {
+		return "", false, fmt.Errorf("clear clipboard: %w", err)
+	}
+	time.Sleep(50 * time.Millisecond)
+
+	// Try copying the current selection (if any).
+	if err := kb.Copy(); err != nil {
+		return "", false, fmt.Errorf("copy: %w", err)
+	}
+	time.Sleep(100 * time.Millisecond)
+
+	text, err = cb.Read()
+	if err != nil {
+		return "", false, fmt.Errorf("read clipboard: %w", err)
+	}
+
+	if text != "" {
+		slog.Info("Selection detected", "mode", modeName, "len", len(text))
+		return text, true, nil
+	}
+
+	// No selection — fall back to select-all + copy.
+	slog.Debug("No selection detected, falling back to select-all", "mode", modeName)
+	if err := kb.SelectAll(); err != nil {
+		return "", false, fmt.Errorf("select all: %w", err)
+	}
+	time.Sleep(50 * time.Millisecond)
+
+	if err := kb.Copy(); err != nil {
+		return "", false, fmt.Errorf("copy after select-all: %w", err)
+	}
+	time.Sleep(100 * time.Millisecond)
+
+	text, err = cb.Read()
+	if err != nil {
+		return "", false, fmt.Errorf("read clipboard after select-all: %w", err)
+	}
+
+	return text, false, nil
+}
+
 // processMode captures text from the active window, sends it through the LLM
 // with the given mode, and pastes the result back. This is the shared workflow
 // for correction, translation, and rewrite hotkeys.
@@ -52,25 +103,10 @@ func processMode(
 		return
 	}
 
-	// Select all + copy.
-	if err := kb.SelectAll(); err != nil {
-		slog.Error("SelectAll failed", "mode", modeName, "error", err)
-		cb.Restore()
-		return
-	}
-	time.Sleep(50 * time.Millisecond)
-
-	if err := kb.Copy(); err != nil {
-		slog.Error("Copy failed", "mode", modeName, "error", err)
-		cb.Restore()
-		return
-	}
-	time.Sleep(100 * time.Millisecond)
-
-	// Read captured text.
-	text, err := cb.Read()
+	// Capture text — detects existing selection or falls back to select-all.
+	text, hadSelection, err := captureText(modeName, cb, kb)
 	if err != nil {
-		slog.Error("Failed to read clipboard", "mode", modeName, "error", err)
+		slog.Error("Failed to capture text", "mode", modeName, "error", err)
 		cb.Restore()
 		return
 	}
@@ -80,7 +116,7 @@ func processMode(
 		return
 	}
 
-	slog.Info("Captured text", "mode", modeName, "len", len(text), "text", text)
+	slog.Info("Captured text", "mode", modeName, "len", len(text), "selection", hadSelection, "text", text)
 	fmt.Printf("[%s] Captured: %q\n", modeName, text)
 
 	// Create cancellable context with timeout.
@@ -106,19 +142,24 @@ func processMode(
 		return
 	}
 
-	// Write result, select all, paste.
+	// Write result to clipboard.
 	if err := cb.Write(result); err != nil {
 		slog.Error("Failed to write result to clipboard", "mode", modeName, "error", err)
 		cb.Restore()
 		return
 	}
 
-	if err := kb.SelectAll(); err != nil {
-		slog.Error("SelectAll (paste prep) failed", "mode", modeName, "error", err)
-		cb.Restore()
-		return
+	// Paste-prep: only select-all before paste when we used select-all to capture.
+	// If the user had a selection, it's still active after Ctrl+C — Ctrl+V replaces it.
+	// If we did select-all, re-do it in case the user clicked during the LLM call.
+	if !hadSelection {
+		if err := kb.SelectAll(); err != nil {
+			slog.Error("SelectAll (paste prep) failed", "mode", modeName, "error", err)
+			cb.Restore()
+			return
+		}
+		time.Sleep(50 * time.Millisecond)
 	}
-	time.Sleep(50 * time.Millisecond)
 
 	if err := kb.Paste(); err != nil {
 		slog.Error("Paste failed", "mode", modeName, "error", err)
