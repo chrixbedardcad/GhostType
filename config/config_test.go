@@ -31,9 +31,6 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.Hotkeys.Rewrite != "F9" {
 		t.Errorf("expected default rewrite hotkey 'F9', got '%s'", cfg.Hotkeys.Rewrite)
 	}
-	if cfg.TargetWindow != "Firestorm" {
-		t.Errorf("expected default target_window 'Firestorm', got '%s'", cfg.TargetWindow)
-	}
 	if len(cfg.Languages) != 2 {
 		t.Errorf("expected 2 default languages, got %d", len(cfg.Languages))
 	}
@@ -203,9 +200,6 @@ func TestLoadAppliesDefaults(t *testing.T) {
 	}
 	if loaded.LogLevel != "info" {
 		t.Errorf("expected default log_level 'info', got '%s'", loaded.LogLevel)
-	}
-	if loaded.TargetWindow != "Firestorm" {
-		t.Errorf("expected default target_window 'Firestorm', got '%s'", loaded.TargetWindow)
 	}
 }
 

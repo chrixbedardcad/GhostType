@@ -109,7 +109,6 @@ GhostType is configured entirely through `config.json`. Here is a full example:
     "cycle_template": "Ctrl+F8",
     "cancel": "Escape"
   },
-  "target_window": "Firestorm",
   "prompts": {
     "correct": "Detect the language. Fix spelling and grammar. Return ONLY corrected text.",
     "translate": "Translate to {target_language}. Return ONLY the translation.",
@@ -194,7 +193,7 @@ go test ./...
 ## How It Works
 
 1. GhostType runs in the background and watches for hotkey presses.
-2. It only activates when the configured target window (default: Firestorm) is focused.
+2. It works globally — hotkeys fire regardless of which window is focused.
 3. Before translating, you can press **Ctrl+F7** to toggle the translation target language. A brief floating label appears near your cursor showing the new target (e.g., "To French"). Before rewriting, you can press **Ctrl+F8** to toggle the rewrite template. A floating label appears showing the template name (e.g., "Funny", "Professional").
 4. When you press an action hotkey (**F6**, **F7**, or **F8**), GhostType selects all text in the active chat input, copies it to clipboard, and reads it.
 5. The text is sent to your configured LLM provider with the appropriate prompt.
@@ -220,7 +219,7 @@ go test ./...
 
 | Problem | Solution |
 |---------|----------|
-| GhostType doesn't respond to hotkeys | Make sure the target window (Firestorm) is focused and the window title matches `target_window` in `config.json`. |
+| GhostType doesn't respond to hotkeys | Verify GhostType is running. Check `ghosttype.log` for registration errors. If hotkeys conflict with other apps, change them in `config.json`. |
 | API errors | Check your API key in `config.json`. Check `ghosttype.log` for details. Verify your provider account has credits. |
 | Slow corrections | Response time depends on provider and network. Try a faster model or switch to a local Ollama instance. |
 | Hotkey conflicts | If F6/F7/F8 conflict with other apps, change the hotkeys in `config.json`. |

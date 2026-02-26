@@ -52,7 +52,6 @@ type Config struct {
 	LanguageNames          map[string]string `json:"language_names"`
 	DefaultTranslateTarget string            `json:"default_translate_target"`
 	Hotkeys                Hotkeys           `json:"hotkeys"`
-	TargetWindow           string            `json:"target_window"`
 	Prompts                Prompts           `json:"prompts"`
 	Overlay                Overlay           `json:"overlay"`
 	MaxTokens              int               `json:"max_tokens"`
@@ -83,7 +82,6 @@ func DefaultConfig() Config {
 			CycleTemplate:  "Ctrl+F9",
 			Cancel:         "Escape",
 		},
-		TargetWindow: "Firestorm",
 		Prompts: Prompts{
 			Correct:   "Detect the language of the following text (French or English). Fix all spelling and grammar errors while preserving the original meaning and language. Return ONLY the corrected text with no explanation.",
 			Translate: "Translate the following text to {target_language}. Preserve the tone and intent. Return ONLY the translation with no explanation.",
@@ -167,9 +165,6 @@ func applyDefaults(cfg *Config) {
 	}
 	if cfg.LogFile == "" {
 		cfg.LogFile = "ghosttype.log"
-	}
-	if cfg.TargetWindow == "" {
-		cfg.TargetWindow = "Firestorm"
 	}
 	if cfg.Hotkeys.Correct == "" {
 		cfg.Hotkeys.Correct = "Ctrl+G"

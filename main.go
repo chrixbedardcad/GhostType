@@ -61,7 +61,6 @@ func main() {
 	slog.Info("GhostType starting",
 		"provider", cfg.LLMProvider,
 		"model", cfg.Model,
-		"target_window", cfg.TargetWindow,
 	)
 
 	// Initialize LLM client
@@ -74,7 +73,6 @@ func main() {
 
 	fmt.Printf("Provider: %s\n", client.Provider())
 	fmt.Printf("Model: %s\n", cfg.Model)
-	fmt.Printf("Target window: %s\n", cfg.TargetWindow)
 
 	// Initialize mode router
 	router := mode.NewRouter(cfg, client)

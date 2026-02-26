@@ -17,7 +17,6 @@
     "cycle_template": "Ctrl+F9",
     "cancel": "Escape"
   },
-  "target_window": "Firestorm",
   "prompts": {
     "correct": "Detect the language of the following text (French or English). Fix all spelling and grammar errors while preserving the original meaning and language. Return ONLY the corrected text with no explanation.",
     "translate": "Translate the following text to {target_language}. Preserve the tone and intent. Return ONLY the translation with no explanation.",
