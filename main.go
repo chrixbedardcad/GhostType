@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -36,27 +37,40 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Set up logging
-	logLevel := slog.LevelInfo
-	switch cfg.LogLevel {
-	case "debug":
-		logLevel = slog.LevelDebug
-	case "warn":
-		logLevel = slog.LevelWarn
-	case "error":
-		logLevel = slog.LevelError
-	}
+	// Set up logging. Empty log_level disables all logging.
+	if cfg.LogLevel != "" {
+		logLevel := slog.LevelInfo
+		switch cfg.LogLevel {
+		case "debug":
+			logLevel = slog.LevelDebug
+		case "warn":
+			logLevel = slog.LevelWarn
+		case "error":
+			logLevel = slog.LevelError
+		}
 
-	logFile, err := os.OpenFile(cfg.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: could not open log file %s: %v\n", cfg.LogFile, err)
-		logFile = os.Stderr
+		// Resolve log file path relative to the executable directory.
+		logPath := cfg.LogFile
+		if !filepath.IsAbs(logPath) {
+			logPath = filepath.Join(filepath.Dir(execPath), logPath)
+		}
+
+		logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: could not open log file %s: %v\n", logPath, err)
+			logFile = os.Stderr
+		} else {
+			defer logFile.Close()
+		}
+
+		logger := slog.New(slog.NewTextHandler(logFile, &slog.HandlerOptions{Level: logLevel}))
+		slog.SetDefault(logger)
+		fmt.Printf("Logging enabled: level=%s file=%s\n", cfg.LogLevel, logPath)
 	} else {
-		defer logFile.Close()
+		// Disabled: set a no-op logger that discards everything.
+		slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelError + 1})))
+		fmt.Println("Logging disabled (log_level is empty)")
 	}
-
-	logger := slog.New(slog.NewTextHandler(logFile, &slog.HandlerOptions{Level: logLevel}))
-	slog.SetDefault(logger)
 
 	slog.Info("GhostType starting",
 		"provider", cfg.LLMProvider,

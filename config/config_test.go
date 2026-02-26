@@ -25,8 +25,8 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.Hotkeys.Correct != "Ctrl+G" {
 		t.Errorf("expected default correct hotkey 'Ctrl+G', got '%s'", cfg.Hotkeys.Correct)
 	}
-	if cfg.Hotkeys.Translate != "F8" {
-		t.Errorf("expected default translate hotkey 'F8', got '%s'", cfg.Hotkeys.Translate)
+	if cfg.Hotkeys.Translate != "Ctrl+J" {
+		t.Errorf("expected default translate hotkey 'Ctrl+J', got '%s'", cfg.Hotkeys.Translate)
 	}
 	if cfg.Hotkeys.Rewrite != "F9" {
 		t.Errorf("expected default rewrite hotkey 'F9', got '%s'", cfg.Hotkeys.Rewrite)
@@ -198,8 +198,61 @@ func TestLoadAppliesDefaults(t *testing.T) {
 	if loaded.TimeoutMs != 5000 {
 		t.Errorf("expected default timeout_ms 5000, got %d", loaded.TimeoutMs)
 	}
-	if loaded.LogLevel != "info" {
-		t.Errorf("expected default log_level 'info', got '%s'", loaded.LogLevel)
+	if loaded.LogLevel != "" {
+		t.Errorf("expected empty log_level (disabled by default), got '%s'", loaded.LogLevel)
+	}
+}
+
+func TestLoadLoggingDisabledByDefault(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	cfg := map[string]interface{}{
+		"llm_provider": "openai",
+		"api_key":      "sk-test",
+		"model":        "gpt-4o",
+		"prompts":      map[string]interface{}{"correct": "Fix errors."},
+	}
+	data, _ := json.MarshalIndent(cfg, "", "  ")
+	os.WriteFile(path, data, 0644)
+
+	loaded, err := Load(path)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if loaded.LogLevel != "" {
+		t.Errorf("expected empty log_level when not set, got '%s'", loaded.LogLevel)
+	}
+	if loaded.LogFile != "" {
+		t.Errorf("expected empty log_file when logging disabled, got '%s'", loaded.LogFile)
+	}
+}
+
+func TestLoadLoggingEnabledSetsLogFileDefault(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	cfg := map[string]interface{}{
+		"llm_provider": "openai",
+		"api_key":      "sk-test",
+		"model":        "gpt-4o",
+		"log_level":    "debug",
+		"prompts":      map[string]interface{}{"correct": "Fix errors."},
+	}
+	data, _ := json.MarshalIndent(cfg, "", "  ")
+	os.WriteFile(path, data, 0644)
+
+	loaded, err := Load(path)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if loaded.LogLevel != "debug" {
+		t.Errorf("expected log_level 'debug', got '%s'", loaded.LogLevel)
+	}
+	if loaded.LogFile != "ghosttype.log" {
+		t.Errorf("expected default log_file 'ghosttype.log', got '%s'", loaded.LogFile)
 	}
 }
 

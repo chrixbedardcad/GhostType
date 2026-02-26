@@ -11,7 +11,7 @@
   "default_translate_target": "en",
   "hotkeys": {
     "correct": "Ctrl+G",
-    "translate": "F8",
+    "translate": "Ctrl+J",
     "toggle_language": "Ctrl+F8",
     "rewrite": "F9",
     "cycle_template": "Ctrl+F9",
@@ -19,7 +19,7 @@
   },
   "prompts": {
     "correct": "Detect the language of the following text (French or English). Fix all spelling and grammar errors while preserving the original meaning and language. Return ONLY the corrected text with no explanation.",
-    "translate": "Translate the following text to {target_language}. Preserve the tone and intent. Return ONLY the translation with no explanation.",
+    "translate": "The two configured languages are {language_a} and {language_b}. Detect the language of the following text and translate it to the OTHER language. If it is {language_a}, translate to {language_b}. If it is {language_b}, translate to {language_a}. Preserve the tone and intent. Return ONLY the translation with no explanation.",
     "rewrite_templates": [
       {"name": "funny", "prompt": "Rewrite this as a funny, witty reply. Keep it short and punchy. Return ONLY the rewritten text."},
       {"name": "formal", "prompt": "Rewrite this in a formal, professional tone. Return ONLY the rewritten text."},

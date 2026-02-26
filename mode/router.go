@@ -98,14 +98,35 @@ func (r *Router) Process(ctx context.Context, mode Mode, text string) (string, e
 	return strings.TrimSpace(resp.Text), nil
 }
 
-// buildTranslatePrompt builds the translation prompt with the current target language.
+// buildTranslatePrompt builds the bilingual translation prompt.
+// It substitutes {language_a} and {language_b} from the configured language pair.
+// Also supports legacy {target_language} placeholder for backwards compatibility.
 func (r *Router) buildTranslatePrompt() string {
+	prompt := r.cfg.Prompts.Translate
+
+	// Populate language pair placeholders for bilingual auto-detection.
+	if len(r.cfg.Languages) >= 2 {
+		nameA := r.cfg.LanguageNames[r.cfg.Languages[0]]
+		if nameA == "" {
+			nameA = r.cfg.Languages[0]
+		}
+		nameB := r.cfg.LanguageNames[r.cfg.Languages[1]]
+		if nameB == "" {
+			nameB = r.cfg.Languages[1]
+		}
+		prompt = strings.ReplaceAll(prompt, "{language_a}", nameA)
+		prompt = strings.ReplaceAll(prompt, "{language_b}", nameB)
+	}
+
+	// Legacy support: also replace {target_language} if present.
 	targetLang := r.CurrentTranslateTarget()
 	targetName := r.cfg.LanguageNames[targetLang]
 	if targetName == "" {
 		targetName = targetLang
 	}
-	return strings.ReplaceAll(r.cfg.Prompts.Translate, "{target_language}", targetName)
+	prompt = strings.ReplaceAll(prompt, "{target_language}", targetName)
+
+	return prompt
 }
 
 // buildRewritePrompt returns the prompt for the current rewrite template.

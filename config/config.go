@@ -76,7 +76,7 @@ func DefaultConfig() Config {
 		DefaultTranslateTarget: "en",
 		Hotkeys: Hotkeys{
 			Correct:        "Ctrl+G",
-			Translate:      "F8",
+			Translate:      "Ctrl+J",
 			ToggleLanguage: "Ctrl+F8",
 			Rewrite:        "F9",
 			CycleTemplate:  "Ctrl+F9",
@@ -84,7 +84,7 @@ func DefaultConfig() Config {
 		},
 		Prompts: Prompts{
 			Correct:   "Detect the language of the following text (French or English). Fix all spelling and grammar errors while preserving the original meaning and language. Return ONLY the corrected text with no explanation.",
-			Translate: "Translate the following text to {target_language}. Preserve the tone and intent. Return ONLY the translation with no explanation.",
+			Translate: "The two configured languages are {language_a} and {language_b}. Detect the language of the following text and translate it to the OTHER language. If it is {language_a}, translate to {language_b}. If it is {language_b}, translate to {language_a}. Preserve the tone and intent. Return ONLY the translation with no explanation.",
 			RewriteTemplates: []RewriteTemplate{
 				{Name: "funny", Prompt: "Rewrite this as a funny, witty reply. Keep it short and punchy. Return ONLY the rewritten text."},
 				{Name: "formal", Prompt: "Rewrite this in a formal, professional tone. Return ONLY the rewritten text."},
@@ -160,14 +160,25 @@ func applyDefaults(cfg *Config) {
 	if cfg.TimeoutMs == 0 {
 		cfg.TimeoutMs = 5000
 	}
-	if cfg.LogLevel == "" {
-		cfg.LogLevel = "info"
-	}
-	if cfg.LogFile == "" {
+	// LogLevel: empty means disabled (no logging). No default applied.
+	// LogFile: only default if logging is enabled.
+	if cfg.LogLevel != "" && cfg.LogFile == "" {
 		cfg.LogFile = "ghosttype.log"
 	}
 	if cfg.Hotkeys.Correct == "" {
 		cfg.Hotkeys.Correct = "Ctrl+G"
+	}
+	if cfg.Hotkeys.Translate == "" {
+		cfg.Hotkeys.Translate = "Ctrl+J"
+	}
+	if cfg.Hotkeys.ToggleLanguage == "" {
+		cfg.Hotkeys.ToggleLanguage = "Ctrl+F8"
+	}
+	if cfg.Hotkeys.Rewrite == "" {
+		cfg.Hotkeys.Rewrite = "F9"
+	}
+	if cfg.Hotkeys.CycleTemplate == "" {
+		cfg.Hotkeys.CycleTemplate = "Ctrl+F9"
 	}
 	if cfg.Hotkeys.Cancel == "" {
 		cfg.Hotkeys.Cancel = "Escape"

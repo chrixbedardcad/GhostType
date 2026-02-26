@@ -4,7 +4,7 @@ package hotkey
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"strings"
 	"sync"
 	"syscall"
@@ -27,6 +27,7 @@ const (
 	vkEscape = 0x1B
 	vkB      = 0x42
 	vkG      = 0x47
+	vkJ      = 0x4A
 	vkF7     = 0x76
 	vkF8     = 0x77
 	vkF9     = 0x78
@@ -93,6 +94,7 @@ func parseKey(key string) (uint32, uint32, error) {
 var keyMap = map[string]uint32{
 	"b":      vkB,
 	"g":      vkG,
+	"j":      vkJ,
 	"f7":     vkF7,
 	"f8":     vkF8,
 	"f9":     vkF9,
@@ -113,11 +115,11 @@ func (m *WindowsManager) Register(name string, key string, handler Handler) erro
 
 	ret, _, err := procRegisterHotKey.Call(0, uintptr(id), uintptr(mod), uintptr(vk))
 	if ret == 0 {
-		log.Printf("[hotkey] RegisterHotKey FAILED for %q (key=%s id=%d mod=0x%X vk=0x%X): %v", name, key, id, mod, vk, err)
+		slog.Error("RegisterHotKey failed", "name", name, "key", key, "id", id, "mod", fmt.Sprintf("0x%X", mod), "vk", fmt.Sprintf("0x%X", vk), "error", err)
 		return fmt.Errorf("failed to register hotkey '%s' (id=%d)", key, id)
 	}
 
-	log.Printf("[hotkey] Registered %q: key=%s id=%d mod=0x%X vk=0x%X", name, key, id, mod, vk)
+	slog.Debug("Hotkey registered", "name", name, "key", key, "id", id, "mod", fmt.Sprintf("0x%X", mod), "vk", fmt.Sprintf("0x%X", vk))
 	m.hotkeys[name] = registration{id: id, handler: handler}
 	return nil
 }
@@ -128,50 +130,50 @@ func (m *WindowsManager) Unregister(name string) error {
 
 	reg, ok := m.hotkeys[name]
 	if !ok {
-		log.Printf("[hotkey] Unregister %q: not found (no-op)", name)
+		slog.Debug("Hotkey unregister: not found (no-op)", "name", name)
 		return nil
 	}
 
-	log.Printf("[hotkey] Unregistering %q (id=%d)", name, reg.id)
+	slog.Debug("Hotkey unregistering", "name", name, "id", reg.id)
 	procUnregisterHotKey.Call(0, uintptr(reg.id))
 	delete(m.hotkeys, name)
 	return nil
 }
 
 func (m *WindowsManager) Listen() error {
-	log.Printf("[hotkey] Entering message loop (registered hotkeys: %d)", len(m.hotkeys))
+	slog.Debug("Entering message loop", "registered_hotkeys", len(m.hotkeys))
 	var message msg
 	for {
 		select {
 		case <-m.stopChan:
-			log.Printf("[hotkey] stopChan signalled — exiting message loop")
+			slog.Debug("stopChan signalled — exiting message loop")
 			return nil
 		default:
 		}
 
 		ret, _, _ := procGetMessage.Call(uintptr(unsafe.Pointer(&message)), 0, 0, 0)
 		if ret == 0 {
-			log.Printf("[hotkey] GetMessage returned 0 (WM_QUIT) — exiting message loop")
+			slog.Debug("GetMessage returned 0 (WM_QUIT) — exiting message loop")
 			break
 		}
 
-		log.Printf("[hotkey] GetMessage: msg=0x%04X wParam=0x%X lParam=0x%X", message.message, message.wParam, message.lParam)
+		slog.Debug("GetMessage", "msg", fmt.Sprintf("0x%04X", message.message), "wParam", fmt.Sprintf("0x%X", message.wParam), "lParam", fmt.Sprintf("0x%X", message.lParam))
 
 		if message.message == wmHotkey {
 			id := int(message.wParam)
-			log.Printf("[hotkey] WM_HOTKEY received: id=%d", id)
+			slog.Debug("WM_HOTKEY received", "id", id)
 			m.mu.Lock()
 			matched := false
 			for name, reg := range m.hotkeys {
 				if reg.id == id {
-					log.Printf("[hotkey] Dispatching handler for %q (id=%d)", name, id)
+					slog.Debug("Dispatching hotkey handler", "name", name, "id", id)
 					go reg.handler()
 					matched = true
 					break
 				}
 			}
 			if !matched {
-				log.Printf("[hotkey] WARNING: no registered handler for hotkey id=%d", id)
+				slog.Warn("No registered handler for hotkey", "id", id)
 			}
 			m.mu.Unlock()
 		}

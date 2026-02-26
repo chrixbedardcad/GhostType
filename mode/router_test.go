@@ -35,7 +35,7 @@ func newTestConfig() *config.Config {
 		DefaultTranslateTarget: "en",
 		Prompts: config.Prompts{
 			Correct:   "Fix spelling and grammar. Return ONLY corrected text.",
-			Translate: "Translate to {target_language}. Return ONLY the translation.",
+			Translate: "Detect language and translate between {language_a} and {language_b}. Return ONLY the translation.",
 			RewriteTemplates: []config.RewriteTemplate{
 				{Name: "funny", Prompt: "Rewrite as funny. Return ONLY the text."},
 				{Name: "formal", Prompt: "Rewrite as formal. Return ONLY the text."},
@@ -84,9 +84,10 @@ func TestRouter_ProcessTranslate(t *testing.T) {
 		t.Errorf("expected translated text, got '%s'", result)
 	}
 
-	// Verify prompt was built with target language
-	if mock.lastReq.Prompt != "Translate to English. Return ONLY the translation." {
-		t.Errorf("expected prompt with English target, got '%s'", mock.lastReq.Prompt)
+	// Verify prompt was built with language pair
+	expectedPrompt := "Detect language and translate between English and French. Return ONLY the translation."
+	if mock.lastReq.Prompt != expectedPrompt {
+		t.Errorf("expected prompt %q, got %q", expectedPrompt, mock.lastReq.Prompt)
 	}
 }
 
@@ -196,6 +197,60 @@ func TestRouter_CycleTemplate(t *testing.T) {
 	name = router.CycleTemplate()
 	if name != "funny" {
 		t.Errorf("expected 'funny', got '%s'", name)
+	}
+}
+
+func TestRouter_BilingualTranslatePrompt(t *testing.T) {
+	cfg := &config.Config{
+		Languages:              []string{"en", "fr"},
+		LanguageNames:          map[string]string{"en": "English", "fr": "French"},
+		DefaultTranslateTarget: "en",
+		Prompts: config.Prompts{
+			Correct:   "Fix errors.",
+			Translate: "Languages are {language_a} and {language_b}. Detect and translate.",
+		},
+		MaxTokens: 256,
+	}
+	mock := &mockClient{
+		response: &llm.Response{Text: "translated", Provider: "mock", Model: "test"},
+	}
+	router := NewRouter(cfg, mock)
+
+	_, err := router.Process(context.Background(), ModeTranslate, "Bonjour")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "Languages are English and French. Detect and translate."
+	if mock.lastReq.Prompt != expected {
+		t.Errorf("expected prompt %q, got %q", expected, mock.lastReq.Prompt)
+	}
+}
+
+func TestRouter_TranslateLegacyTargetLanguage(t *testing.T) {
+	cfg := &config.Config{
+		Languages:              []string{"en", "fr"},
+		LanguageNames:          map[string]string{"en": "English", "fr": "French"},
+		DefaultTranslateTarget: "en",
+		Prompts: config.Prompts{
+			Correct:   "Fix errors.",
+			Translate: "Translate to {target_language}.",
+		},
+		MaxTokens: 256,
+	}
+	mock := &mockClient{
+		response: &llm.Response{Text: "translated", Provider: "mock", Model: "test"},
+	}
+	router := NewRouter(cfg, mock)
+
+	_, err := router.Process(context.Background(), ModeTranslate, "Hello")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "Translate to English."
+	if mock.lastReq.Prompt != expected {
+		t.Errorf("expected prompt %q, got %q", expected, mock.lastReq.Prompt)
 	}
 }
 
