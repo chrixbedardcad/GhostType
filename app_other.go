@@ -12,7 +12,7 @@ import (
 	"github.com/chrixbedardcad/GhostType/mode"
 )
 
-func runApp(cfg *config.Config, router *mode.Router) {
+func runApp(cfg *config.Config, router *mode.Router, configPath string) {
 	fmt.Println("GhostType requires Windows for hotkey support.")
 	fmt.Println("On Windows, build and run:")
 	fmt.Println("  go build -o ghosttype.exe .")

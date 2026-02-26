@@ -40,6 +40,7 @@ const (
 	mfString    = 0x00000000
 	mfSeparator = 0x00000800
 	mfGrayed    = 0x00000001
+	mfChecked   = 0x00000008
 
 	tpmLeftAlign   = 0x0000
 	tpmBottomAlign = 0x0020
@@ -57,6 +58,7 @@ const (
 	idExit          = 2099
 	idLangBase      = 2100 // + language index
 	idTemplBase     = 2200 // + template index
+	idSoundToggle   = 2300
 )
 
 // Win32 structs.
@@ -179,12 +181,14 @@ type Config struct {
 	OnModeChange   func(modeName string) // "correct", "translate", "rewrite"
 	OnTargetSelect func(idx int)
 	OnTemplSelect  func(idx int)
+	OnSoundToggle  func(enabled bool)
 	OnExit         func()
 
 	// State readers — called to build the menu each time.
-	GetActiveMode  func() string // returns "correct", "translate", or "rewrite"
-	GetTargetIdx   func() int
-	GetTemplateIdx func() int
+	GetActiveMode    func() string // returns "correct", "translate", or "rewrite"
+	GetTargetIdx     func() int
+	GetTemplateIdx   func() int
+	GetSoundEnabled  func() bool
 
 	// Static data for building menu items.
 	TargetLabels  []string // translate target display labels
@@ -409,6 +413,14 @@ func (ts *trayState) showMenu() {
 			uintptr(idTemplBase+templIdx), 0)
 	}
 
+	// Sound toggle.
+	procAppendMenuW.Call(hMenu, mfSeparator, 0, 0)
+	soundFlags := uintptr(mfString)
+	if ts.cfg.GetSoundEnabled != nil && ts.cfg.GetSoundEnabled() {
+		soundFlags |= mfChecked
+	}
+	procAppendMenuW.Call(hMenu, soundFlags, idSoundToggle, uintptr(unsafe.Pointer(utf16Ptr("Sound"))))
+
 	// Exit.
 	procAppendMenuW.Call(hMenu, mfSeparator, 0, 0)
 	procAppendMenuW.Call(hMenu, mfString, idExit, uintptr(unsafe.Pointer(utf16Ptr("Exit"))))
@@ -455,6 +467,12 @@ func (ts *trayState) handleMenuCommand(id int) {
 			ts.cfg.OnModeChange("rewrite")
 		}
 		ts.updateTooltip()
+
+	case id == idSoundToggle:
+		if ts.cfg.OnSoundToggle != nil && ts.cfg.GetSoundEnabled != nil {
+			newState := !ts.cfg.GetSoundEnabled()
+			ts.cfg.OnSoundToggle(newState)
+		}
 
 	case id == idExit:
 		if ts.cfg.OnExit != nil {

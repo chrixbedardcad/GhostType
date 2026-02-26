@@ -73,9 +73,12 @@ type Config struct {
 	MaxTokens              int               `json:"max_tokens"`
 	TimeoutMs              int               `json:"timeout_ms"`
 	PreserveClipboard      bool              `json:"preserve_clipboard"`
+	SoundEnabled           *bool             `json:"sound_enabled"`
 	LogLevel               string            `json:"log_level"`
 	LogFile                string            `json:"log_file"`
 }
+
+func boolPtr(v bool) *bool { return &v }
 
 // DefaultConfig returns a Config populated with default values.
 func DefaultConfig() Config {
@@ -123,6 +126,7 @@ func DefaultConfig() Config {
 		MaxTokens:         256,
 		TimeoutMs:         5000,
 		PreserveClipboard: true,
+		SoundEnabled:      boolPtr(true),
 		LogLevel:          "info",
 		LogFile:           "ghosttype.log",
 	}
@@ -184,6 +188,9 @@ func applyDefaults(cfg *Config) {
 	// LogFile: only default if logging is enabled.
 	if cfg.LogLevel != "" && cfg.LogFile == "" {
 		cfg.LogFile = "ghosttype.log"
+	}
+	if cfg.SoundEnabled == nil {
+		cfg.SoundEnabled = boolPtr(true)
 	}
 	if cfg.ActiveMode == "" {
 		cfg.ActiveMode = "correct"

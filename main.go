@@ -11,6 +11,7 @@ import (
 	"github.com/chrixbedardcad/GhostType/config"
 	"github.com/chrixbedardcad/GhostType/llm"
 	"github.com/chrixbedardcad/GhostType/mode"
+	"github.com/chrixbedardcad/GhostType/sound"
 )
 
 func main() {
@@ -113,6 +114,10 @@ func main() {
 	// Initialize mode router
 	router := mode.NewRouter(cfg, client)
 
+	// Initialize sound system and play startup sound.
+	sound.Init(*cfg.SoundEnabled)
+	sound.PlayStart()
+
 	fmt.Println("")
 	fmt.Printf("Active mode: %s\n", cfg.ActiveMode)
 	targetLabels := cfg.TranslateTargetLabels()
@@ -143,5 +148,5 @@ func main() {
 		"hotkey_action", cfg.Hotkeys.Correct,
 	)
 
-	runApp(cfg, router)
+	runApp(cfg, router, configPath)
 }

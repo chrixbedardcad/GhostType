@@ -19,21 +19,13 @@ import (
 	"github.com/chrixbedardcad/GhostType/hotkey"
 	"github.com/chrixbedardcad/GhostType/keyboard"
 	"github.com/chrixbedardcad/GhostType/mode"
+	"github.com/chrixbedardcad/GhostType/sound"
 	"github.com/chrixbedardcad/GhostType/tray"
 )
 
 //go:embed GhostType_icon_512.png
 var appIconPNG []byte
 
-var (
-	kernel32Win = syscall.NewLazyDLL("kernel32.dll")
-	procBeep    = kernel32Win.NewProc("Beep")
-)
-
-// winBeep plays a short tone using the Windows Beep API.
-func winBeep(freq, durationMs uint32) {
-	procBeep.Call(uintptr(freq), uintptr(durationMs))
-}
 
 // captureText detects whether the user has an active text selection. It clears
 // the clipboard, copies, and checks. If text was copied the user had a selection.
@@ -100,7 +92,7 @@ func processMode(
 	cancelLLM *context.CancelFunc,
 ) {
 	slog.Info(modeName + " triggered")
-	winBeep(800, 100)
+	sound.PlayWorking()
 
 	// Save original clipboard.
 	if err := cb.Save(); err != nil {
@@ -143,6 +135,7 @@ func processMode(
 	result, err := router.Process(ctx, m, text)
 	if err != nil {
 		slog.Error("LLM processing failed", "mode", modeName, "error", err)
+		sound.PlayError()
 		cb.Restore()
 		return
 	}
@@ -176,7 +169,7 @@ func processMode(
 	// Restore original clipboard.
 	cb.Restore()
 
-	winBeep(1200, 150)
+	sound.PlaySuccess()
 	slog.Info(modeName+" complete", "result", result)
 	fmt.Printf("[%s] Result: %q\n", modeName, result)
 }
@@ -193,7 +186,7 @@ func modeFromString(name string) (mode.Mode, string) {
 	}
 }
 
-func runApp(cfg *config.Config, router *mode.Router) {
+func runApp(cfg *config.Config, router *mode.Router, configPath string) {
 	// Windows RegisterHotKey and GetMessageW must run on the same OS thread.
 	runtime.LockOSThread()
 
@@ -216,7 +209,7 @@ func runApp(cfg *config.Config, router *mode.Router) {
 		mu.Unlock()
 		slog.Info("Active mode changed", "mode", modeName)
 		fmt.Printf("Active mode: %s\n", modeName)
-		winBeep(600, 80)
+		sound.PlayToggle()
 	}
 
 	// Build target labels for the tray menu.
@@ -248,6 +241,19 @@ func runApp(cfg *config.Config, router *mode.Router) {
 			slog.Info("Rewrite template changed", "template", name)
 			fmt.Printf("Rewrite template: %s\n", name)
 		},
+		OnSoundToggle: func(enabled bool) {
+			sound.SetEnabled(enabled)
+			cfg.SoundEnabled = &enabled
+			if err := config.WriteDefault(configPath, cfg); err != nil {
+				slog.Error("Failed to save config", "error", err)
+			} else {
+				slog.Info("Sound toggled", "enabled", enabled)
+				fmt.Printf("Sound: %v\n", enabled)
+			}
+			if enabled {
+				sound.PlayToggle()
+			}
+		},
 		OnExit: func() {
 			hk.Stop()
 			if stopTrayFn != nil {
@@ -258,6 +264,9 @@ func runApp(cfg *config.Config, router *mode.Router) {
 			mu.Lock()
 			defer mu.Unlock()
 			return activeMode
+		},
+		GetSoundEnabled: func() bool {
+			return cfg.SoundEnabled != nil && *cfg.SoundEnabled
 		},
 		GetTargetIdx:   router.CurrentTranslateIdx,
 		GetTemplateIdx: router.CurrentTemplateIdx,
@@ -299,7 +308,7 @@ func runApp(cfg *config.Config, router *mode.Router) {
 			label := router.ToggleTranslateTarget()
 			slog.Info("Translation target toggled", "target", label)
 			fmt.Printf("Translation target: %s\n", label)
-			winBeep(600, 80)
+			sound.PlayToggle()
 		})
 		if err != nil {
 			slog.Error("Failed to register toggle-language hotkey", "key", cfg.Hotkeys.ToggleLanguage, "error", err)
@@ -324,7 +333,7 @@ func runApp(cfg *config.Config, router *mode.Router) {
 			name := router.CycleTemplate()
 			slog.Info("Rewrite template cycled", "template", name)
 			fmt.Printf("Rewrite template: %s\n", name)
-			winBeep(600, 80)
+			sound.PlayToggle()
 		})
 		if err != nil {
 			slog.Error("Failed to register cycle-template hotkey", "key", cfg.Hotkeys.CycleTemplate, "error", err)
