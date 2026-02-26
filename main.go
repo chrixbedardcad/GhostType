@@ -1,13 +1,10 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"os"
-	"os/signal"
 	"path/filepath"
-	"syscall"
 
 	"github.com/chrixbedardcad/GhostType/config"
 	"github.com/chrixbedardcad/GhostType/llm"
@@ -94,9 +91,6 @@ func main() {
 	fmt.Printf("  %s - Rewrite\n", cfg.Hotkeys.Rewrite)
 	fmt.Printf("  %s - Cancel\n", cfg.Hotkeys.Cancel)
 	fmt.Println("")
-	fmt.Println("GhostType is ready. Waiting for hotkey input...")
-	fmt.Println("(Platform-specific hotkey hooks will be added in future builds)")
-	fmt.Println("Press Ctrl+C to exit.")
 
 	slog.Info("GhostType ready",
 		"hotkey_correct", cfg.Hotkeys.Correct,
@@ -104,17 +98,5 @@ func main() {
 		"hotkey_rewrite", cfg.Hotkeys.Rewrite,
 	)
 
-	// Keep the process alive, wait for termination signal
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	_ = ctx // Will be used for hotkey handlers
-	_ = router // Will be used for hotkey handlers
-
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-	<-sigChan
-
-	fmt.Println("\nGhostType shutting down.")
-	slog.Info("GhostType shutting down")
+	runApp(cfg, router)
 }

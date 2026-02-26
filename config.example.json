@@ -1,0 +1,46 @@
+{
+  "llm_provider": "anthropic",
+  "api_key": "YOUR_API_KEY_HERE",
+  "model": "claude-sonnet-4-5-20250929",
+  "api_endpoint": "",
+  "languages": ["en", "fr"],
+  "language_names": {
+    "en": "English",
+    "fr": "French"
+  },
+  "default_translate_target": "en",
+  "hotkeys": {
+    "correct": "Ctrl+G",
+    "translate": "F8",
+    "toggle_language": "Ctrl+F8",
+    "rewrite": "F9",
+    "cycle_template": "Ctrl+F9",
+    "cancel": "Escape"
+  },
+  "target_window": "Firestorm",
+  "prompts": {
+    "correct": "Detect the language of the following text (French or English). Fix all spelling and grammar errors while preserving the original meaning and language. Return ONLY the corrected text with no explanation.",
+    "translate": "Translate the following text to {target_language}. Preserve the tone and intent. Return ONLY the translation with no explanation.",
+    "rewrite_templates": [
+      {"name": "funny", "prompt": "Rewrite this as a funny, witty reply. Keep it short and punchy. Return ONLY the rewritten text."},
+      {"name": "formal", "prompt": "Rewrite this in a formal, professional tone. Return ONLY the rewritten text."},
+      {"name": "sarcastic", "prompt": "Rewrite this with heavy sarcasm. Return ONLY the rewritten text."},
+      {"name": "flirty", "prompt": "Rewrite this in a playful, flirty tone. Return ONLY the rewritten text."},
+      {"name": "poetic", "prompt": "Rewrite this as if you were a romantic poet. Return ONLY the rewritten text."}
+    ]
+  },
+  "overlay": {
+    "enabled": true,
+    "position": "above_chat",
+    "opacity": 0.85,
+    "auto_dismiss_seconds": 10,
+    "show_mode_indicator": true,
+    "highlight_changes": true,
+    "font_size": 14
+  },
+  "max_tokens": 256,
+  "timeout_ms": 5000,
+  "preserve_clipboard": true,
+  "log_level": "info",
+  "log_file": "ghosttype.log"
+}
