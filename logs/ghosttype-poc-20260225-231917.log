@@ -1,0 +1,48 @@
+2026/02/25 23:19:17.317605 ==============================================
+2026/02/25 23:19:17.317605   GhostType POC v0.1.9 — Ctrl+G Clipboard Workflow
+2026/02/25 23:19:17.318302   (No LLM — uses test message)
+2026/02/25 23:19:17.318302   Log file: logs\ghosttype-poc-20260225-231917.log
+2026/02/25 23:19:17.318302 ==============================================
+2026/02/25 23:19:17.318302 INFO  Creating clipboard, keyboard, hotkey managers
+2026/02/25 23:19:17.318302 INFO  Registering Ctrl+G hotkey...
+2026/02/25 23:19:17.319883 [hotkey] Registered "correct": key=Ctrl+G id=1 mod=0x2 vk=0x47
+2026/02/25 23:19:17.319883 INFO  Ctrl+G hotkey registered OK
+2026/02/25 23:19:17.320408 INFO  Registering Ctrl+B diagnostic ping hotkey...
+2026/02/25 23:19:17.320939 [hotkey] Registered "ping": key=Ctrl+B id=2 mod=0x2 vk=0x42
+2026/02/25 23:19:17.320939 INFO  Ctrl+B hotkey registered OK
+2026/02/25 23:19:17.320939 INFO  Registering Escape hotkey...
+2026/02/25 23:19:17.320939 [hotkey] Registered "quit": key=Escape id=3 mod=0x0 vk=0x1B
+2026/02/25 23:19:17.320939 INFO  Escape hotkey registered OK
+2026/02/25 23:19:17.320939 INFO  Ctrl+G registered! Press Ctrl+G in any text field to test.
+2026/02/25 23:19:17.320939 INFO  Text will be uppercased with [CORRECTED] prefix.
+2026/02/25 23:19:17.320939 INFO  Press Ctrl+B to test hotkey delivery (ping)
+2026/02/25 23:19:17.320939 INFO  Press Escape to exit.
+2026/02/25 23:19:17.320939 [hotkey] Entering message loop (registered hotkeys: 3)
+2026/02/25 23:19:35.165958 [hotkey] GetMessage: msg=0x0312 wParam=0x1 lParam=0x470002
+2026/02/25 23:19:35.166953 [hotkey] WM_HOTKEY received: id=1
+2026/02/25 23:19:35.166953 [hotkey] Dispatching handler for "correct" (id=1)
+2026/02/25 23:19:35.166953 INFO  ---- Correction triggered! ----
+2026/02/25 23:19:35.272180 DEBUG Step 1: Saving original clipboard...
+2026/02/25 23:19:35.273029 DEBUG Step 1: Clipboard saved OK
+2026/02/25 23:19:35.273544 DEBUG Step 2: Sending Ctrl+A (SelectAll)...
+2026/02/25 23:19:35.285482 DEBUG Step 2: SelectAll sent, sleeping 50ms
+2026/02/25 23:19:35.336291 DEBUG Step 3: Sending Ctrl+C (Copy)...
+2026/02/25 23:19:35.348365 DEBUG Step 3: Copy sent, sleeping 100ms
+2026/02/25 23:19:35.448740 DEBUG Step 4: Reading clipboard...
+2026/02/25 23:19:35.449106 INFO  Captured text (15 chars): "this is a test "
+2026/02/25 23:19:35.449106 INFO  Corrected text: "[CORRECTED] THIS IS A TEST"
+2026/02/25 23:19:35.449609 DEBUG Step 6: Writing corrected text to clipboard...
+2026/02/25 23:19:35.450178 DEBUG Step 6: Clipboard written OK
+2026/02/25 23:19:35.450178 DEBUG Step 7: Sending Ctrl+A (SelectAll)...
+2026/02/25 23:19:35.516346 DEBUG Step 7: Sending Ctrl+V (Paste)...
+2026/02/25 23:19:35.528370 DEBUG Step 7: Paste sent, sleeping 50ms
+2026/02/25 23:19:35.579447 DEBUG Step 8: Restoring original clipboard...
+2026/02/25 23:19:35.579758 DEBUG Step 8: Clipboard restored
+2026/02/25 23:19:35.745200 INFO  ---- Correction complete! ----
+2026/02/25 23:20:08.798334 [hotkey] GetMessage: msg=0x0312 wParam=0x3 lParam=0x1B0000
+2026/02/25 23:20:08.798872 [hotkey] WM_HOTKEY received: id=3
+2026/02/25 23:20:08.798872 [hotkey] Dispatching handler for "quit" (id=3)
+2026/02/25 23:20:08.799375 INFO  Escape pressed — exiting cleanly.
+2026/02/25 23:20:08.799375 [hotkey] Unregistering "correct" (id=1)
+2026/02/25 23:20:08.799375 [hotkey] Unregistering "ping" (id=2)
+2026/02/25 23:20:08.799891 [hotkey] Unregistering "quit" (id=3)
