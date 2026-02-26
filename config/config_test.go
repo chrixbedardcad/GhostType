@@ -256,6 +256,53 @@ func TestLoadLoggingEnabledSetsLogFileDefault(t *testing.T) {
 	}
 }
 
+func TestLoadLogLevelCaseInsensitive(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	cfg := map[string]interface{}{
+		"llm_provider": "openai",
+		"api_key":      "sk-test",
+		"model":        "gpt-4o",
+		"log_level":    "DEBUG",
+		"prompts":      map[string]interface{}{"correct": "Fix errors."},
+	}
+	data, _ := json.MarshalIndent(cfg, "", "  ")
+	os.WriteFile(path, data, 0644)
+
+	loaded, err := Load(path)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if loaded.LogLevel != "debug" {
+		t.Errorf("expected normalized log_level 'debug', got '%s'", loaded.LogLevel)
+	}
+	if loaded.LogFile != "ghosttype.log" {
+		t.Errorf("expected default log_file 'ghosttype.log', got '%s'", loaded.LogFile)
+	}
+}
+
+func TestLoadInvalidLogLevel(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	cfg := map[string]interface{}{
+		"llm_provider": "openai",
+		"api_key":      "sk-test",
+		"model":        "gpt-4o",
+		"log_level":    "verbose",
+		"prompts":      map[string]interface{}{"correct": "Fix errors."},
+	}
+	data, _ := json.MarshalIndent(cfg, "", "  ")
+	os.WriteFile(path, data, 0644)
+
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for invalid log_level")
+	}
+}
+
 func TestWriteDefault(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "subdir", "config.json")

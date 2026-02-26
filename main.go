@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/chrixbedardcad/GhostType/config"
 	"github.com/chrixbedardcad/GhostType/llm"
@@ -16,19 +17,24 @@ func main() {
 	fmt.Printf("GhostType v%s - AI-powered multilingual auto-correction\n", Version)
 	fmt.Println("====================================================")
 
-	// Determine config path (same directory as executable)
+	// Determine config path (same directory as executable, then CWD).
 	execPath, err := os.Executable()
 	if err != nil {
 		execPath = "."
 	}
 	configPath := filepath.Join(filepath.Dir(execPath), "config.json")
 
-	// Also check current working directory
+	// Fall back to current working directory.
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		configPath = "config.json"
 	}
 
-	// Load configuration
+	// Resolve to absolute so log messages always show the full path.
+	if absPath, err := filepath.Abs(configPath); err == nil {
+		configPath = absPath
+	}
+
+	// Load configuration.
 	fmt.Printf("Loading config from: %s\n", configPath)
 	cfg, err := config.Load(configPath)
 	if err != nil {
@@ -37,27 +43,43 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Derive the base directory from the config file for resolving relative paths.
+	configDir := filepath.Dir(configPath)
+
 	// Set up logging. Empty log_level disables all logging.
+	// Normalize to lowercase so "Debug", "DEBUG", etc. all work.
+	cfg.LogLevel = strings.ToLower(strings.TrimSpace(cfg.LogLevel))
+
 	if cfg.LogLevel != "" {
 		logLevel := slog.LevelInfo
 		switch cfg.LogLevel {
 		case "debug":
 			logLevel = slog.LevelDebug
+		case "info":
+			logLevel = slog.LevelInfo
 		case "warn":
 			logLevel = slog.LevelWarn
 		case "error":
 			logLevel = slog.LevelError
 		}
 
-		// Resolve log file path relative to the executable directory.
+		// Resolve log file path relative to the config file directory.
 		logPath := cfg.LogFile
 		if !filepath.IsAbs(logPath) {
-			logPath = filepath.Join(filepath.Dir(execPath), logPath)
+			logPath = filepath.Join(configDir, logPath)
+		}
+
+		// Ensure the parent directory exists.
+		if dir := filepath.Dir(logPath); dir != "." {
+			if err := os.MkdirAll(dir, 0755); err != nil {
+				fmt.Fprintf(os.Stderr, "Warning: could not create log directory %s: %v\n", dir, err)
+			}
 		}
 
 		logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: could not open log file %s: %v\n", logPath, err)
+			fmt.Fprintf(os.Stderr, "ERROR: could not open log file %s: %v\n", logPath, err)
+			fmt.Fprintf(os.Stderr, "Logs will be written to stderr instead.\n")
 			logFile = os.Stderr
 		} else {
 			defer logFile.Close()
@@ -69,7 +91,7 @@ func main() {
 	} else {
 		// Disabled: set a no-op logger that discards everything.
 		slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelError + 1})))
-		fmt.Println("Logging disabled (log_level is empty)")
+		fmt.Println("Logging disabled (set log_level in config.json to enable)")
 	}
 
 	slog.Info("GhostType starting",

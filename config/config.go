@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // RewriteTemplate defines a named rewrite prompt template.
@@ -160,6 +161,8 @@ func applyDefaults(cfg *Config) {
 	if cfg.TimeoutMs == 0 {
 		cfg.TimeoutMs = 5000
 	}
+	// Normalize log_level to lowercase so "Debug", "INFO", etc. all work.
+	cfg.LogLevel = strings.ToLower(strings.TrimSpace(cfg.LogLevel))
 	// LogLevel: empty means disabled (no logging). No default applied.
 	// LogFile: only default if logging is enabled.
 	if cfg.LogLevel != "" && cfg.LogFile == "" {
@@ -219,6 +222,19 @@ func validate(cfg *Config) error {
 
 	if cfg.Prompts.Correct == "" {
 		return fmt.Errorf("prompts.correct is required")
+	}
+
+	// Validate log_level if set.
+	if cfg.LogLevel != "" {
+		validLevels := map[string]bool{
+			"debug": true,
+			"info":  true,
+			"warn":  true,
+			"error": true,
+		}
+		if !validLevels[cfg.LogLevel] {
+			return fmt.Errorf("unsupported log_level: %q (valid: debug, info, warn, error, or empty to disable)", cfg.LogLevel)
+		}
 	}
 
 	return nil
