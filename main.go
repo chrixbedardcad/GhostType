@@ -7,12 +7,28 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/chrixbedardcad/GhostType/config"
 	"github.com/chrixbedardcad/GhostType/llm"
 	"github.com/chrixbedardcad/GhostType/mode"
 	"github.com/chrixbedardcad/GhostType/sound"
 )
+
+// logStartupError writes a fatal startup error to a crash log file next to the
+// config so that errors are visible even in windowless builds.
+func logStartupError(dir, msg string, err error) {
+	crashPath := filepath.Join(dir, "ghosttype_crash.log")
+	f, ferr := os.OpenFile(crashPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if ferr != nil {
+		return
+	}
+	defer f.Close()
+	fmt.Fprintf(f, "time=%s level=ERROR version=%s msg=%q error=%q\n",
+		time.Now().Format(time.RFC3339), Version, msg, err)
+	// Also log via slog in case the logger is already set up.
+	slog.Error(msg, "error", err)
+}
 
 func main() {
 	fmt.Printf("GhostType v%s - AI-powered multilingual auto-correction\n", Version)
@@ -23,7 +39,8 @@ func main() {
 	if err != nil {
 		execPath = "."
 	}
-	configPath := filepath.Join(filepath.Dir(execPath), "config.json")
+	execDir := filepath.Dir(execPath)
+	configPath := filepath.Join(execDir, "config.json")
 
 	// Fall back to current working directory.
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
@@ -39,6 +56,7 @@ func main() {
 	fmt.Printf("Loading config from: %s\n", configPath)
 	cfg, err := config.Load(configPath)
 	if err != nil {
+		logStartupError(filepath.Dir(configPath), "Failed to load config", err)
 		fmt.Fprintf(os.Stderr, "Error loading config: %v\n", err)
 		fmt.Println("A default config.json has been created. Please add your API key and restart.")
 		os.Exit(1)
@@ -110,7 +128,7 @@ func main() {
 		client, err = llm.NewClient(cfg)
 	}
 	if err != nil {
-		slog.Error("Failed to initialize LLM client", "error", err)
+		logStartupError(filepath.Dir(configPath), "Failed to initialize LLM client", err)
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
