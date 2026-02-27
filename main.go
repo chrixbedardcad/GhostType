@@ -97,8 +97,8 @@ func main() {
 
 	slog.Info("GhostType starting",
 		"version", Version,
-		"provider", cfg.LLMProvider,
-		"model", cfg.Model,
+		"default_llm", cfg.DefaultLLM,
+		"llm_providers", len(cfg.LLMProviders),
 	)
 
 	// Initialize LLM client
@@ -115,14 +115,29 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Provider: %s\n", client.Provider())
-	if cfg.DefaultLLM != "" {
-		def := cfg.LLMProviders[cfg.DefaultLLM]
-		fmt.Printf("Model: %s (default: %s)\n", def.Model, cfg.DefaultLLM)
-		if len(cfg.LLMProviders) > 1 {
-			fmt.Printf("LLM providers configured: %d\n", len(cfg.LLMProviders))
+	if len(cfg.LLMProviders) > 0 {
+		fmt.Println("")
+		fmt.Println("LLM Providers:")
+		for label, def := range cfg.LLMProviders {
+			suffix := ""
+			if label == cfg.DefaultLLM {
+				suffix = " (default)"
+			}
+			fmt.Printf("  %s: %s / %s%s\n", label, def.Provider, def.Model, suffix)
+		}
+		if cfg.CorrectLLM != "" {
+			fmt.Printf("  correct  → %s\n", cfg.CorrectLLM)
+		}
+		if cfg.TranslateLLM != "" {
+			fmt.Printf("  translate → %s\n", cfg.TranslateLLM)
+		}
+		for _, tmpl := range cfg.Prompts.RewriteTemplates {
+			if tmpl.LLM != "" {
+				fmt.Printf("  rewrite/%s → %s\n", tmpl.Name, tmpl.LLM)
+			}
 		}
 	} else {
+		fmt.Printf("Provider: %s\n", client.Provider())
 		fmt.Printf("Model: %s\n", cfg.Model)
 	}
 
