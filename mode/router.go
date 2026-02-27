@@ -99,9 +99,8 @@ func (r *Router) Process(ctx context.Context, mode Mode, text string) (string, e
 	slog.Debug("processing text", "mode", mode.String(), "llm", label, "prompt", truncatedPrompt, "input_len", len(text))
 
 	resp, err := client.Send(ctx, llm.Request{
-		Prompt:    prompt,
-		Text:      text,
-		MaxTokens: r.cfg.MaxTokens,
+		Prompt: prompt,
+		Text:   text,
 	})
 	if err != nil {
 		slog.Debug("LLM request failed", "mode", mode.String(), "llm", label, "input_len", len(text), "error", err)
