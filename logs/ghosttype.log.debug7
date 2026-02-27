@@ -1,0 +1,22 @@
+time=2026-02-27T01:18:52.602-05:00 level=INFO msg="GhostType starting" version=0.1.33 default_llm=claude llm_providers=3
+time=2026-02-27T01:18:52.609-05:00 level=INFO msg="GhostType ready" version=0.1.33 active_mode=correct hotkey_action=Ctrl+G
+time=2026-02-27T01:18:52.609-05:00 level=DEBUG msg="Hotkey registered" name=action key=Ctrl+G id=1 mod=0x2 vk=0x47
+time=2026-02-27T01:18:52.609-05:00 level=DEBUG msg="Entering message loop" registered_hotkeys=1 threadID=6276
+time=2026-02-27T01:18:52.616-05:00 level=DEBUG msg="NOTIFYICONDATAW size" bytes=976
+time=2026-02-27T01:18:52.623-05:00 level=INFO msg="System tray icon added"
+time=2026-02-27T01:18:56.675-05:00 level=INFO msg="Active mode changed" mode=rewrite
+time=2026-02-27T01:19:00.944-05:00 level=DEBUG msg=GetMessage msg=0x0312 wParam=0x1 lParam=0x470002
+time=2026-02-27T01:19:00.955-05:00 level=DEBUG msg="WM_HOTKEY received" id=1
+time=2026-02-27T01:19:00.955-05:00 level=DEBUG msg="Dispatching hotkey handler" name=action id=1
+time=2026-02-27T01:19:00.955-05:00 level=INFO msg="Rewrite triggered"
+time=2026-02-27T01:19:01.119-05:00 level=DEBUG msg="No selection detected, falling back to select-all" mode=Rewrite
+time=2026-02-27T01:19:01.296-05:00 level=INFO msg="Captured text" mode=Rewrite len=20 selection=false text="Do you know my name?"
+time=2026-02-27T01:19:01.296-05:00 level=DEBUG msg="processing text" mode=rewrite llm=gpt prompt="Rewrite this as a funny, witty reply. Keep it short and punchy. Return ONLY the ..." input_len=20
+time=2026-02-27T01:19:01.296-05:00 level=DEBUG msg="openai: sending request" model=gpt-5.1 endpoint=https://api.openai.com/v1/chat/completions body_len=208
+time=2026-02-27T01:19:03.164-05:00 level=DEBUG msg="openai: response received" status=200
+time=2026-02-27T01:19:03.164-05:00 level=DEBUG msg="openai: raw response body" body="{\n  \"id\": \"chatcmpl-DDlTjZ17kNuwrOU48DNTCweyHY2ST\",\n  \"object\": \"chat.completion\",\n  \"created\": 1772173143,\n  \"model\": \"gpt-5.1-2025-11-13\",\n  \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\": \"assistant\",\n        \"content\": \"Of course I do. I just like to keep the suspense going.\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 34,\n    \"completion_tokens\": 23,\n    \"total_tokens\": 57,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\": {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\": 0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\": \"default\",\n  \"system_fingerprint\": null\n}\n"
+time=2026-02-27T01:19:03.164-05:00 level=DEBUG msg="openai: parsed response" text_len=55 choices=1
+time=2026-02-27T01:19:03.164-05:00 level=DEBUG msg="LLM response received" provider=openai model=gpt-5.1 llm=gpt response_len=55
+time=2026-02-27T01:19:03.304-05:00 level=INFO msg="Rewrite complete" result="Of course I do. I just like to keep the suspense going."
+time=2026-02-27T01:19:17.848-05:00 level=INFO msg="Exit requested via tray menu"
+time=2026-02-27T01:19:17.848-05:00 level=DEBUG msg="GetMessage returned 0 (WM_QUIT) — exiting message loop"
