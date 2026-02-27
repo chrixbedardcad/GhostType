@@ -493,6 +493,9 @@ func (ts *trayState) handleMenuCommand(id int) {
 		if ts.cfg.OnExit != nil {
 			ts.cfg.OnExit()
 		}
+		// Post WM_DESTROY so the tray cleans itself up without OnExit
+		// needing to call the stop function (which would deadlock).
+		procPostMessageW.Call(ts.hwnd, wmDestroy, 0, 0)
 	}
 }
 

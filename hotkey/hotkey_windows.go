@@ -12,10 +12,13 @@ import (
 )
 
 var (
-	user32              = syscall.NewLazyDLL("user32.dll")
-	procRegisterHotKey  = user32.NewProc("RegisterHotKey")
-	procUnregisterHotKey = user32.NewProc("UnregisterHotKey")
-	procGetMessage      = user32.NewProc("GetMessageW")
+	user32                = syscall.NewLazyDLL("user32.dll")
+	kernel32              = syscall.NewLazyDLL("kernel32.dll")
+	procRegisterHotKey    = user32.NewProc("RegisterHotKey")
+	procUnregisterHotKey  = user32.NewProc("UnregisterHotKey")
+	procGetMessage        = user32.NewProc("GetMessageW")
+	procPostThreadMessage = user32.NewProc("PostThreadMessageW")
+	procGetCurrentThreadID = kernel32.NewProc("GetCurrentThreadId")
 )
 
 // Virtual key codes for function keys and modifiers.
@@ -33,7 +36,10 @@ const (
 	vkF9     = 0x78
 )
 
-const wmHotkey = 0x0312
+const (
+	wmHotkey = 0x0312
+	wmQuit   = 0x0012
+)
 
 // msg represents a Windows MSG structure.
 type msg struct {
@@ -56,6 +62,8 @@ type WindowsManager struct {
 	hotkeys  map[string]registration
 	nextID   int
 	stopChan chan struct{}
+	stopOnce sync.Once
+	threadID uint32
 }
 
 // NewWindowsManager creates a new Windows hotkey manager.
@@ -141,7 +149,9 @@ func (m *WindowsManager) Unregister(name string) error {
 }
 
 func (m *WindowsManager) Listen() error {
-	slog.Debug("Entering message loop", "registered_hotkeys", len(m.hotkeys))
+	tid, _, _ := procGetCurrentThreadID.Call()
+	m.threadID = uint32(tid)
+	slog.Debug("Entering message loop", "registered_hotkeys", len(m.hotkeys), "threadID", m.threadID)
 	var message msg
 	for {
 		select {
@@ -182,5 +192,10 @@ func (m *WindowsManager) Listen() error {
 }
 
 func (m *WindowsManager) Stop() {
-	close(m.stopChan)
+	m.stopOnce.Do(func() {
+		close(m.stopChan)
+		if m.threadID != 0 {
+			procPostThreadMessage.Call(uintptr(m.threadID), uintptr(wmQuit), 0, 0)
+		}
+	})
 }

@@ -261,10 +261,16 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string) {
 			}
 		},
 		OnExit: func() {
+			slog.Info("Exit requested via tray menu")
+			fmt.Println("\nGhostType exiting (tray menu).")
 			hk.Stop()
-			if stopTrayFn != nil {
-				stopTrayFn()
-			}
+			// Do NOT call stopTrayFn() here — we are inside the tray's
+			// DispatchMessageW callback; the tray posts WM_DESTROY to
+			// itself after OnExit returns.
+			go func() {
+				time.Sleep(2 * time.Second)
+				os.Exit(0)
+			}()
 		},
 		GetActiveMode: func() string {
 			mu.Lock()
@@ -359,9 +365,13 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string) {
 		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 		<-sigChan
 		fmt.Println("\nGhostType shutting down.")
-		slog.Info("GhostType shutting down")
+		slog.Info("GhostType shutting down (signal)")
 		stopTrayFn()
 		hk.Stop()
+		go func() {
+			time.Sleep(2 * time.Second)
+			os.Exit(0)
+		}()
 	}()
 
 	fmt.Println("GhostType is ready. Waiting for hotkey input...")
