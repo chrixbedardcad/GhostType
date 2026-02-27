@@ -257,11 +257,10 @@ func applyDefaults(cfg *Config) {
 		}
 	}
 
-	// Fill missing MaxTokens/TimeoutMs per provider from global values.
+	// Fill missing TimeoutMs per provider from global value.
+	// MaxTokens is NOT filled here — each LLM constructor applies its own
+	// sensible default (e.g. 2048 for OpenAI reasoning models vs 256 for others).
 	for label, def := range cfg.LLMProviders {
-		if def.MaxTokens == 0 {
-			def.MaxTokens = cfg.MaxTokens
-		}
 		if def.TimeoutMs == 0 {
 			def.TimeoutMs = cfg.TimeoutMs
 		}
