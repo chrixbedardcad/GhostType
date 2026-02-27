@@ -96,6 +96,7 @@ func main() {
 	}
 
 	slog.Info("GhostType starting",
+		"version", Version,
 		"provider", cfg.LLMProvider,
 		"model", cfg.Model,
 	)
@@ -143,6 +144,7 @@ func main() {
 	fmt.Println("")
 
 	slog.Info("GhostType ready",
+		"version", Version,
 		"active_mode", cfg.ActiveMode,
 		"hotkey_action", cfg.Hotkeys.Correct,
 	)

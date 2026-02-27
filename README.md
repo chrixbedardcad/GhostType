@@ -8,7 +8,7 @@
 
 GhostType is a lightweight background service that hooks into your chat application (primarily Firestorm Second Life viewer) and provides real-time spelling correction, language translation, and creative text rewriting — powered by your choice of LLM provider.
 
-Type in French, hit **Ctrl+G**, get it corrected. Switch to English, hit **Ctrl+G**, corrected too. Want to translate or rewrite instead? Change the active mode in the system tray (or `config.json`) — **Ctrl+G** always does whatever mode is active. Undo with **Ctrl+Z** or cancel with **Escape**. That simple.
+Type in French, hit **Ctrl+G**, get it corrected. Switch to English, hit **Ctrl+G**, corrected too. Want to translate or rewrite instead? Change the active mode in the system tray (or `config.json`) — **Ctrl+G** always does whatever mode is active. Undo with **Ctrl+Z** or cancel from the tray menu. That simple.
 
 ---
 
@@ -34,7 +34,7 @@ Type in French, hit **Ctrl+G**, get it corrected. Switch to English, hit **Ctrl+
 - **Translate** — Instantly translates between French and English (or any configured language pair)
 - **Rewrite** — Rewrites your text using customizable prompt templates (funny, formal, sarcastic, flirty, poetic, and more)
 - **Multi-Provider** — Works with Anthropic Claude, OpenAI GPT, Google Gemini, xAI Grok, or local Ollama models
-- **Hotkey Driven** — One hotkey to learn: Ctrl+G performs the active mode (correct, translate, or rewrite). Escape to cancel. Optional dedicated hotkeys for power users
+- **Hotkey Driven** — One hotkey to learn: Ctrl+G performs the active mode (correct, translate, or rewrite). Cancel from the tray menu. Optional dedicated hotkeys for power users
 - **System Tray** — Switch modes, languages, templates, and toggle sound from the tray icon
 - **Sound Effects** — Audio feedback with random WAV variants for each event (start, working, success, error, toggle). Disable via tray or config
 - **Configurable** — JSON config file for API keys, providers, hotkeys, prompts, overlay settings, and custom rewrite templates
@@ -78,8 +78,9 @@ GhostType starts minimized in your system tray. Open Firestorm, type something i
 | Hotkey | Action |
 |--------|--------|
 | **Ctrl+G** | Perform active mode (correct, translate, or rewrite) |
-| **Escape** | Cancel in-progress operation |
 | **Ctrl+Z** | Undo replacement (native) |
+
+Cancel an in-progress LLM call from the **Cancel LLM** item in the system tray menu.
 
 ### Optional (add in `config.json`)
 
@@ -123,7 +124,6 @@ GhostType is configured entirely through `config.json`. Here is a full example:
   "active_mode": "correct",
   "hotkeys": {
     "correct": "Ctrl+G",
-    "cancel": "Escape",
     "translate": "",
     "toggle_language": "",
     "rewrite": "",
@@ -194,13 +194,23 @@ Switch between templates from the system tray menu, or assign a dedicated hotkey
 - Go 1.22 or later
 - Windows 10/11 (MVP target)
 
-### Build
+### Build (console + tray)
+
+Standard build — opens a console window alongside the tray icon (useful for development and debugging):
 
 ```bash
 git clone https://github.com/chrixbedardcad/GhostType.git
 cd GhostType
 go mod download
 go build -o ghosttype.exe
+```
+
+### Build (tray only, no console)
+
+Production build — runs as a tray icon only with no console window:
+
+```bash
+go build -ldflags -H=windowsgui -o ghosttype.exe
 ```
 
 ### Run Tests
@@ -218,7 +228,7 @@ go test ./...
 3. Choose your active mode: **correct**, **translate**, or **rewrite** from the system tray icon (or via `active_mode` in config).
 4. When you press **Ctrl+G**, GhostType detects any selected text. If you have a selection, only that text is processed. If nothing is selected, it selects all text in the active input.
 5. The text is sent to your configured LLM provider with the appropriate prompt for the active mode.
-6. The result replaces the original text. Press **Escape** to cancel, or **Ctrl+Z** to undo.
+6. The result replaces the original text. Cancel from the tray menu, or **Ctrl+Z** to undo.
 7. Your original clipboard content is preserved and restored.
 
 ---
