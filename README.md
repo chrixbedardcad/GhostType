@@ -12,8 +12,26 @@ Type in French, hit **Ctrl+G**, get it corrected. Switch to English, hit **Ctrl+
 
 ---
 
+## Download
+
+[![GitHub Release](https://img.shields.io/github/v/release/chrixbedardcad/GhostType?style=for-the-badge&logo=github)](https://github.com/chrixbedardcad/GhostType/releases/latest)
+[![CI](https://img.shields.io/github/actions/workflow/status/chrixbedardcad/GhostType/ci.yml?branch=main&style=for-the-badge&label=CI)](https://github.com/chrixbedardcad/GhostType/actions/workflows/ci.yml)
+
+| Platform | Download |
+|----------|----------|
+| **Windows** (recommended) | [ghosttype-windows-amd64.exe](https://github.com/chrixbedardcad/GhostType/releases/latest/download/ghosttype-windows-amd64.exe) |
+| **Windows** (no console) | [ghosttype-windows-amd64-windowless.exe](https://github.com/chrixbedardcad/GhostType/releases/latest/download/ghosttype-windows-amd64-windowless.exe) |
+| **Linux** | [ghosttype-linux-amd64](https://github.com/chrixbedardcad/GhostType/releases/latest/download/ghosttype-linux-amd64) |
+| **macOS** (Intel) | [ghosttype-darwin-amd64](https://github.com/chrixbedardcad/GhostType/releases/latest/download/ghosttype-darwin-amd64) |
+| **macOS** (Apple Silicon) | [ghosttype-darwin-arm64](https://github.com/chrixbedardcad/GhostType/releases/latest/download/ghosttype-darwin-arm64) |
+
+> **Note**: GhostType currently only runs on Windows. Linux and macOS binaries are provided for future compatibility — they will print "Windows only" until platform support is added.
+
+---
+
 ## Table of Contents
 
+- [Download](#download)
 - [Features](#features)
 - [Quick Start](#quick-start)
 - [Hotkeys](#hotkeys)
