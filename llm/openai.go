@@ -77,9 +77,9 @@ func (c *OpenAIClient) Provider() string {
 
 // openaiRequest is the request body for the OpenAI Chat Completions API.
 type openaiRequest struct {
-	Model     string           `json:"model"`
-	Messages  []openaiMessage  `json:"messages"`
-	MaxTokens int              `json:"max_tokens"`
+	Model              string          `json:"model"`
+	Messages           []openaiMessage `json:"messages"`
+	MaxCompletionTokens int            `json:"max_completion_tokens"`
 }
 
 type openaiMessage struct {
@@ -113,7 +113,7 @@ func (c *OpenAIClient) Send(ctx context.Context, req Request) (*Response, error)
 		Messages: []openaiMessage{
 			{Role: "user", Content: fullPrompt},
 		},
-		MaxTokens: maxTokens,
+		MaxCompletionTokens: maxTokens,
 	}
 
 	jsonBody, err := json.Marshal(body)
