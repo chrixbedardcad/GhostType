@@ -58,6 +58,7 @@ const (
 	idExit          = 2099
 	idLangBase      = 2100 // + language index
 	idTemplBase     = 2200 // + template index
+	idCancel        = 2098
 	idSoundToggle   = 2300
 )
 
@@ -182,6 +183,7 @@ type Config struct {
 	OnTargetSelect func(idx int)
 	OnTemplSelect  func(idx int)
 	OnSoundToggle  func(enabled bool)
+	OnCancel       func()
 	OnExit         func()
 
 	// State readers — called to build the menu each time.
@@ -189,6 +191,7 @@ type Config struct {
 	GetTargetIdx     func() int
 	GetTemplateIdx   func() int
 	GetSoundEnabled  func() bool
+	GetIsProcessing  func() bool
 
 	// Static data for building menu items.
 	TargetLabels  []string // translate target display labels
@@ -421,6 +424,13 @@ func (ts *trayState) showMenu() {
 	}
 	procAppendMenuW.Call(hMenu, soundFlags, idSoundToggle, uintptr(unsafe.Pointer(utf16Ptr("Sound"))))
 
+	// Cancel — only enabled when an LLM call is in progress.
+	cancelFlags := uintptr(mfString | mfGrayed)
+	if ts.cfg.GetIsProcessing != nil && ts.cfg.GetIsProcessing() {
+		cancelFlags = uintptr(mfString)
+	}
+	procAppendMenuW.Call(hMenu, cancelFlags, idCancel, uintptr(unsafe.Pointer(utf16Ptr("Cancel LLM"))))
+
 	// Exit.
 	procAppendMenuW.Call(hMenu, mfSeparator, 0, 0)
 	procAppendMenuW.Call(hMenu, mfString, idExit, uintptr(unsafe.Pointer(utf16Ptr("Exit"))))
@@ -467,6 +477,11 @@ func (ts *trayState) handleMenuCommand(id int) {
 			ts.cfg.OnModeChange("rewrite")
 		}
 		ts.updateTooltip()
+
+	case id == idCancel:
+		if ts.cfg.OnCancel != nil {
+			ts.cfg.OnCancel()
+		}
 
 	case id == idSoundToggle:
 		if ts.cfg.OnSoundToggle != nil && ts.cfg.GetSoundEnabled != nil {

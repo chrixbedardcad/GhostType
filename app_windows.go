@@ -250,6 +250,16 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string) {
 				sound.PlayToggle()
 			}
 		},
+		OnCancel: func() {
+			mu.Lock()
+			fn := cancelLLM
+			mu.Unlock()
+
+			if fn != nil {
+				slog.Info("Cancel requested via tray — aborting LLM call")
+				fn()
+			}
+		},
 		OnExit: func() {
 			hk.Stop()
 			if stopTrayFn != nil {
@@ -263,6 +273,11 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string) {
 		},
 		GetSoundEnabled: func() bool {
 			return cfg.SoundEnabled != nil && *cfg.SoundEnabled
+		},
+		GetIsProcessing: func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return cancelLLM != nil
 		},
 		GetTargetIdx:   router.CurrentTranslateIdx,
 		GetTemplateIdx: router.CurrentTemplateIdx,
@@ -336,25 +351,6 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string) {
 			fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.CycleTemplate, err)
 			return
 		}
-	}
-
-	// Register cancel hotkey — cancels in-progress LLM call, does NOT exit.
-	err = hk.Register("cancel", cfg.Hotkeys.Cancel, func() {
-		mu.Lock()
-		fn := cancelLLM
-		mu.Unlock()
-
-		if fn != nil {
-			slog.Info("Cancel requested — aborting LLM call")
-			fn()
-		} else {
-			slog.Debug("Cancel pressed but no LLM call in progress")
-		}
-	})
-	if err != nil {
-		slog.Error("Failed to register cancel hotkey", "key", cfg.Hotkeys.Cancel, "error", err)
-		fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.Cancel, err)
-		return
 	}
 
 	// SIGINT handler — clean shutdown.

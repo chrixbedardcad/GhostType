@@ -34,9 +34,6 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.Hotkeys.Rewrite != "" {
 		t.Errorf("expected default rewrite hotkey empty, got '%s'", cfg.Hotkeys.Rewrite)
 	}
-	if cfg.Hotkeys.Cancel != "Escape" {
-		t.Errorf("expected default cancel hotkey 'Escape', got '%s'", cfg.Hotkeys.Cancel)
-	}
 	if len(cfg.Languages) != 2 {
 		t.Errorf("expected 2 default languages, got %d", len(cfg.Languages))
 	}
@@ -394,12 +391,9 @@ func TestLoadOptionalHotkeysEmpty(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Only action (correct) and cancel should have defaults
+	// Only action (correct) should have a default
 	if loaded.Hotkeys.Correct != "Ctrl+G" {
 		t.Errorf("expected action hotkey 'Ctrl+G', got '%s'", loaded.Hotkeys.Correct)
-	}
-	if loaded.Hotkeys.Cancel != "Escape" {
-		t.Errorf("expected cancel hotkey 'Escape', got '%s'", loaded.Hotkeys.Cancel)
 	}
 	// Optional hotkeys should remain empty
 	if loaded.Hotkeys.Translate != "" {

@@ -33,7 +33,6 @@ type Hotkeys struct {
 	ToggleLanguage string `json:"toggle_language"`
 	Rewrite        string `json:"rewrite"`
 	CycleTemplate  string `json:"cycle_template"`
-	Cancel         string `json:"cancel"`
 }
 
 // Prompts defines the LLM prompt configuration.
@@ -100,7 +99,6 @@ func DefaultConfig() Config {
 			ToggleLanguage: "",
 			Rewrite:        "",
 			CycleTemplate:  "",
-			Cancel:         "Escape",
 		},
 		Prompts: Prompts{
 			Correct:         "Detect the language of the following text (French or English). Fix all spelling and grammar errors while preserving the original meaning and language. Return ONLY the corrected text with no explanation.",
@@ -200,9 +198,6 @@ func applyDefaults(cfg *Config) {
 	}
 	// Translate, ToggleLanguage, Rewrite, CycleTemplate default to empty
 	// (not registered). Users can add dedicated hotkeys in config if desired.
-	if cfg.Hotkeys.Cancel == "" {
-		cfg.Hotkeys.Cancel = "Escape"
-	}
 	if len(cfg.Languages) == 0 {
 		cfg.Languages = []string{"en", "fr"}
 	}

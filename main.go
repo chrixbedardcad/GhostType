@@ -140,7 +140,6 @@ func main() {
 	if cfg.Hotkeys.CycleTemplate != "" {
 		fmt.Printf("  %s - Cycle rewrite template\n", cfg.Hotkeys.CycleTemplate)
 	}
-	fmt.Printf("  %s - Cancel\n", cfg.Hotkeys.Cancel)
 	fmt.Println("")
 
 	slog.Info("GhostType ready",
