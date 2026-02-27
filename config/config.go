@@ -24,6 +24,17 @@ func (t TranslateTarget) IsPair() bool { return t.LangB != "" }
 type RewriteTemplate struct {
 	Name   string `json:"name"`
 	Prompt string `json:"prompt"`
+	LLM    string `json:"llm,omitempty"`
+}
+
+// LLMProviderDef defines a named LLM provider configuration.
+type LLMProviderDef struct {
+	Provider    string `json:"provider"`
+	APIKey      string `json:"api_key,omitempty"`
+	Model       string `json:"model"`
+	APIEndpoint string `json:"api_endpoint,omitempty"`
+	MaxTokens   int    `json:"max_tokens,omitempty"`
+	TimeoutMs   int    `json:"timeout_ms,omitempty"`
 }
 
 // Hotkeys defines the configurable hotkey bindings.
@@ -59,8 +70,12 @@ type Config struct {
 	LLMProvider            string            `json:"llm_provider"`
 	APIKey                 string            `json:"api_key"`
 	Model                  string            `json:"model"`
-	APIEndpoint            string            `json:"api_endpoint"`
-	Languages              []string          `json:"languages"`
+	APIEndpoint            string                     `json:"api_endpoint"`
+	LLMProviders           map[string]LLMProviderDef  `json:"llm_providers,omitempty"`
+	DefaultLLM             string                     `json:"default_llm,omitempty"`
+	CorrectLLM             string                     `json:"correct_llm,omitempty"`
+	TranslateLLM           string                     `json:"translate_llm,omitempty"`
+	Languages              []string                   `json:"languages"`
 	LanguageNames          map[string]string `json:"language_names"`
 	TranslateTargets       []string          `json:"translate_targets"`
 	ParsedTargets          []TranslateTarget `json:"-"`
@@ -101,7 +116,7 @@ func DefaultConfig() Config {
 			CycleTemplate:  "",
 		},
 		Prompts: Prompts{
-			Correct:         "Detect the language of the following text (French or English). Fix all spelling and grammar errors while preserving the original meaning and language. Return ONLY the corrected text with no explanation.",
+			Correct:         "Detect the language of the following text ({languages}). Fix all spelling and grammar errors while preserving the original meaning and language. Return ONLY the corrected text with no explanation.",
 			Translate:       "The two configured languages are {language_a} and {language_b}. Detect the language of the following text and translate it to the OTHER language. If it is {language_a}, translate to {language_b}. If it is {language_b}, translate to {language_a}. Preserve the tone and intent. Return ONLY the translation with no explanation.",
 			TranslateSingle: "Translate the following text to {target_language}. Preserve the tone and intent. Return ONLY the translation with no explanation.",
 			RewriteTemplates: []RewriteTemplate{
@@ -140,6 +155,7 @@ func Load(path string) (*Config, error) {
 			if writeErr := WriteDefault(path, &cfg); writeErr != nil {
 				return nil, fmt.Errorf("failed to create default config: %w", writeErr)
 			}
+			applyDefaults(&cfg)
 			return &cfg, nil
 		}
 		return nil, fmt.Errorf("failed to read config file: %w", err)
@@ -223,14 +239,51 @@ func applyDefaults(cfg *Config) {
 			cfg.ParsedTargets[i].LangB = strings.TrimSpace(parts[1])
 		}
 	}
+
+	// Synthesize LLMProviders from legacy flat fields if not set.
+	if len(cfg.LLMProviders) == 0 && cfg.LLMProvider != "" {
+		cfg.LLMProviders = map[string]LLMProviderDef{
+			"default": {
+				Provider:    cfg.LLMProvider,
+				APIKey:      cfg.APIKey,
+				Model:       cfg.Model,
+				APIEndpoint: cfg.APIEndpoint,
+				MaxTokens:   cfg.MaxTokens,
+				TimeoutMs:   cfg.TimeoutMs,
+			},
+		}
+		if cfg.DefaultLLM == "" {
+			cfg.DefaultLLM = "default"
+		}
+	}
+
+	// Fill missing MaxTokens/TimeoutMs per provider from global values.
+	for label, def := range cfg.LLMProviders {
+		if def.MaxTokens == 0 {
+			def.MaxTokens = cfg.MaxTokens
+		}
+		if def.TimeoutMs == 0 {
+			def.TimeoutMs = cfg.TimeoutMs
+		}
+		cfg.LLMProviders[label] = def
+	}
+
+	// Substitute {languages} in the correct prompt using configured language names.
+	if strings.Contains(cfg.Prompts.Correct, "{languages}") {
+		names := make([]string, 0, len(cfg.Languages))
+		for _, code := range cfg.Languages {
+			if name, ok := cfg.LanguageNames[code]; ok {
+				names = append(names, name)
+			} else {
+				names = append(names, code)
+			}
+		}
+		cfg.Prompts.Correct = strings.ReplaceAll(cfg.Prompts.Correct, "{languages}", strings.Join(names, " or "))
+	}
 }
 
 // validate checks that the config has all required fields.
 func validate(cfg *Config) error {
-	if cfg.LLMProvider == "" {
-		return fmt.Errorf("llm_provider is required")
-	}
-
 	validProviders := map[string]bool{
 		"anthropic": true,
 		"openai":    true,
@@ -238,17 +291,65 @@ func validate(cfg *Config) error {
 		"xai":       true,
 		"ollama":    true,
 	}
-	if !validProviders[cfg.LLMProvider] {
-		return fmt.Errorf("unsupported llm_provider: %s (valid: anthropic, openai, gemini, xai, ollama)", cfg.LLMProvider)
+
+	// Flat-field validation only when llm_providers was not provided directly.
+	if cfg.LLMProvider != "" {
+		if !validProviders[cfg.LLMProvider] {
+			return fmt.Errorf("unsupported llm_provider: %s (valid: anthropic, openai, gemini, xai, ollama)", cfg.LLMProvider)
+		}
+		if cfg.LLMProvider != "ollama" && cfg.APIKey == "" {
+			return fmt.Errorf("api_key is required for provider %s", cfg.LLMProvider)
+		}
+		if cfg.Model == "" {
+			return fmt.Errorf("model is required")
+		}
+	} else if len(cfg.LLMProviders) == 0 {
+		return fmt.Errorf("either llm_provider or llm_providers is required")
 	}
 
-	// API key is required for all providers except ollama
-	if cfg.LLMProvider != "ollama" && cfg.APIKey == "" {
-		return fmt.Errorf("api_key is required for provider %s", cfg.LLMProvider)
+	// DefaultLLM required when llm_providers is set.
+	if len(cfg.LLMProviders) > 0 && cfg.DefaultLLM == "" {
+		return fmt.Errorf("default_llm is required when llm_providers is defined")
 	}
 
-	if cfg.Model == "" {
-		return fmt.Errorf("model is required")
+	// Validate each provider def in llm_providers.
+	for label, def := range cfg.LLMProviders {
+		if !validProviders[def.Provider] {
+			return fmt.Errorf("llm_providers[%s]: unsupported provider %q (valid: anthropic, openai, gemini, xai, ollama)", label, def.Provider)
+		}
+		if def.Provider != "ollama" && def.APIKey == "" {
+			return fmt.Errorf("llm_providers[%s]: api_key is required for provider %s", label, def.Provider)
+		}
+		if def.Model == "" {
+			return fmt.Errorf("llm_providers[%s]: model is required", label)
+		}
+	}
+
+	// Validate LLM label references point to defined providers.
+	if len(cfg.LLMProviders) > 0 {
+		checkLabel := func(field, label string) error {
+			if label == "" {
+				return nil
+			}
+			if _, ok := cfg.LLMProviders[label]; !ok {
+				return fmt.Errorf("%s %q not found in llm_providers", field, label)
+			}
+			return nil
+		}
+		if err := checkLabel("default_llm", cfg.DefaultLLM); err != nil {
+			return err
+		}
+		if err := checkLabel("correct_llm", cfg.CorrectLLM); err != nil {
+			return err
+		}
+		if err := checkLabel("translate_llm", cfg.TranslateLLM); err != nil {
+			return err
+		}
+		for _, tmpl := range cfg.Prompts.RewriteTemplates {
+			if err := checkLabel(fmt.Sprintf("rewrite_template[%s].llm", tmpl.Name), tmpl.LLM); err != nil {
+				return err
+			}
+		}
 	}
 
 	if cfg.Prompts.Correct == "" {

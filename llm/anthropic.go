@@ -44,6 +44,33 @@ func NewAnthropicClient(cfg *config.Config) *AnthropicClient {
 	}
 }
 
+// newAnthropicFromDef creates a new Anthropic client from a provider definition.
+func newAnthropicFromDef(def config.LLMProviderDef) *AnthropicClient {
+	endpoint := def.APIEndpoint
+	if endpoint == "" {
+		endpoint = defaultAnthropicEndpoint
+	}
+	maxTokens := def.MaxTokens
+	if maxTokens == 0 {
+		maxTokens = 256
+	}
+	timeoutMs := def.TimeoutMs
+	if timeoutMs == 0 {
+		timeoutMs = 5000
+	}
+
+	return &AnthropicClient{
+		apiKey:    def.APIKey,
+		model:     def.Model,
+		endpoint:  endpoint,
+		maxTokens: maxTokens,
+		timeoutMs: timeoutMs,
+		httpClient: &http.Client{
+			Timeout: time.Duration(timeoutMs) * time.Millisecond,
+		},
+	}
+}
+
 func (c *AnthropicClient) Provider() string {
 	return "anthropic"
 }

@@ -37,7 +37,8 @@ func (m Mode) String() string {
 type Router struct {
 	mu                 sync.Mutex
 	cfg                *config.Config
-	client             llm.Client
+	defaultClient      llm.Client
+	clients            map[string]llm.Client // lazy cache: label -> client
 	currentTargetIdx   int
 	currentTemplateIdx int
 }
@@ -53,9 +54,15 @@ func NewRouter(cfg *config.Config, client llm.Client) *Router {
 		}
 	}
 
+	clients := make(map[string]llm.Client)
+	if cfg.DefaultLLM != "" {
+		clients[cfg.DefaultLLM] = client
+	}
+
 	return &Router{
 		cfg:                cfg,
-		client:             client,
+		defaultClient:      client,
+		clients:            clients,
 		currentTargetIdx:   targetIdx,
 		currentTemplateIdx: 0,
 	}
@@ -79,25 +86,94 @@ func (r *Router) Process(ctx context.Context, mode Mode, text string) (string, e
 		return "", fmt.Errorf("unknown mode: %d", mode)
 	}
 
+	label := r.llmLabelForMode(mode)
+	client, err := r.resolveClient(label)
+	if err != nil {
+		return "", err
+	}
+
 	truncatedPrompt := prompt
 	if len(truncatedPrompt) > 80 {
 		truncatedPrompt = truncatedPrompt[:80] + "..."
 	}
-	slog.Debug("processing text", "mode", mode.String(), "prompt", truncatedPrompt, "input_len", len(text))
+	slog.Debug("processing text", "mode", mode.String(), "llm", label, "prompt", truncatedPrompt, "input_len", len(text))
 
-	resp, err := r.client.Send(ctx, llm.Request{
+	resp, err := client.Send(ctx, llm.Request{
 		Prompt:    prompt,
 		Text:      text,
 		MaxTokens: r.cfg.MaxTokens,
 	})
 	if err != nil {
-		slog.Debug("LLM request failed", "mode", mode.String(), "input_len", len(text), "error", err)
+		slog.Debug("LLM request failed", "mode", mode.String(), "llm", label, "input_len", len(text), "error", err)
 		return "", fmt.Errorf("LLM request failed: %w", err)
 	}
 
-	slog.Debug("LLM response received", "provider", resp.Provider, "model", resp.Model, "response_len", len(resp.Text))
+	slog.Debug("LLM response received", "provider", resp.Provider, "model", resp.Model, "llm", label, "response_len", len(resp.Text))
 
 	return strings.TrimSpace(resp.Text), nil
+}
+
+// resolveClient returns the LLM client for the given label.
+// If label is empty, the default client is returned.
+// Clients are lazily created and cached.
+func (r *Router) resolveClient(label string) (llm.Client, error) {
+	if label == "" {
+		return r.defaultClient, nil
+	}
+
+	r.mu.Lock()
+	if c, ok := r.clients[label]; ok {
+		r.mu.Unlock()
+		return c, nil
+	}
+	r.mu.Unlock()
+
+	def, ok := r.cfg.LLMProviders[label]
+	if !ok {
+		slog.Warn("LLM label not found in llm_providers, falling back to default", "label", label)
+		return r.defaultClient, nil
+	}
+
+	c, err := llm.NewClientFromDef(def)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create LLM client for %q: %w", label, err)
+	}
+
+	r.mu.Lock()
+	// Double-check: another goroutine may have created it.
+	if existing, ok := r.clients[label]; ok {
+		r.mu.Unlock()
+		return existing, nil
+	}
+	r.clients[label] = c
+	r.mu.Unlock()
+
+	return c, nil
+}
+
+// llmLabelForMode returns the LLM provider label for the given mode.
+func (r *Router) llmLabelForMode(m Mode) string {
+	switch m {
+	case ModeCorrect:
+		if r.cfg.CorrectLLM != "" {
+			return r.cfg.CorrectLLM
+		}
+	case ModeTranslate:
+		if r.cfg.TranslateLLM != "" {
+			return r.cfg.TranslateLLM
+		}
+	case ModeRewrite:
+		templates := r.cfg.Prompts.RewriteTemplates
+		if len(templates) > 0 {
+			r.mu.Lock()
+			idx := r.currentTemplateIdx
+			r.mu.Unlock()
+			if templates[idx].LLM != "" {
+				return templates[idx].LLM
+			}
+		}
+	}
+	return r.cfg.DefaultLLM
 }
 
 // buildTranslatePrompt builds the translation prompt based on the current target.

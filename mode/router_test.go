@@ -398,6 +398,92 @@ func TestRouter_SetTemplate(t *testing.T) {
 	}
 }
 
+func TestRouter_PerTemplateLLM(t *testing.T) {
+	cfg := &config.Config{
+		LLMProvider:            "anthropic",
+		APIKey:                 "test-key",
+		Model:                  "claude-sonnet-4-5-20250929",
+		Languages:              []string{"en", "fr"},
+		LanguageNames:          map[string]string{"en": "English", "fr": "French"},
+		TranslateTargets:       []string{"en|fr"},
+		ParsedTargets:          []config.TranslateTarget{{LangA: "en", LangB: "fr"}},
+		DefaultTranslateTarget: "en",
+		DefaultLLM:             "claude",
+		LLMProviders: map[string]config.LLMProviderDef{
+			"claude": {Provider: "anthropic", APIKey: "sk-ant", Model: "claude-sonnet-4-5-20250929"},
+			"gpt":    {Provider: "openai", APIKey: "sk-oai", Model: "gpt-4o"},
+		},
+		Prompts: config.Prompts{
+			Correct:   "Fix errors.",
+			Translate: "Translate between {language_a} and {language_b}.",
+			RewriteTemplates: []config.RewriteTemplate{
+				{Name: "funny", Prompt: "Rewrite as funny.", LLM: "gpt"},
+				{Name: "formal", Prompt: "Rewrite as formal."},
+			},
+		},
+		MaxTokens: 256,
+	}
+	mock := &mockClient{
+		response: &llm.Response{Text: "result", Provider: "mock", Model: "test"},
+	}
+	router := NewRouter(cfg, mock)
+
+	// First template ("funny") has LLM: "gpt"
+	label := router.llmLabelForMode(ModeRewrite)
+	if label != "gpt" {
+		t.Errorf("expected llm label 'gpt' for funny template, got %q", label)
+	}
+
+	// Cycle to "formal" which has no LLM → falls back to DefaultLLM
+	router.CycleTemplate()
+	label = router.llmLabelForMode(ModeRewrite)
+	if label != "claude" {
+		t.Errorf("expected llm label 'claude' for formal template, got %q", label)
+	}
+}
+
+func TestRouter_ModeLLMLabel(t *testing.T) {
+	cfg := &config.Config{
+		LLMProvider:            "anthropic",
+		APIKey:                 "test-key",
+		Model:                  "claude-sonnet-4-5-20250929",
+		Languages:              []string{"en", "fr"},
+		LanguageNames:          map[string]string{"en": "English", "fr": "French"},
+		TranslateTargets:       []string{"en|fr"},
+		ParsedTargets:          []config.TranslateTarget{{LangA: "en", LangB: "fr"}},
+		DefaultTranslateTarget: "en",
+		DefaultLLM:             "claude",
+		CorrectLLM:             "gpt",
+		TranslateLLM:           "local",
+		LLMProviders: map[string]config.LLMProviderDef{
+			"claude": {Provider: "anthropic", APIKey: "sk-ant", Model: "claude-sonnet-4-5-20250929"},
+			"gpt":    {Provider: "openai", APIKey: "sk-oai", Model: "gpt-4o"},
+			"local":  {Provider: "ollama", Model: "mistral"},
+		},
+		Prompts: config.Prompts{
+			Correct:   "Fix errors.",
+			Translate: "Translate between {language_a} and {language_b}.",
+			RewriteTemplates: []config.RewriteTemplate{
+				{Name: "funny", Prompt: "Rewrite as funny."},
+			},
+		},
+		MaxTokens: 256,
+	}
+	mock := &mockClient{}
+	router := NewRouter(cfg, mock)
+
+	if label := router.llmLabelForMode(ModeCorrect); label != "gpt" {
+		t.Errorf("expected correct_llm 'gpt', got %q", label)
+	}
+	if label := router.llmLabelForMode(ModeTranslate); label != "local" {
+		t.Errorf("expected translate_llm 'local', got %q", label)
+	}
+	// Rewrite without per-template LLM falls back to DefaultLLM
+	if label := router.llmLabelForMode(ModeRewrite); label != "claude" {
+		t.Errorf("expected default_llm 'claude' for rewrite, got %q", label)
+	}
+}
+
 func TestRouter_ModeString(t *testing.T) {
 	tests := []struct {
 		mode     Mode

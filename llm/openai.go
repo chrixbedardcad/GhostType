@@ -44,6 +44,33 @@ func NewOpenAIClient(cfg *config.Config) *OpenAIClient {
 	}
 }
 
+// newOpenAIFromDef creates a new OpenAI client from a provider definition.
+func newOpenAIFromDef(def config.LLMProviderDef) *OpenAIClient {
+	endpoint := def.APIEndpoint
+	if endpoint == "" {
+		endpoint = defaultOpenAIEndpoint
+	}
+	maxTokens := def.MaxTokens
+	if maxTokens == 0 {
+		maxTokens = 256
+	}
+	timeoutMs := def.TimeoutMs
+	if timeoutMs == 0 {
+		timeoutMs = 5000
+	}
+
+	return &OpenAIClient{
+		apiKey:    def.APIKey,
+		model:     def.Model,
+		endpoint:  endpoint,
+		maxTokens: maxTokens,
+		timeoutMs: timeoutMs,
+		httpClient: &http.Client{
+			Timeout: time.Duration(timeoutMs) * time.Millisecond,
+		},
+	}
+}
+
 func (c *OpenAIClient) Provider() string {
 	return "openai"
 }

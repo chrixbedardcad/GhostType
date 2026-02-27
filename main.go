@@ -102,7 +102,13 @@ func main() {
 	)
 
 	// Initialize LLM client
-	client, err := llm.NewClient(cfg)
+	var client llm.Client
+	if cfg.DefaultLLM != "" {
+		def := cfg.LLMProviders[cfg.DefaultLLM]
+		client, err = llm.NewClientFromDef(def)
+	} else {
+		client, err = llm.NewClient(cfg)
+	}
 	if err != nil {
 		slog.Error("Failed to initialize LLM client", "error", err)
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -110,7 +116,15 @@ func main() {
 	}
 
 	fmt.Printf("Provider: %s\n", client.Provider())
-	fmt.Printf("Model: %s\n", cfg.Model)
+	if cfg.DefaultLLM != "" {
+		def := cfg.LLMProviders[cfg.DefaultLLM]
+		fmt.Printf("Model: %s (default: %s)\n", def.Model, cfg.DefaultLLM)
+		if len(cfg.LLMProviders) > 1 {
+			fmt.Printf("LLM providers configured: %d\n", len(cfg.LLMProviders))
+		}
+	} else {
+		fmt.Printf("Model: %s\n", cfg.Model)
+	}
 
 	// Initialize mode router
 	router := mode.NewRouter(cfg, client)

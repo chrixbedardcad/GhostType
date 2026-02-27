@@ -43,3 +43,17 @@ func NewClient(cfg *config.Config) (Client, error) {
 		return nil, fmt.Errorf("unsupported LLM provider: %s", cfg.LLMProvider)
 	}
 }
+
+// NewClientFromDef creates an LLM client from a provider definition.
+func NewClientFromDef(def config.LLMProviderDef) (Client, error) {
+	switch def.Provider {
+	case "anthropic":
+		return newAnthropicFromDef(def), nil
+	case "openai":
+		return newOpenAIFromDef(def), nil
+	case "ollama":
+		return newOllamaFromDef(def), nil
+	default:
+		return nil, fmt.Errorf("unsupported LLM provider: %s", def.Provider)
+	}
+}

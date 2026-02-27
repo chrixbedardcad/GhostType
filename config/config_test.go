@@ -434,3 +434,160 @@ func TestWriteDefault(t *testing.T) {
 		t.Errorf("expected provider 'anthropic' in written file, got '%s'", loaded.LLMProvider)
 	}
 }
+
+func TestLLMProvidersSynthesizedFromFlat(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	cfg := map[string]interface{}{
+		"llm_provider": "openai",
+		"api_key":      "sk-test-key",
+		"model":        "gpt-4o",
+		"prompts":      map[string]interface{}{"correct": "Fix errors."},
+	}
+	data, _ := json.MarshalIndent(cfg, "", "  ")
+	os.WriteFile(path, data, 0644)
+
+	loaded, err := Load(path)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if loaded.DefaultLLM != "default" {
+		t.Errorf("expected default_llm 'default', got %q", loaded.DefaultLLM)
+	}
+	if len(loaded.LLMProviders) != 1 {
+		t.Fatalf("expected 1 synthesized provider, got %d", len(loaded.LLMProviders))
+	}
+	def, ok := loaded.LLMProviders["default"]
+	if !ok {
+		t.Fatal("expected llm_providers to contain 'default' key")
+	}
+	if def.Provider != "openai" {
+		t.Errorf("expected provider 'openai', got %q", def.Provider)
+	}
+	if def.APIKey != "sk-test-key" {
+		t.Errorf("expected api_key 'sk-test-key', got %q", def.APIKey)
+	}
+	if def.Model != "gpt-4o" {
+		t.Errorf("expected model 'gpt-4o', got %q", def.Model)
+	}
+}
+
+func TestLoadLLMProviders(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	cfg := map[string]interface{}{
+		"llm_providers": map[string]interface{}{
+			"claude": map[string]interface{}{
+				"provider": "anthropic",
+				"api_key":  "sk-ant-test",
+				"model":    "claude-sonnet-4-5-20250929",
+			},
+			"gpt": map[string]interface{}{
+				"provider": "openai",
+				"api_key":  "sk-openai-test",
+				"model":    "gpt-4o",
+			},
+		},
+		"default_llm": "claude",
+		"prompts":     map[string]interface{}{"correct": "Fix errors."},
+	}
+	data, _ := json.MarshalIndent(cfg, "", "  ")
+	os.WriteFile(path, data, 0644)
+
+	loaded, err := Load(path)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(loaded.LLMProviders) != 2 {
+		t.Fatalf("expected 2 providers, got %d", len(loaded.LLMProviders))
+	}
+	if loaded.DefaultLLM != "claude" {
+		t.Errorf("expected default_llm 'claude', got %q", loaded.DefaultLLM)
+	}
+	if loaded.LLMProviders["gpt"].Model != "gpt-4o" {
+		t.Errorf("expected gpt model 'gpt-4o', got %q", loaded.LLMProviders["gpt"].Model)
+	}
+}
+
+func TestCorrectPromptLanguagesSubstitution(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	cfg := map[string]interface{}{
+		"llm_provider": "ollama",
+		"model":        "mistral",
+		"languages":    []string{"en", "fr", "es"},
+		"language_names": map[string]string{
+			"en": "English",
+			"fr": "French",
+			"es": "Spanish",
+		},
+		"prompts": map[string]interface{}{
+			"correct": "Fix errors in {languages}.",
+		},
+	}
+	data, _ := json.MarshalIndent(cfg, "", "  ")
+	os.WriteFile(path, data, 0644)
+
+	loaded, err := Load(path)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := "Fix errors in English or French or Spanish."
+	if loaded.Prompts.Correct != expected {
+		t.Errorf("expected prompt %q, got %q", expected, loaded.Prompts.Correct)
+	}
+}
+
+func TestCustomCorrectPromptNotOverwritten(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	cfg := map[string]interface{}{
+		"llm_provider": "ollama",
+		"model":        "mistral",
+		"prompts": map[string]interface{}{
+			"correct": "Just fix the text please.",
+		},
+	}
+	data, _ := json.MarshalIndent(cfg, "", "  ")
+	os.WriteFile(path, data, 0644)
+
+	loaded, err := Load(path)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if loaded.Prompts.Correct != "Just fix the text please." {
+		t.Errorf("expected custom prompt unchanged, got %q", loaded.Prompts.Correct)
+	}
+}
+
+func TestValidateInvalidLLMLabel(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	cfg := map[string]interface{}{
+		"llm_providers": map[string]interface{}{
+			"claude": map[string]interface{}{
+				"provider": "anthropic",
+				"api_key":  "sk-ant-test",
+				"model":    "claude-sonnet-4-5-20250929",
+			},
+		},
+		"default_llm": "nonexistent",
+		"prompts":     map[string]interface{}{"correct": "Fix errors."},
+	}
+	data, _ := json.MarshalIndent(cfg, "", "  ")
+	os.WriteFile(path, data, 0644)
+
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for invalid default_llm label")
+	}
+}

@@ -42,6 +42,32 @@ func NewOllamaClient(cfg *config.Config) *OllamaClient {
 	}
 }
 
+// newOllamaFromDef creates a new Ollama client from a provider definition.
+func newOllamaFromDef(def config.LLMProviderDef) *OllamaClient {
+	endpoint := def.APIEndpoint
+	if endpoint == "" {
+		endpoint = defaultOllamaEndpoint
+	}
+	maxTokens := def.MaxTokens
+	if maxTokens == 0 {
+		maxTokens = 256
+	}
+	timeoutMs := def.TimeoutMs
+	if timeoutMs == 0 {
+		timeoutMs = 5000
+	}
+
+	return &OllamaClient{
+		model:    def.Model,
+		endpoint: endpoint,
+		maxTokens: maxTokens,
+		timeoutMs: timeoutMs,
+		httpClient: &http.Client{
+			Timeout: time.Duration(timeoutMs) * time.Millisecond,
+		},
+	}
+}
+
 func (c *OllamaClient) Provider() string {
 	return "ollama"
 }
