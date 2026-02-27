@@ -1,9 +1,4 @@
 {
-  "llm_provider": "anthropic",
-  "api_key": "YOUR_API_KEY_HERE",
-  "model": "claude-sonnet-4-5-20250929",
-  "api_endpoint": "",
-
   "llm_providers": {
     "claude": {
       "provider": "anthropic",
