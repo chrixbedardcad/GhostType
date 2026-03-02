@@ -137,7 +137,7 @@ func DefaultConfig() Config {
 			FontSize:           14,
 		},
 		MaxTokens:         256,
-		TimeoutMs:         5000,
+		TimeoutMs:         30000,
 		PreserveClipboard: true,
 		SoundEnabled:      boolPtr(true),
 		LogLevel:          "info",
@@ -220,7 +220,7 @@ func applyDefaults(cfg *Config) {
 		cfg.MaxTokens = 256
 	}
 	if cfg.TimeoutMs == 0 {
-		cfg.TimeoutMs = 5000
+		cfg.TimeoutMs = 30000
 	}
 	// Normalize log_level to lowercase so "Debug", "INFO", etc. all work.
 	cfg.LogLevel = strings.ToLower(strings.TrimSpace(cfg.LogLevel))

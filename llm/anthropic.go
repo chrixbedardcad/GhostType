@@ -8,7 +8,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/chrixbedardcad/GhostType/config"
 )
@@ -33,14 +32,12 @@ func NewAnthropicClient(cfg *config.Config) *AnthropicClient {
 	}
 
 	return &AnthropicClient{
-		apiKey:    cfg.APIKey,
-		model:     cfg.Model,
-		endpoint:  endpoint,
-		maxTokens: cfg.MaxTokens,
-		timeoutMs: cfg.TimeoutMs,
-		httpClient: &http.Client{
-			Timeout: time.Duration(cfg.TimeoutMs) * time.Millisecond,
-		},
+		apiKey:     cfg.APIKey,
+		model:      cfg.Model,
+		endpoint:   endpoint,
+		maxTokens:  cfg.MaxTokens,
+		timeoutMs:  cfg.TimeoutMs,
+		httpClient: &http.Client{},
 	}
 }
 
@@ -56,18 +53,16 @@ func newAnthropicFromDef(def config.LLMProviderDef) *AnthropicClient {
 	}
 	timeoutMs := def.TimeoutMs
 	if timeoutMs == 0 {
-		timeoutMs = 5000
+		timeoutMs = 30000
 	}
 
 	return &AnthropicClient{
-		apiKey:    def.APIKey,
-		model:     def.Model,
-		endpoint:  endpoint,
-		maxTokens: maxTokens,
-		timeoutMs: timeoutMs,
-		httpClient: &http.Client{
-			Timeout: time.Duration(timeoutMs) * time.Millisecond,
-		},
+		apiKey:     def.APIKey,
+		model:      def.Model,
+		endpoint:   endpoint,
+		maxTokens:  maxTokens,
+		timeoutMs:  timeoutMs,
+		httpClient: &http.Client{},
 	}
 }
 
