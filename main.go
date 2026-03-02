@@ -63,18 +63,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	// First-launch wizard: show GUI if no provider is configured.
+	// First-launch: show settings GUI if no provider is configured.
 	if gui.NeedsSetup(cfg) {
-		fmt.Println("No API key configured. Starting setup wizard...")
-		cfg = gui.ShowWizard(cfg, configPath)
+		fmt.Println("No API key configured. Opening settings...")
+		cfg = gui.ShowSettingsBlocking(cfg, configPath)
 		if gui.NeedsSetup(cfg) {
 			fmt.Println("Setup cancelled.")
 			os.Exit(1)
 		}
-		// Re-load from disk after wizard saved.
+		// Re-load from disk after settings saved.
 		cfg, err = config.LoadRaw(configPath)
 		if err != nil {
-			logStartupError(filepath.Dir(configPath), "Failed to reload config after wizard", err)
+			logStartupError(filepath.Dir(configPath), "Failed to reload config after settings", err)
 			fmt.Fprintf(os.Stderr, "Error reloading config: %v\n", err)
 			os.Exit(1)
 		}

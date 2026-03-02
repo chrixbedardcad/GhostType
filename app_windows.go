@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"sort"
 	"sync"
 	"syscall"
 	"time"
@@ -254,8 +255,13 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string) {
 		OnSettings: func() {
 			gui.ShowSettings(cfg, configPath)
 		},
-		OnWizard: func() {
-			gui.ShowWizardAsync(cfg, configPath)
+		OnModelSelect: func(label string) {
+			mu.Lock()
+			cfg.DefaultLLM = label
+			mu.Unlock()
+			config.WriteDefault(configPath, cfg)
+			slog.Info("Default model changed", "label", label)
+			sound.PlayToggle()
 		},
 		OnCancel: func() {
 			mu.Lock()
@@ -291,6 +297,21 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string) {
 			mu.Lock()
 			defer mu.Unlock()
 			return cancelLLM != nil
+		},
+		GetModelLabels: func() []tray.ModelLabel {
+			mu.Lock()
+			defer mu.Unlock()
+			var labels []tray.ModelLabel
+			for label, def := range cfg.LLMProviders {
+				labels = append(labels, tray.ModelLabel{
+					Label:     label,
+					Provider:  def.Provider,
+					Model:     def.Model,
+					IsDefault: label == cfg.DefaultLLM,
+				})
+			}
+			sort.Slice(labels, func(i, j int) bool { return labels[i].Label < labels[j].Label })
+			return labels
 		},
 		GetTargetIdx:   router.CurrentTranslateIdx,
 		GetTemplateIdx: router.CurrentTemplateIdx,

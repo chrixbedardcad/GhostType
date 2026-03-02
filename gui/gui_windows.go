@@ -21,8 +21,8 @@ import (
 )
 
 var (
-	user32                 = syscall.NewLazyDLL("user32.dll")
-	procShowWindow         = user32.NewProc("ShowWindow")
+	user32                  = syscall.NewLazyDLL("user32.dll")
+	procShowWindow          = user32.NewProc("ShowWindow")
 	procSetForegroundWindow = user32.NewProc("SetForegroundWindow")
 )
 
@@ -42,58 +42,48 @@ func guiLog(msg string, args ...any) {
 	slog.Info(formatted)
 }
 
-// ShowWizard opens the setup wizard and blocks until the user saves or cancels.
-// Returns the (potentially updated) config.
-func ShowWizard(cfg *config.Config, configPath string) *config.Config {
-	guiLog("[GUI] ShowWizard called, configPath=%s", configPath)
-	result := showWindow(cfg, configPath, "wizard")
-	guiLog("[GUI] ShowWizard returned: saved=%v", result.Saved)
-	if result.Saved && result.Config != nil {
-		return result.Config
+// ShowSettingsBlocking opens the settings window and blocks until it closes.
+// Returns the (potentially updated) config. Used by main.go on first launch.
+func ShowSettingsBlocking(cfg *config.Config, configPath string) *config.Config {
+	guiLog("[GUI] ShowSettingsBlocking called, configPath=%s", configPath)
+	updated := showWindow(cfg, configPath)
+	if updated != nil {
+		return updated
 	}
 	return cfg
 }
 
-// showAsync opens a GUI window in a goroutine (non-blocking).
-// Only one window can be open at a time (shared guard).
-func showAsync(cfg *config.Config, configPath string, view string) {
-	guiLog("[GUI] showAsync called: view=%s", view)
+// ShowSettings opens the settings window. Non-blocking (for tray).
+func ShowSettings(cfg *config.Config, configPath string) {
+	guiLog("[GUI] ShowSettings (async) called")
 	settingsOpenMu.Lock()
 	if settingsOpen {
 		settingsOpenMu.Unlock()
-		guiLog("[GUI] showAsync: window already open, skipping")
+		guiLog("[GUI] ShowSettings: window already open, skipping")
 		return
 	}
 	settingsOpen = true
 	settingsOpenMu.Unlock()
-	guiLog("[GUI] showAsync: launching goroutine")
+	guiLog("[GUI] ShowSettings: launching goroutine")
 
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				guiLog("[GUI] PANIC in showAsync goroutine: %v", r)
+				guiLog("[GUI] PANIC in ShowSettings goroutine: %v", r)
 			}
 			settingsOpenMu.Lock()
 			settingsOpen = false
 			settingsOpenMu.Unlock()
-			guiLog("[GUI] showAsync goroutine exited")
+			guiLog("[GUI] ShowSettings goroutine exited")
 		}()
-		showWindow(cfg, configPath, view)
+		showWindow(cfg, configPath)
 	}()
 }
 
-// ShowSettings opens the settings (provider list) window. Non-blocking.
-func ShowSettings(cfg *config.Config, configPath string) {
-	showAsync(cfg, configPath, "settings")
-}
-
-// ShowWizardAsync opens the setup wizard from the tray. Non-blocking.
-func ShowWizardAsync(cfg *config.Config, configPath string) {
-	showAsync(cfg, configPath, "wizard")
-}
-
-func showWindow(cfg *config.Config, configPath string, initialView string) Result {
-	guiLog("[GUI] showWindow entered: view=%s", initialView)
+// showWindow creates the WebView2 window, binds Go functions, and blocks until closed.
+// Returns the updated config if any saves occurred, or nil if no changes were made.
+func showWindow(cfg *config.Config, configPath string) *config.Config {
+	guiLog("[GUI] showWindow entered")
 
 	// WebView2 requires the window and message loop on the same OS thread.
 	runtime.LockOSThread()
@@ -109,14 +99,14 @@ func showWindow(cfg *config.Config, configPath string, initialView string) Resul
 		}
 	}
 
-	result := Result{Config: &cfgCopy}
+	var saved bool
 
 	guiLog("[GUI] Creating WebView2 window...")
 	w := webview2.NewWithOptions(webview2.WebViewOptions{
 		Debug:     true,
 		AutoFocus: true,
 		WindowOptions: webview2.WindowOptions{
-			Title:  "GhostType Setup",
+			Title:  "GhostType Settings",
 			Width:  720,
 			Height: 580,
 			Center: true,
@@ -124,18 +114,13 @@ func showWindow(cfg *config.Config, configPath string, initialView string) Resul
 	})
 	if w == nil {
 		guiLog("[GUI] ERROR: NewWithOptions returned nil — WebView2 runtime may not be installed")
-		return result
+		return nil
 	}
 	defer w.Destroy()
 	guiLog("[GUI] WebView2 window created OK")
 
 	// --- Bind Go functions for JS bridge ---
 	guiLog("[GUI] Binding JS functions...")
-
-	w.Bind("getInitialView", func() string {
-		guiLog("[GUI] JS called: getInitialView")
-		return initialView
-	})
 
 	w.Bind("getConfig", func() string {
 		guiLog("[GUI] JS called: getConfig")
@@ -187,8 +172,7 @@ func showWindow(cfg *config.Config, configPath string, initialView string) Resul
 			return fmt.Sprintf("error: %v", err)
 		}
 
-		result.Saved = true
-		result.Config = &cfgCopy
+		saved = true
 		guiLog("[GUI] Provider saved: label=%s provider=%s", label, provider)
 		return "ok"
 	})
@@ -208,8 +192,7 @@ func showWindow(cfg *config.Config, configPath string, initialView string) Resul
 			return fmt.Sprintf("error: %v", err)
 		}
 
-		result.Saved = true
-		result.Config = &cfgCopy
+		saved = true
 		return "ok"
 	})
 
@@ -224,8 +207,7 @@ func showWindow(cfg *config.Config, configPath string, initialView string) Resul
 			return fmt.Sprintf("error: %v", err)
 		}
 
-		result.Saved = true
-		result.Config = &cfgCopy
+		saved = true
 		return "ok"
 	})
 
@@ -239,6 +221,36 @@ func showWindow(cfg *config.Config, configPath string, initialView string) Resul
 			MaxTokens:   32,
 			TimeoutMs:   10000,
 		}
+
+		client, err := llm.NewClientFromDef(def)
+		if err != nil {
+			return fmt.Sprintf("error: %v", err)
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		_, err = client.Send(ctx, llm.Request{
+			Prompt:    "Reply with OK",
+			Text:      "test",
+			MaxTokens: 32,
+		})
+		if err != nil {
+			return fmt.Sprintf("error: %v", err)
+		}
+
+		return "ok"
+	})
+
+	w.Bind("testProvider", func(label string) string {
+		guiLog("[GUI] JS called: testProvider(%s)", label)
+		def, ok := cfgCopy.LLMProviders[label]
+		if !ok {
+			return "error: provider not found"
+		}
+
+		def.MaxTokens = 32
+		def.TimeoutMs = 10000
 
 		client, err := llm.NewClientFromDef(def)
 		if err != nil {
@@ -281,7 +293,7 @@ func showWindow(cfg *config.Config, configPath string, initialView string) Resul
 	html, err := frontendFS.ReadFile("frontend/index.html")
 	if err != nil {
 		guiLog("[GUI] ERROR: Failed to read embedded HTML: %v", err)
-		return result
+		return nil
 	}
 	guiLog("[GUI] Loaded HTML (%d bytes), calling SetHtml...", len(html))
 	w.SetHtml(string(html))
@@ -303,5 +315,8 @@ func showWindow(cfg *config.Config, configPath string, initialView string) Resul
 	w.Run()
 
 	guiLog("[GUI] Run returned, window closed")
-	return result
+	if saved {
+		return &cfgCopy
+	}
+	return nil
 }

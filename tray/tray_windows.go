@@ -61,7 +61,7 @@ const (
 	idCancel        = 2098
 	idSoundToggle   = 2300
 	idSettings      = 2401
-	idWizard        = 2402
+	idModelBase     = 2500 // + provider index (up to 100 providers)
 )
 
 // Win32 structs.
@@ -174,6 +174,14 @@ var (
 	procDeleteObject     = gdi32.NewProc("DeleteObject")
 )
 
+// ModelLabel describes a configured provider for the tray Models menu section.
+type ModelLabel struct {
+	Label     string // e.g. "claude"
+	Provider  string // e.g. "Anthropic"
+	Model     string // e.g. "claude-sonnet-4-6"
+	IsDefault bool
+}
+
 // Config holds tray configuration and callbacks.
 type Config struct {
 	// IconPNG is the raw PNG bytes for the tray icon.
@@ -187,7 +195,7 @@ type Config struct {
 	OnSoundToggle  func(enabled bool)
 	OnCancel       func()
 	OnSettings     func()
-	OnWizard       func()
+	OnModelSelect  func(label string)
 	OnExit         func()
 
 	// State readers — called to build the menu each time.
@@ -196,6 +204,7 @@ type Config struct {
 	GetTemplateIdx   func() int
 	GetSoundEnabled  func() bool
 	GetIsProcessing  func() bool
+	GetModelLabels   func() []ModelLabel
 
 	// Static data for building menu items.
 	TargetLabels  []string // translate target display labels
@@ -390,6 +399,30 @@ func (ts *trayState) showMenu() {
 		uintptr(idModeCorrect), uintptr(idModeRewrite),
 		uintptr(activeID), 0) // 0 = MF_BYCOMMAND
 
+	// Models section.
+	if ts.cfg.GetModelLabels != nil {
+		models := ts.cfg.GetModelLabels()
+		if len(models) > 0 {
+			procAppendMenuW.Call(hMenu, mfSeparator, 0, 0)
+			procAppendMenuW.Call(hMenu, mfString|mfGrayed, 0, uintptr(unsafe.Pointer(utf16Ptr("Models:"))))
+			for i, ml := range models {
+				label := fmt.Sprintf("  %s  (%s \xC2\xB7 %s)", ml.Label, ml.Provider, ml.Model)
+				procAppendMenuW.Call(hMenu, mfString, uintptr(idModelBase+i), uintptr(unsafe.Pointer(utf16Ptr(label))))
+			}
+			// Radio-check the default model.
+			defaultIdx := 0
+			for i, ml := range models {
+				if ml.IsDefault {
+					defaultIdx = i
+					break
+				}
+			}
+			procCheckMenuRadioItem.Call(hMenu,
+				uintptr(idModelBase), uintptr(idModelBase+len(models)-1),
+				uintptr(idModelBase+defaultIdx), 0)
+		}
+	}
+
 	// Language/target section.
 	if len(ts.cfg.TargetLabels) > 0 {
 		procAppendMenuW.Call(hMenu, mfSeparator, 0, 0)
@@ -435,10 +468,9 @@ func (ts *trayState) showMenu() {
 	}
 	procAppendMenuW.Call(hMenu, cancelFlags, idCancel, uintptr(unsafe.Pointer(utf16Ptr("Cancel LLM"))))
 
-	// Settings & Wizard.
+	// Settings.
 	procAppendMenuW.Call(hMenu, mfSeparator, 0, 0)
 	procAppendMenuW.Call(hMenu, mfString, idSettings, uintptr(unsafe.Pointer(utf16Ptr("Settings..."))))
-	procAppendMenuW.Call(hMenu, mfString, idWizard, uintptr(unsafe.Pointer(utf16Ptr("Setup Wizard..."))))
 
 	// Exit.
 	procAppendMenuW.Call(hMenu, mfSeparator, 0, 0)
@@ -492,16 +524,21 @@ func (ts *trayState) handleMenuCommand(id int) {
 			ts.cfg.OnSettings()
 		}
 
-	case id == idWizard:
-		if ts.cfg.OnWizard != nil {
-			ts.cfg.OnWizard()
-		}
-
 	case id == idExit:
 		if ts.cfg.OnExit != nil {
 			ts.cfg.OnExit()
 		}
 		procPostMessageW.Call(ts.hwnd, wmDestroy, 0, 0)
+
+	// Model selection range.
+	case id >= idModelBase && id < idModelBase+100:
+		if ts.cfg.OnModelSelect != nil && ts.cfg.GetModelLabels != nil {
+			models := ts.cfg.GetModelLabels()
+			idx := id - idModelBase
+			if idx < len(models) {
+				ts.cfg.OnModelSelect(models[idx].Label)
+			}
+		}
 
 	// Open-ended ranges last — these must not swallow fixed IDs above.
 	case id >= idLangBase && id < idTemplBase:

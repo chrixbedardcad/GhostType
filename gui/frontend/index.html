@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GhostType Setup</title>
+<title>GhostType Settings</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -23,27 +23,6 @@
     border-bottom: 1px solid #313244;
   }
   .header .logo { font-size: 1.8em; }
-
-  /* --- Provider cards (wizard step 1 + settings list) --- */
-  .provider-grid {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 12px; margin-bottom: 20px;
-  }
-  .provider-card {
-    background: #313244; border: 2px solid #45475a;
-    border-radius: 10px; padding: 16px; cursor: pointer;
-    transition: border-color 0.15s, transform 0.1s;
-    position: relative;
-  }
-  .provider-card:hover { border-color: #89b4fa; transform: translateY(-1px); }
-  .provider-card.selected { border-color: #89b4fa; background: #1e3a5f; }
-  .provider-card .name { font-weight: 600; font-size: 1em; margin-bottom: 4px; }
-  .provider-card .desc { font-size: 0.8em; color: #a6adc8; }
-  .provider-card .badge {
-    position: absolute; top: 8px; right: 8px;
-    background: #89b4fa; color: #1e1e2e; font-size: 0.65em;
-    padding: 2px 6px; border-radius: 4px; font-weight: 600;
-  }
 
   /* --- Form elements --- */
   .form-group { margin-bottom: 16px; }
@@ -90,6 +69,8 @@
   .provider-list-item {
     background: #313244; border: 1px solid #45475a;
     border-radius: 8px; padding: 14px; margin-bottom: 8px;
+  }
+  .provider-list-item .top-row {
     display: flex; justify-content: space-between; align-items: center;
   }
   .provider-list-item .info .label { font-weight: 600; font-size: 0.95em; }
@@ -99,25 +80,21 @@
     padding: 2px 8px; border-radius: 4px; font-weight: 600; margin-left: 8px;
   }
   .provider-list-item .actions { display: flex; gap: 6px; }
+  .provider-list-item .test-result {
+    font-size: 0.8em; margin-top: 8px; padding: 4px 8px;
+    border-radius: 4px; display: none;
+  }
+  .provider-list-item .test-result.pass {
+    display: block; background: #1e3a2e; color: #a6e3a1;
+  }
+  .provider-list-item .test-result.fail {
+    display: block; background: #3a1e1e; color: #f38ba8;
+  }
 
   .empty-state {
     text-align: center; padding: 40px; color: #6c7086;
     font-size: 0.9em;
   }
-
-  /* --- Wizard step indicator --- */
-  .steps {
-    display: flex; gap: 8px; margin-bottom: 20px;
-    align-items: center; font-size: 0.85em; color: #6c7086;
-  }
-  .steps .step { display: flex; align-items: center; gap: 6px; }
-  .steps .step.active { color: #89b4fa; font-weight: 600; }
-  .steps .step.done { color: #a6e3a1; }
-  .steps .divider { width: 24px; height: 1px; background: #45475a; }
-
-  /* Hide views */
-  .view { display: none; }
-  .view.active { display: block; }
 
   /* Toolbar */
   .toolbar {
@@ -131,77 +108,13 @@
   <div class="header">
     <span class="logo">&#128123;</span>
     <div>
-      <h1>GhostType Setup</h1>
-      <div style="font-size:0.8em;color:#6c7086" id="subtitle">Configure your AI provider</div>
-    </div>
-  </div>
-
-  <!-- ============ WIZARD VIEW ============ -->
-  <div id="wizard" class="view">
-    <div class="steps">
-      <div class="step active" id="step1-ind">1. Choose Provider</div>
-      <div class="divider"></div>
-      <div class="step" id="step2-ind">2. Configure</div>
-    </div>
-
-    <!-- Wizard Step 1: Provider selection -->
-    <div id="wizard-step1">
-      <h2>Select your AI provider</h2>
-      <div class="provider-grid">
-        <div class="provider-card" data-provider="anthropic" onclick="selectWizardProvider('anthropic')">
-          <div class="badge">Recommended</div>
-          <div class="name">Anthropic</div>
-          <div class="desc">Claude models - excellent for text correction</div>
-        </div>
-        <div class="provider-card" data-provider="openai" onclick="selectWizardProvider('openai')">
-          <div class="name">OpenAI</div>
-          <div class="desc">GPT-4o and GPT-3.5 Turbo</div>
-        </div>
-        <div class="provider-card" data-provider="gemini" onclick="selectWizardProvider('gemini')">
-          <div class="name">Google Gemini</div>
-          <div class="desc">Gemini 2.0 Flash and Pro</div>
-        </div>
-        <div class="provider-card" data-provider="xai" onclick="selectWizardProvider('xai')">
-          <div class="name">xAI</div>
-          <div class="desc">Grok models</div>
-        </div>
-        <div class="provider-card" data-provider="ollama" onclick="selectWizardProvider('ollama')">
-          <div class="name">Ollama</div>
-          <div class="desc">Local models - no API key needed</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Wizard Step 2: Configuration -->
-    <div id="wizard-step2" style="display:none">
-      <h2>Configure <span id="wizard-provider-name"></span></h2>
-      <div class="form-group">
-        <label for="wizard-label">Label (display name)</label>
-        <input type="text" id="wizard-label" placeholder="e.g. my-claude">
-      </div>
-      <div class="form-group" id="wizard-apikey-group">
-        <label for="wizard-apikey">API Key</label>
-        <input type="password" id="wizard-apikey" placeholder="sk-...">
-      </div>
-      <div class="form-group">
-        <label for="wizard-model">Model</label>
-        <select id="wizard-model"></select>
-      </div>
-      <div class="form-group" id="wizard-endpoint-group" style="display:none">
-        <label for="wizard-endpoint">API Endpoint (optional)</label>
-        <input type="text" id="wizard-endpoint" placeholder="http://localhost:11434">
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-secondary" onclick="wizardBack()">Back</button>
-        <button class="btn btn-secondary" onclick="wizardTest()" id="wizard-test-btn">Test Connection</button>
-        <button class="btn btn-primary" onclick="wizardSave()" id="wizard-save-btn">Save &amp; Start</button>
-      </div>
-      <div class="status" id="wizard-status"></div>
+      <h1>GhostType Settings</h1>
+      <div style="font-size:0.8em;color:#6c7086">Manage your providers</div>
     </div>
   </div>
 
   <!-- ============ SETTINGS VIEW ============ -->
-  <div id="settings" class="view">
+  <div id="settings">
     <div class="toolbar">
       <h2 style="margin-bottom:0">Providers</h2>
       <div style="display:flex;gap:8px">
@@ -253,12 +166,9 @@
 
 <script>
 // ---- State ----
-let currentView = 'wizard'; // 'wizard' or 'settings'
-let wizardProvider = '';
 let configData = null;
 
 // ---- Go bridge helpers ----
-// go-webview2 Bind() exposes functions as window.<name>() returning promises.
 async function goCall(fn, ...args) {
   try {
     const f = window[fn];
@@ -272,114 +182,9 @@ async function goCall(fn, ...args) {
 
 // ---- Init ----
 async function init() {
-  const view = await goCall('getInitialView');
   const raw = await goCall('getConfig');
   if (raw) configData = JSON.parse(raw);
-
-  if (view === 'settings') {
-    showSettingsView();
-  } else {
-    showWizardView();
-  }
-}
-
-function showWizardView() {
-  currentView = 'wizard';
-  document.getElementById('wizard').classList.add('active');
-  document.getElementById('settings').classList.remove('active');
-  document.getElementById('subtitle').textContent = 'Configure your AI provider';
-}
-
-function showSettingsView() {
-  currentView = 'settings';
-  document.getElementById('settings').classList.add('active');
-  document.getElementById('wizard').classList.remove('active');
-  document.getElementById('subtitle').textContent = 'Manage your providers';
   renderProviderList();
-}
-
-// ---- Wizard ----
-function selectWizardProvider(provider) {
-  wizardProvider = provider;
-  document.querySelectorAll('#wizard-step1 .provider-card').forEach(c => {
-    c.classList.toggle('selected', c.dataset.provider === provider);
-  });
-
-  // Move to step 2
-  document.getElementById('wizard-step1').style.display = 'none';
-  document.getElementById('wizard-step2').style.display = 'block';
-  document.getElementById('step1-ind').classList.remove('active');
-  document.getElementById('step1-ind').classList.add('done');
-  document.getElementById('step2-ind').classList.add('active');
-
-  const names = {anthropic:'Anthropic',openai:'OpenAI',gemini:'Google Gemini',xai:'xAI',ollama:'Ollama'};
-  document.getElementById('wizard-provider-name').textContent = names[provider] || provider;
-  document.getElementById('wizard-label').value = provider === 'anthropic' ? 'claude' : provider;
-
-  // API key visibility
-  document.getElementById('wizard-apikey-group').style.display = provider === 'ollama' ? 'none' : 'block';
-  // Endpoint visibility
-  document.getElementById('wizard-endpoint-group').style.display = provider === 'ollama' ? 'block' : 'none';
-
-  loadModels('wizard-model', provider);
-  clearStatus('wizard-status');
-}
-
-function wizardBack() {
-  document.getElementById('wizard-step1').style.display = 'block';
-  document.getElementById('wizard-step2').style.display = 'none';
-  document.getElementById('step1-ind').classList.add('active');
-  document.getElementById('step1-ind').classList.remove('done');
-  document.getElementById('step2-ind').classList.remove('active');
-  wizardProvider = '';
-}
-
-async function wizardTest() {
-  const btn = document.getElementById('wizard-test-btn');
-  btn.disabled = true;
-  btn.textContent = 'Testing...';
-  clearStatus('wizard-status');
-
-  const provider = wizardProvider;
-  const apiKey = document.getElementById('wizard-apikey').value.trim();
-  const model = document.getElementById('wizard-model').value;
-  const endpoint = document.getElementById('wizard-endpoint').value.trim();
-
-  const result = await goCall('testConnection', provider, apiKey, model, endpoint);
-  btn.disabled = false;
-  btn.textContent = 'Test Connection';
-
-  if (result && result.startsWith('ok')) {
-    setStatus('wizard-status', 'success', 'Connection successful!');
-  } else {
-    setStatus('wizard-status', 'error', result || 'Connection failed');
-  }
-}
-
-async function wizardSave() {
-  const label = document.getElementById('wizard-label').value.trim();
-  const apiKey = document.getElementById('wizard-apikey').value.trim();
-  const model = document.getElementById('wizard-model').value;
-  const endpoint = document.getElementById('wizard-endpoint').value.trim();
-
-  if (!label) { setStatus('wizard-status','error','Label is required'); return; }
-  if (wizardProvider !== 'ollama' && !apiKey) { setStatus('wizard-status','error','API key is required'); return; }
-  if (!model) { setStatus('wizard-status','error','Model is required'); return; }
-
-  const btn = document.getElementById('wizard-save-btn');
-  btn.disabled = true;
-  btn.textContent = 'Saving...';
-
-  const result = await goCall('saveProvider', label, wizardProvider, apiKey, model, endpoint, '');
-  btn.disabled = false;
-  btn.textContent = 'Save & Start';
-
-  if (result && result.startsWith('ok')) {
-    setStatus('wizard-status', 'success', 'Saved! Starting GhostType...');
-    setTimeout(() => goCall('closeWindow'), 800);
-  } else {
-    setStatus('wizard-status', 'error', result || 'Save failed');
-  }
 }
 
 // ---- Settings ----
@@ -401,19 +206,44 @@ async function renderProviderList() {
     const isDefault = label === defaultLLM;
     const maskedKey = def.api_key ? '****' + def.api_key.slice(-4) : (def.provider === 'ollama' ? 'local' : 'none');
     html += `
-      <div class="provider-list-item">
-        <div class="info">
-          <div class="label">${esc(label)}${isDefault ? '<span class="default-badge">DEFAULT</span>' : ''}</div>
-          <div class="meta">${esc(def.provider)} / ${esc(def.model)} &middot; key: ${esc(maskedKey)}</div>
+      <div class="provider-list-item" id="card-${esc(label)}">
+        <div class="top-row">
+          <div class="info">
+            <div class="label">${esc(label)}${isDefault ? '<span class="default-badge">DEFAULT</span>' : ''}</div>
+            <div class="meta">${esc(def.provider)} / ${esc(def.model)} &middot; key: ${esc(maskedKey)}</div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-secondary btn-sm" onclick="testProvider('${esc(label)}')" id="test-btn-${esc(label)}">Test</button>
+            ${!isDefault ? `<button class="btn btn-secondary btn-sm" onclick="setDefault('${esc(label)}')">Set Default</button>` : ''}
+            <button class="btn btn-secondary btn-sm" onclick="editProvider('${esc(label)}')">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteProvider('${esc(label)}')">Delete</button>
+          </div>
         </div>
-        <div class="actions">
-          ${!isDefault ? `<button class="btn btn-secondary btn-sm" onclick="setDefault('${esc(label)}')">Set Default</button>` : ''}
-          <button class="btn btn-secondary btn-sm" onclick="editProvider('${esc(label)}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteProvider('${esc(label)}')">Delete</button>
-        </div>
+        <div class="test-result" id="test-result-${esc(label)}"></div>
       </div>`;
   }
   container.innerHTML = html;
+}
+
+async function testProvider(label) {
+  const btn = document.getElementById('test-btn-' + label);
+  const result_el = document.getElementById('test-result-' + label);
+  if (btn) { btn.disabled = true; btn.textContent = 'Testing...'; }
+  result_el.className = 'test-result';
+  result_el.style.display = 'none';
+
+  const result = await goCall('testProvider', label);
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Test'; }
+  if (result && result.startsWith('ok')) {
+    result_el.className = 'test-result pass';
+    result_el.textContent = '\u2714 Connection successful';
+    result_el.style.display = 'block';
+  } else {
+    result_el.className = 'test-result fail';
+    result_el.textContent = '\u2718 ' + (result || 'Connection failed');
+    result_el.style.display = 'block';
+  }
 }
 
 function showAddProvider() {
