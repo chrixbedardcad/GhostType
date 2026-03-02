@@ -1,0 +1,28 @@
+time=2026-03-02T17:34:22.226-05:00 level=INFO msg="GhostType starting" version=0.1.43 default_llm=claude llm_providers=3
+time=2026-03-02T17:34:22.230-05:00 level=INFO msg="GhostType ready" version=0.1.43 active_mode=correct hotkey_action=Ctrl+G
+time=2026-03-02T17:34:22.244-05:00 level=INFO msg="System tray icon added"
+time=2026-03-02T17:34:34.266-05:00 level=INFO msg="Correction triggered"
+time=2026-03-02T17:34:34.604-05:00 level=INFO msg="Captured text" mode=Correction len=24 selection=false text="helo word this is a test"
+time=2026-03-02T17:34:35.627-05:00 level=INFO msg="Correction complete" result="Hello world, this is a test."
+time=2026-03-02T17:34:41.365-05:00 level=INFO msg="Default model changed" label=gpt
+time=2026-03-02T17:34:43.569-05:00 level=INFO msg="Correction triggered"
+time=2026-03-02T17:34:43.906-05:00 level=INFO msg="Captured text" mode=Correction len=28 selection=false text="Hello world, this is a test."
+time=2026-03-02T17:34:43.993-05:00 level=ERROR msg="LLM processing failed" mode=Correction error="LLM request failed: API returned status 401: {\n    \"error\": {\n        \"message\": \"Incorrect API key provided: YOUR_OPE***_KEY. You can find your API key at https://platform.openai.com/account/api-keys.\",\n        \"type\": \"invalid_request_error\",\n        \"param\": null,\n        \"code\": \"invalid_api_key\"\n    }\n}\n"
+time=2026-03-02T17:34:47.612-05:00 level=INFO msg="Default model changed" label=claude
+time=2026-03-02T17:34:49.001-05:00 level=INFO msg="Correction triggered"
+time=2026-03-02T17:34:49.339-05:00 level=INFO msg="Captured text" mode=Correction len=28 selection=false text="Hello world, this is a test."
+time=2026-03-02T17:34:50.108-05:00 level=INFO msg="Correction complete" result="Hello world, this is a test."
+time=2026-03-02T17:34:55.621-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-02T17:34:55.621-05:00 level=INFO msg="[GUI] ShowSettings: launching goroutine"
+time=2026-03-02T17:34:55.621-05:00 level=INFO msg="[GUI] showWindow entered"
+time=2026-03-02T17:34:55.621-05:00 level=INFO msg="[GUI] OS thread locked"
+time=2026-03-02T17:34:55.621-05:00 level=INFO msg="[GUI] Creating WebView2 window..."
+time=2026-03-02T17:34:55.801-05:00 level=INFO msg="[GUI] WebView2 window created OK"
+time=2026-03-02T17:34:55.801-05:00 level=INFO msg="[GUI] Binding JS functions..."
+time=2026-03-02T17:34:55.801-05:00 level=INFO msg="[GUI] All JS functions bound"
+time=2026-03-02T17:34:55.801-05:00 level=INFO msg="[GUI] Loaded HTML (15863 bytes), calling SetHtml..."
+time=2026-03-02T17:34:55.808-05:00 level=INFO msg="[GUI] Window brought to foreground (hwnd=0x2215f8)"
+time=2026-03-02T17:34:55.808-05:00 level=INFO msg="[GUI] Calling Run (blocks until window closes)..."
+time=2026-03-02T17:34:55.850-05:00 level=INFO msg="[GUI] JS called: getConfig"
+time=2026-03-02T17:34:55.868-05:00 level=INFO msg="[GUI] JS called: getConfig"
+time=2026-03-02T17:35:52.000-05:00 level=INFO msg="Exit requested via tray menu"
