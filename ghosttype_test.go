@@ -254,7 +254,7 @@ func TestConfigLoadAndCreateDefault(t *testing.T) {
 		t.Fatalf("Created config is invalid JSON: %v", err)
 	}
 
-	if reloaded.Model != "claude-sonnet-4-5-20250929" {
+	if reloaded.Model != "claude-sonnet-4-6" {
 		t.Errorf("Expected default model in file, got '%s'", reloaded.Model)
 	}
 }

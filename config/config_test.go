@@ -13,14 +13,14 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.LLMProvider != "anthropic" {
 		t.Errorf("expected default provider 'anthropic', got '%s'", cfg.LLMProvider)
 	}
-	if cfg.Model != "claude-sonnet-4-5-20250929" {
-		t.Errorf("expected default model 'claude-sonnet-4-5-20250929', got '%s'", cfg.Model)
+	if cfg.Model != "claude-sonnet-4-6" {
+		t.Errorf("expected default model 'claude-sonnet-4-6', got '%s'", cfg.Model)
 	}
 	if cfg.MaxTokens != 256 {
 		t.Errorf("expected default max_tokens 256, got %d", cfg.MaxTokens)
 	}
-	if cfg.TimeoutMs != 5000 {
-		t.Errorf("expected default timeout_ms 5000, got %d", cfg.TimeoutMs)
+	if cfg.TimeoutMs != 30000 {
+		t.Errorf("expected default timeout_ms 30000, got %d", cfg.TimeoutMs)
 	}
 	if cfg.ActiveMode != "correct" {
 		t.Errorf("expected default active_mode 'correct', got '%s'", cfg.ActiveMode)
@@ -198,8 +198,8 @@ func TestLoadAppliesDefaults(t *testing.T) {
 	if loaded.MaxTokens != 256 {
 		t.Errorf("expected default max_tokens 256, got %d", loaded.MaxTokens)
 	}
-	if loaded.TimeoutMs != 5000 {
-		t.Errorf("expected default timeout_ms 5000, got %d", loaded.TimeoutMs)
+	if loaded.TimeoutMs != 30000 {
+		t.Errorf("expected default timeout_ms 30000, got %d", loaded.TimeoutMs)
 	}
 	if loaded.LogLevel != "" {
 		t.Errorf("expected empty log_level (disabled by default), got '%s'", loaded.LogLevel)

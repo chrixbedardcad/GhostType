@@ -99,7 +99,7 @@ func DefaultConfig() Config {
 	return Config{
 		LLMProvider: "anthropic",
 		APIKey:      "",
-		Model:       "claude-sonnet-4-5-20250929",
+		Model:       "claude-sonnet-4-6",
 		APIEndpoint: "",
 		Languages:   []string{"en", "fr"},
 		LanguageNames: map[string]string{
