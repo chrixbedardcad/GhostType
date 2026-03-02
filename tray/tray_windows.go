@@ -454,21 +454,10 @@ func (ts *trayState) showMenu() {
 }
 
 func (ts *trayState) handleMenuCommand(id int) {
+	// Exact-ID matches first, then open-ended ranges last.
+	// This prevents ranges (e.g. id >= idTemplBase) from swallowing
+	// higher fixed IDs like idSoundToggle, idSettings, idWizard.
 	switch {
-	case id >= idLangBase && id < idTemplBase:
-		idx := id - idLangBase
-		if ts.cfg.OnTargetSelect != nil {
-			ts.cfg.OnTargetSelect(idx)
-		}
-		ts.updateTooltip()
-
-	case id >= idTemplBase:
-		idx := id - idTemplBase
-		if ts.cfg.OnTemplSelect != nil {
-			ts.cfg.OnTemplSelect(idx)
-		}
-		ts.updateTooltip()
-
 	case id == idModeCorrect:
 		if ts.cfg.OnModeChange != nil {
 			ts.cfg.OnModeChange("correct")
@@ -512,9 +501,22 @@ func (ts *trayState) handleMenuCommand(id int) {
 		if ts.cfg.OnExit != nil {
 			ts.cfg.OnExit()
 		}
-		// Post WM_DESTROY so the tray cleans itself up without OnExit
-		// needing to call the stop function (which would deadlock).
 		procPostMessageW.Call(ts.hwnd, wmDestroy, 0, 0)
+
+	// Open-ended ranges last — these must not swallow fixed IDs above.
+	case id >= idLangBase && id < idTemplBase:
+		idx := id - idLangBase
+		if ts.cfg.OnTargetSelect != nil {
+			ts.cfg.OnTargetSelect(idx)
+		}
+		ts.updateTooltip()
+
+	case id >= idTemplBase:
+		idx := id - idTemplBase
+		if ts.cfg.OnTemplSelect != nil {
+			ts.cfg.OnTemplSelect(idx)
+		}
+		ts.updateTooltip()
 	}
 }
 
