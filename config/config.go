@@ -219,7 +219,9 @@ func applyDefaults(cfg *Config) {
 	if cfg.MaxTokens == 0 {
 		cfg.MaxTokens = 256
 	}
-	if cfg.TimeoutMs == 0 {
+	// Migrate old default: 5000ms was too short for cloud LLM APIs and caused
+	// frequent "context deadline exceeded" errors. Bump to 30000ms.
+	if cfg.TimeoutMs == 0 || cfg.TimeoutMs == 5000 {
 		cfg.TimeoutMs = 30000
 	}
 	// Normalize log_level to lowercase so "Debug", "INFO", etc. all work.

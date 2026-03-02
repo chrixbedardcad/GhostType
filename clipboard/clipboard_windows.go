@@ -5,6 +5,7 @@ package clipboard
 import (
 	"fmt"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -26,19 +27,37 @@ const (
 	gmemMoveable  = 0x0002
 )
 
+// openClipboardRetry attempts to open the Windows clipboard with retries.
+// The clipboard is a shared resource — another process (or a previous operation)
+// may have it locked. A few short retries avoids transient "failed to open clipboard" errors.
+func openClipboardRetry() error {
+	const maxRetries = 5
+	const retryDelay = 15 * time.Millisecond
+
+	for i := 0; i < maxRetries; i++ {
+		ret, _, _ := procOpenClipboard.Call(0)
+		if ret != 0 {
+			return nil
+		}
+		if i < maxRetries-1 {
+			time.Sleep(retryDelay)
+		}
+	}
+	return fmt.Errorf("failed to open clipboard after %d attempts", maxRetries)
+}
+
 // NewWindowsClipboard creates a Clipboard using native Windows clipboard API.
 func NewWindowsClipboard() *Clipboard {
 	return New(windowsRead, windowsWrite).WithClear(windowsClear)
 }
 
 func windowsClear() error {
-	ret, _, _ := procOpenClipboard.Call(0)
-	if ret == 0 {
-		return fmt.Errorf("failed to open clipboard")
+	if err := openClipboardRetry(); err != nil {
+		return err
 	}
 	defer procCloseClipboard.Call()
 
-	ret, _, _ = procEmptyClipboard.Call()
+	ret, _, _ := procEmptyClipboard.Call()
 	if ret == 0 {
 		return fmt.Errorf("failed to empty clipboard")
 	}
@@ -46,9 +65,8 @@ func windowsClear() error {
 }
 
 func windowsRead() (string, error) {
-	ret, _, _ := procOpenClipboard.Call(0)
-	if ret == 0 {
-		return "", fmt.Errorf("failed to open clipboard")
+	if err := openClipboardRetry(); err != nil {
+		return "", err
 	}
 	defer procCloseClipboard.Call()
 
@@ -68,9 +86,8 @@ func windowsRead() (string, error) {
 }
 
 func windowsWrite(text string) error {
-	ret, _, _ := procOpenClipboard.Call(0)
-	if ret == 0 {
-		return fmt.Errorf("failed to open clipboard")
+	if err := openClipboardRetry(); err != nil {
+		return err
 	}
 	defer procCloseClipboard.Call()
 
