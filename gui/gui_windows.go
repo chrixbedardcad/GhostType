@@ -46,32 +46,42 @@ func ShowWizard(cfg *config.Config, configPath string) *config.Config {
 	return cfg
 }
 
-// ShowSettings opens the settings window in a goroutine (non-blocking).
-// Only one settings window can be open at a time.
-func ShowSettings(cfg *config.Config, configPath string) {
-	guiLog("[GUI] ShowSettings called")
+// showAsync opens a GUI window in a goroutine (non-blocking).
+// Only one window can be open at a time (shared guard).
+func showAsync(cfg *config.Config, configPath string, view string) {
+	guiLog("[GUI] showAsync called: view=%s", view)
 	settingsOpenMu.Lock()
 	if settingsOpen {
 		settingsOpenMu.Unlock()
-		guiLog("[GUI] ShowSettings: window already open, skipping")
+		guiLog("[GUI] showAsync: window already open, skipping")
 		return
 	}
 	settingsOpen = true
 	settingsOpenMu.Unlock()
-	guiLog("[GUI] ShowSettings: launching goroutine")
+	guiLog("[GUI] showAsync: launching goroutine")
 
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				guiLog("[GUI] PANIC in ShowSettings goroutine: %v", r)
+				guiLog("[GUI] PANIC in showAsync goroutine: %v", r)
 			}
 			settingsOpenMu.Lock()
 			settingsOpen = false
 			settingsOpenMu.Unlock()
-			guiLog("[GUI] ShowSettings goroutine exited")
+			guiLog("[GUI] showAsync goroutine exited")
 		}()
-		showWindow(cfg, configPath, "settings")
+		showWindow(cfg, configPath, view)
 	}()
+}
+
+// ShowSettings opens the settings (provider list) window. Non-blocking.
+func ShowSettings(cfg *config.Config, configPath string) {
+	showAsync(cfg, configPath, "settings")
+}
+
+// ShowWizardAsync opens the setup wizard from the tray. Non-blocking.
+func ShowWizardAsync(cfg *config.Config, configPath string) {
+	showAsync(cfg, configPath, "wizard")
 }
 
 func showWindow(cfg *config.Config, configPath string, initialView string) Result {

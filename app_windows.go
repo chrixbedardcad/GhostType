@@ -255,7 +255,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string) {
 			gui.ShowSettings(cfg, configPath)
 		},
 		OnWizard: func() {
-			gui.ShowSettings(cfg, configPath)
+			gui.ShowWizardAsync(cfg, configPath)
 		},
 		OnCancel: func() {
 			mu.Lock()

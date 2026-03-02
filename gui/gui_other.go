@@ -12,3 +12,6 @@ func ShowWizard(cfg *config.Config, configPath string) *config.Config {
 
 // ShowSettings is a no-op on non-Windows platforms.
 func ShowSettings(cfg *config.Config, configPath string) {}
+
+// ShowWizardAsync is a no-op on non-Windows platforms.
+func ShowWizardAsync(cfg *config.Config, configPath string) {}
