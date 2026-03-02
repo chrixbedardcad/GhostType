@@ -150,6 +150,18 @@ func (r *Router) resolveClient(label string) (llm.Client, error) {
 	return c, nil
 }
 
+// TimeoutForMode returns the timeout (in ms) for the provider that will handle
+// the given mode. Uses the per-provider timeout_ms if set, otherwise the global.
+func (r *Router) TimeoutForMode(m Mode) int {
+	label := r.llmLabelForMode(m)
+	if label != "" {
+		if def, ok := r.cfg.LLMProviders[label]; ok && def.TimeoutMs > 0 {
+			return def.TimeoutMs
+		}
+	}
+	return r.cfg.TimeoutMs
+}
+
 // llmLabelForMode returns the LLM provider label for the given mode.
 func (r *Router) llmLabelForMode(m Mode) string {
 	switch m {

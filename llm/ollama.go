@@ -8,6 +8,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/chrixbedardcad/GhostType/config"
 )
@@ -35,7 +36,7 @@ func NewOllamaClient(cfg *config.Config) *OllamaClient {
 		endpoint:   endpoint,
 		maxTokens:  cfg.MaxTokens,
 		timeoutMs:  cfg.TimeoutMs,
-		httpClient: &http.Client{},
+		httpClient: &http.Client{Timeout: 120 * time.Second},
 	}
 }
 
@@ -59,7 +60,7 @@ func newOllamaFromDef(def config.LLMProviderDef) *OllamaClient {
 		endpoint:   endpoint,
 		maxTokens:  maxTokens,
 		timeoutMs:  timeoutMs,
-		httpClient: &http.Client{},
+		httpClient: &http.Client{Timeout: 120 * time.Second},
 	}
 }
 

@@ -113,8 +113,8 @@ func processMode(
 	slog.Info("Captured text", "mode", modeName, "len", len(text), "selection", hadSelection, "text", text)
 	fmt.Printf("[%s] Captured: %q\n", modeName, text)
 
-	// Create cancellable context with timeout.
-	timeout := time.Duration(cfg.TimeoutMs) * time.Millisecond
+	// Create cancellable context with per-provider timeout.
+	timeout := time.Duration(router.TimeoutForMode(m)) * time.Millisecond
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 
 	mu.Lock()
