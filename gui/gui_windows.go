@@ -11,11 +11,19 @@ import (
 	"os/exec"
 	"runtime"
 	"sync"
+	"syscall"
 	"time"
+	"unsafe"
 
 	"github.com/chrixbedardcad/GhostType/config"
 	"github.com/chrixbedardcad/GhostType/llm"
 	webview2 "github.com/jchv/go-webview2"
+)
+
+var (
+	user32                 = syscall.NewLazyDLL("user32.dll")
+	procShowWindow         = user32.NewProc("ShowWindow")
+	procSetForegroundWindow = user32.NewProc("SetForegroundWindow")
 )
 
 //go:embed frontend/index.html
@@ -277,7 +285,19 @@ func showWindow(cfg *config.Config, configPath string, initialView string) Resul
 	}
 	guiLog("[GUI] Loaded HTML (%d bytes), calling SetHtml...", len(html))
 	w.SetHtml(string(html))
-	guiLog("[GUI] SetHtml done, calling Run (blocks until window closes)...")
+
+	// Force the window to the foreground so the user can see it.
+	hwnd := w.Window()
+	if hwnd != nil {
+		h := uintptr(unsafe.Pointer(hwnd))
+		procShowWindow.Call(h, 5) // SW_SHOW = 5
+		procSetForegroundWindow.Call(h)
+		guiLog("[GUI] Window brought to foreground (hwnd=0x%x)", h)
+	} else {
+		guiLog("[GUI] WARNING: Window() returned nil, cannot bring to foreground")
+	}
+
+	guiLog("[GUI] Calling Run (blocks until window closes)...")
 
 	// Run blocks until the window is closed.
 	w.Run()
