@@ -213,10 +213,10 @@ async function renderProviderList() {
             <div class="meta">${esc(def.provider)} / ${esc(def.model)} &middot; key: ${esc(maskedKey)}</div>
           </div>
           <div class="actions">
-            <button class="btn btn-secondary btn-sm" onclick="testProvider('${esc(label)}')" id="test-btn-${esc(label)}">Test</button>
-            ${!isDefault ? `<button class="btn btn-secondary btn-sm" onclick="setDefault('${esc(label)}')">Set Default</button>` : ''}
-            <button class="btn btn-secondary btn-sm" onclick="editProvider('${esc(label)}')">Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteProvider('${esc(label)}')">Delete</button>
+            <button class="btn btn-secondary btn-sm" onclick="testProvider('${escJS(label)}')" id="test-btn-${esc(label)}">Test</button>
+            ${!isDefault ? `<button class="btn btn-secondary btn-sm" onclick="setDefault('${escJS(label)}')">Set Default</button>` : ''}
+            <button class="btn btn-secondary btn-sm" onclick="editProvider('${escJS(label)}')">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteProvider('${escJS(label)}')">Delete</button>
           </div>
         </div>
         <div class="test-result" id="test-result-${esc(label)}"></div>
@@ -229,12 +229,15 @@ async function testProvider(label) {
   const btn = document.getElementById('test-btn-' + label);
   const result_el = document.getElementById('test-result-' + label);
   if (btn) { btn.disabled = true; btn.textContent = 'Testing...'; }
-  result_el.className = 'test-result';
-  result_el.style.display = 'none';
+  if (result_el) {
+    result_el.className = 'test-result';
+    result_el.style.display = 'none';
+  }
 
   const result = await goCall('testProvider', label);
 
   if (btn) { btn.disabled = false; btn.textContent = 'Test'; }
+  if (!result_el) return;
   if (result && result.startsWith('ok')) {
     result_el.className = 'test-result pass';
     result_el.textContent = '\u2714 Connection successful';
@@ -302,6 +305,13 @@ async function doDelete(label) {
   const result = await goCall('deleteProvider', label);
   if (result && result.startsWith('ok')) {
     renderProviderList();
+  } else {
+    const el = document.getElementById('test-result-' + label);
+    if (el) {
+      el.className = 'test-result fail';
+      el.textContent = '\u2718 Delete failed: ' + (result || 'unknown error');
+      el.style.display = 'block';
+    }
   }
 }
 
@@ -309,6 +319,13 @@ async function setDefault(label) {
   const result = await goCall('setDefault', label);
   if (result && result.startsWith('ok')) {
     renderProviderList();
+  } else {
+    const el = document.getElementById('test-result-' + label);
+    if (el) {
+      el.className = 'test-result fail';
+      el.textContent = '\u2718 Set default failed: ' + (result || 'unknown error');
+      el.style.display = 'block';
+    }
   }
 }
 
@@ -422,6 +439,12 @@ function esc(s) {
   const el = document.createElement('span');
   el.textContent = s;
   return el.innerHTML;
+}
+
+// escJS escapes a string for safe use inside JS single-quoted string literals
+// (inline onclick handlers). Handles backslashes, single quotes, and newlines.
+function escJS(s) {
+  return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
 }
 
 // ---- Boot ----

@@ -263,6 +263,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string) {
 				mu.Lock()
 				*cfg = *newCfg
 				mu.Unlock()
+				router.ResetClients()
 				slog.Info("Live config reloaded after settings save")
 			})
 		},

@@ -484,6 +484,41 @@ func TestRouter_ModeLLMLabel(t *testing.T) {
 	}
 }
 
+func TestRouter_ResetClients(t *testing.T) {
+	cfg := &config.Config{
+		DefaultLLM: "claude",
+		LLMProviders: map[string]config.LLMProviderDef{
+			"claude": {Provider: "anthropic", APIKey: "sk-ant", Model: "claude-sonnet-4-5-20250929"},
+		},
+		Prompts: config.Prompts{
+			Correct: "Fix errors.",
+		},
+		MaxTokens: 256,
+	}
+	mock := &mockClient{
+		response: &llm.Response{Text: "fixed", Provider: "mock", Model: "test"},
+	}
+	router := NewRouter(cfg, mock)
+
+	// Verify the default client is set.
+	if router.defaultClient == nil {
+		t.Fatal("expected defaultClient to be set after NewRouter")
+	}
+	if len(router.clients) != 1 {
+		t.Fatalf("expected 1 cached client, got %d", len(router.clients))
+	}
+
+	// Reset should clear everything.
+	router.ResetClients()
+
+	if router.defaultClient != nil {
+		t.Error("expected defaultClient to be nil after ResetClients")
+	}
+	if len(router.clients) != 0 {
+		t.Errorf("expected 0 cached clients after ResetClients, got %d", len(router.clients))
+	}
+}
+
 func TestRouter_ModeString(t *testing.T) {
 	tests := []struct {
 		mode     Mode

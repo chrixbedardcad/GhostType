@@ -112,12 +112,30 @@ func (r *Router) Process(ctx context.Context, mode Mode, text string) (string, e
 	return strings.TrimSpace(resp.Text), nil
 }
 
+// ResetClients clears all cached LLM clients so that the next request
+// lazily creates fresh ones from the (possibly updated) config.
+func (r *Router) ResetClients() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.clients = make(map[string]llm.Client)
+	r.defaultClient = nil
+	slog.Debug("LLM client cache reset")
+}
+
 // resolveClient returns the LLM client for the given label.
 // If label is empty, the default client is returned.
 // Clients are lazily created and cached.
 func (r *Router) resolveClient(label string) (llm.Client, error) {
 	if label == "" {
-		return r.defaultClient, nil
+		if r.defaultClient != nil {
+			return r.defaultClient, nil
+		}
+		// defaultClient was cleared (e.g. after ResetClients); fall back to
+		// DefaultLLM label so we lazily recreate it below.
+		label = r.cfg.DefaultLLM
+		if label == "" {
+			return nil, fmt.Errorf("no default LLM configured")
+		}
 	}
 
 	r.mu.Lock()
@@ -145,6 +163,10 @@ func (r *Router) resolveClient(label string) (llm.Client, error) {
 		return existing, nil
 	}
 	r.clients[label] = c
+	// Re-cache as defaultClient when this is the default provider.
+	if label == r.cfg.DefaultLLM {
+		r.defaultClient = c
+	}
 	r.mu.Unlock()
 
 	return c, nil
