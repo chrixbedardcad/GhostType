@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os/exec"
+	"runtime"
 	"sync"
 	"time"
 
@@ -58,6 +59,10 @@ func ShowSettings(cfg *config.Config, configPath string) {
 }
 
 func showWindow(cfg *config.Config, configPath string, initialView string) Result {
+	// WebView2 requires the window and message loop on the same OS thread.
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	// Work on a copy so cancelled edits don't corrupt the live config.
 	cfgCopy := *cfg
 	if cfg.LLMProviders != nil {
@@ -69,8 +74,9 @@ func showWindow(cfg *config.Config, configPath string, initialView string) Resul
 
 	result := Result{Config: &cfgCopy}
 
+	fmt.Println("[GUI] Creating WebView2 window...")
 	w := webview2.NewWithOptions(webview2.WebViewOptions{
-		Debug:     false,
+		Debug:     true,
 		AutoFocus: true,
 		WindowOptions: webview2.WindowOptions{
 			Title:  "GhostType Setup",
@@ -80,10 +86,12 @@ func showWindow(cfg *config.Config, configPath string, initialView string) Resul
 		},
 	})
 	if w == nil {
+		fmt.Println("[GUI] ERROR: Failed to create WebView2 window (is WebView2 runtime installed?)")
 		slog.Error("Failed to create WebView2 window")
 		return result
 	}
 	defer w.Destroy()
+	fmt.Println("[GUI] WebView2 window created successfully")
 
 	// --- Bind Go functions for JS bridge ---
 
