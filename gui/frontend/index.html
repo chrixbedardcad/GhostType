@@ -118,7 +118,7 @@
     <div class="toolbar">
       <h2 style="margin-bottom:0">Providers</h2>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-secondary btn-sm" onclick="openConfigFile()">Open config.json</button>
+        <button class="btn btn-secondary btn-sm" onclick="onOpenConfigFile()">Open config.json</button>
         <button class="btn btn-primary btn-sm" onclick="showAddProvider()">+ Add Provider</button>
       </div>
     </div>
@@ -213,10 +213,10 @@ async function renderProviderList() {
             <div class="meta">${esc(def.provider)} / ${esc(def.model)} &middot; key: ${esc(maskedKey)}</div>
           </div>
           <div class="actions">
-            <button class="btn btn-secondary btn-sm" onclick="testProvider('${escJS(label)}')" id="test-btn-${esc(label)}">Test</button>
-            ${!isDefault ? `<button class="btn btn-secondary btn-sm" onclick="setDefault('${escJS(label)}')">Set Default</button>` : ''}
-            <button class="btn btn-secondary btn-sm" onclick="editProvider('${escJS(label)}')">Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteProvider('${escJS(label)}')">Delete</button>
+            <button class="btn btn-secondary btn-sm" onclick="onTestProvider('${escJS(label)}')" id="test-btn-${esc(label)}">Test</button>
+            ${!isDefault ? `<button class="btn btn-secondary btn-sm" onclick="onSetDefault('${escJS(label)}')">Set Default</button>` : ''}
+            <button class="btn btn-secondary btn-sm" onclick="onEditProvider('${escJS(label)}')">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="onDeleteProvider('${escJS(label)}')">Delete</button>
           </div>
         </div>
         <div class="test-result" id="test-result-${esc(label)}"></div>
@@ -225,7 +225,7 @@ async function renderProviderList() {
   container.innerHTML = html;
 }
 
-async function testProvider(label) {
+async function onTestProvider(label) {
   const btn = document.getElementById('test-btn-' + label);
   const result_el = document.getElementById('test-result-' + label);
   if (btn) { btn.disabled = true; btn.textContent = 'Testing...'; }
@@ -261,7 +261,7 @@ function showAddProvider() {
   clearStatus('form-status');
 }
 
-function editProvider(label) {
+function onEditProvider(label) {
   const def = configData.llm_providers[label];
   if (!def) return;
 
@@ -277,7 +277,7 @@ function editProvider(label) {
   clearStatus('form-status');
 }
 
-function deleteProvider(label) {
+function onDeleteProvider(label) {
   // Two-click delete: first click swaps button to "Confirm?", second click deletes.
   const card = document.getElementById('card-' + label);
   if (!card) return;
@@ -315,7 +315,7 @@ async function doDelete(label) {
   }
 }
 
-async function setDefault(label) {
+async function onSetDefault(label) {
   const result = await goCall('setDefault', label);
   if (result && result.startsWith('ok')) {
     renderProviderList();
@@ -378,7 +378,7 @@ async function saveForm() {
   }
 }
 
-async function openConfigFile() {
+async function onOpenConfigFile() {
   await goCall('openConfigFile');
 }
 
