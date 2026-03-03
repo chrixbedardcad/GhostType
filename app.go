@@ -1,5 +1,3 @@
-//go:build windows
-
 package main
 
 import (
@@ -8,7 +6,6 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
-	"runtime"
 	"sort"
 	"sync"
 	"syscall"
@@ -18,7 +15,6 @@ import (
 	"github.com/chrixbedardcad/GhostType/clipboard"
 	"github.com/chrixbedardcad/GhostType/config"
 	"github.com/chrixbedardcad/GhostType/gui"
-	"github.com/chrixbedardcad/GhostType/hotkey"
 	"github.com/chrixbedardcad/GhostType/keyboard"
 	"github.com/chrixbedardcad/GhostType/mode"
 	"github.com/chrixbedardcad/GhostType/sound"
@@ -32,7 +28,7 @@ import (
 func captureText(
 	modeName string,
 	cb *clipboard.Clipboard,
-	kb *keyboard.WindowsSimulator,
+	kb keyboard.Simulator,
 ) (text string, hadSelection bool, err error) {
 	// Clear clipboard so we can detect whether Ctrl+C actually grabbed something.
 	if err := cb.Clear(); err != nil {
@@ -85,7 +81,7 @@ func processMode(
 	cfg *config.Config,
 	router *mode.Router,
 	cb *clipboard.Clipboard,
-	kb *keyboard.WindowsSimulator,
+	kb keyboard.Simulator,
 	mu *sync.Mutex,
 	cancelLLM *context.CancelFunc,
 ) {
@@ -185,12 +181,9 @@ func modeFromString(name string) (mode.Mode, string) {
 }
 
 func runApp(cfg *config.Config, router *mode.Router, configPath string) {
-	// Windows RegisterHotKey and GetMessageW must run on the same OS thread.
-	runtime.LockOSThread()
-
-	cb := clipboard.NewWindowsClipboard()
-	kb := keyboard.NewWindowsSimulator()
-	hk := hotkey.NewWindowsManager()
+	cb := newClipboard()
+	kb := newKeyboard()
+	hk := newHotkeyManager()
 
 	// Mutex-protected cancellation context for in-progress LLM calls.
 	var mu sync.Mutex
@@ -289,9 +282,6 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string) {
 			slog.Info("Exit requested via tray menu")
 			fmt.Println("\nGhostType exiting (tray menu).")
 			hk.Stop()
-			// Do NOT call stopTrayFn() here — we are inside the tray's
-			// DispatchMessageW callback; the tray posts WM_DESTROY to
-			// itself after OnExit returns.
 			go func() {
 				time.Sleep(2 * time.Second)
 				os.Exit(0)
@@ -417,6 +407,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string) {
 	fmt.Println("GhostType is ready. Waiting for hotkey input...")
 	fmt.Println("Press Ctrl+C to exit.")
 
-	// Block on Windows message loop.
+	// Platform-specific pre-listen setup (e.g., LockOSThread on Windows).
+	preListen()
+
+	// Block on hotkey listener.
 	hk.Listen()
 }
