@@ -31,66 +31,10 @@ func logStartupError(dir, msg string, err error) {
 	slog.Error(msg, "error", err)
 }
 
-func main() {
-	fmt.Printf("GhostType v%s - AI-powered multilingual auto-correction\n", Version)
-	fmt.Println("====================================================")
-
-	// Determine config path (same directory as executable, then CWD).
-	execPath, err := os.Executable()
-	if err != nil {
-		execPath = "."
-	}
-	execDir := filepath.Dir(execPath)
-	configPath := filepath.Join(execDir, "config.json")
-
-	// Fall back to current working directory.
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		configPath = "config.json"
-	}
-
-	// Resolve to absolute so log messages always show the full path.
-	if absPath, err := filepath.Abs(configPath); err == nil {
-		configPath = absPath
-	}
-
-	// Load configuration (without validation so the wizard can run first).
-	fmt.Printf("Loading config from: %s\n", configPath)
-	cfg, err := config.LoadRaw(configPath)
-	if err != nil {
-		logStartupError(filepath.Dir(configPath), "Failed to load config", err)
-		fmt.Fprintf(os.Stderr, "Error loading config: %v\n", err)
-		fmt.Println("A default config.json has been created. Please add your API key and restart.")
-		os.Exit(1)
-	}
-
-	// First-launch: show settings GUI if no provider is configured.
-	if gui.NeedsSetup(cfg) {
-		fmt.Println("No API key configured. Opening settings...")
-		cfg = gui.ShowSettingsBlocking(cfg, configPath)
-		if gui.NeedsSetup(cfg) {
-			fmt.Println("Setup cancelled.")
-			os.Exit(1)
-		}
-		// Re-load from disk after settings saved.
-		cfg, err = config.LoadRaw(configPath)
-		if err != nil {
-			logStartupError(filepath.Dir(configPath), "Failed to reload config after settings", err)
-			fmt.Fprintf(os.Stderr, "Error reloading config: %v\n", err)
-			os.Exit(1)
-		}
-	}
-
-	// Validate the config now that we know it has a provider.
-	if err := config.Validate(cfg); err != nil {
-		logStartupError(filepath.Dir(configPath), "Config validation failed", err)
-		fmt.Fprintf(os.Stderr, "Error: config validation failed: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Derive the base directory from the config file for resolving relative paths.
-	configDir := filepath.Dir(configPath)
-
-	// Set up logging. Empty log_level disables all logging.
+// setupLogging initialises the slog default logger from the loaded config.
+// It creates the log file immediately so a version stamp is recorded as early
+// as possible. Safe to call more than once (e.g. after settings change).
+func setupLogging(cfg *config.Config, configDir string) {
 	// Normalize to lowercase so "Debug", "DEBUG", etc. all work.
 	cfg.LogLevel = strings.ToLower(strings.TrimSpace(cfg.LogLevel))
 
@@ -125,8 +69,6 @@ func main() {
 			fmt.Fprintf(os.Stderr, "ERROR: could not open log file %s: %v\n", logPath, err)
 			fmt.Fprintf(os.Stderr, "Logs will be written to stderr instead.\n")
 			logFile = os.Stderr
-		} else {
-			defer logFile.Close()
 		}
 
 		logger := slog.New(slog.NewTextHandler(logFile, &slog.HandlerOptions{Level: logLevel}))
@@ -137,12 +79,78 @@ func main() {
 		slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelError + 1})))
 		fmt.Println("Logging disabled (set log_level in config.json to enable)")
 	}
+}
+
+func main() {
+	fmt.Printf("GhostType v%s - AI-powered multilingual auto-correction\n", Version)
+	fmt.Println("====================================================")
+
+	// Determine config path (same directory as executable, then CWD).
+	execPath, err := os.Executable()
+	if err != nil {
+		execPath = "."
+	}
+	execDir := filepath.Dir(execPath)
+	configPath := filepath.Join(execDir, "config.json")
+
+	// Fall back to current working directory.
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		configPath = "config.json"
+	}
+
+	// Resolve to absolute so log messages always show the full path.
+	if absPath, err := filepath.Abs(configPath); err == nil {
+		configPath = absPath
+	}
+
+	// Load configuration (without validation so the wizard can run first).
+	fmt.Printf("Loading config from: %s\n", configPath)
+	cfg, err := config.LoadRaw(configPath)
+	if err != nil {
+		logStartupError(filepath.Dir(configPath), "Failed to load config", err)
+		fmt.Fprintf(os.Stderr, "Error loading config: %v\n", err)
+		fmt.Println("A default config.json has been created. Please add your API key and restart.")
+		os.Exit(1)
+	}
+
+	// Derive the base directory from the config file for resolving relative paths.
+	configDir := filepath.Dir(configPath)
+
+	// Set up logging early so the log file is created and the version is
+	// stamped before anything else (including the settings GUI).
+	setupLogging(cfg, configDir)
 
 	slog.Info("GhostType starting",
 		"version", Version,
 		"default_llm", cfg.DefaultLLM,
 		"llm_providers", len(cfg.LLMProviders),
 	)
+
+	// First-launch: show settings GUI if no provider is configured.
+	if gui.NeedsSetup(cfg) {
+		fmt.Println("No API key configured. Opening settings...")
+		cfg = gui.ShowSettingsBlocking(cfg, configPath)
+		if gui.NeedsSetup(cfg) {
+			fmt.Println("Setup cancelled.")
+			os.Exit(1)
+		}
+		// Re-load from disk after settings saved.
+		cfg, err = config.LoadRaw(configPath)
+		if err != nil {
+			logStartupError(filepath.Dir(configPath), "Failed to reload config after settings", err)
+			fmt.Fprintf(os.Stderr, "Error reloading config: %v\n", err)
+			os.Exit(1)
+		}
+		// Re-init logging in case settings changed the log level/file.
+		setupLogging(cfg, configDir)
+	}
+
+	// Validate the config now that we know it has a provider.
+	if err := config.Validate(cfg); err != nil {
+		logStartupError(filepath.Dir(configPath), "Config validation failed", err)
+		fmt.Fprintf(os.Stderr, "Error: config validation failed: %v\n", err)
+		os.Exit(1)
+	}
 
 	// Initialize LLM client
 	var client llm.Client
