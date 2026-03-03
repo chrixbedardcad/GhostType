@@ -112,6 +112,11 @@ func showWindow(cfg *config.Config, configPath string, onSaved func()) *config.C
 		guiLog("[GUI] Wails app.Run error: %v", err)
 	}
 
+	// Reset the Wails singleton so the tray (or a later settings window)
+	// can create a fresh App. Without this, New() returns the stale app
+	// and Run() fails with "application is running or a previous run has failed".
+	application.ResetGlobal()
+
 	guiLog("[GUI] Run returned, window closed")
 	if svc.saved {
 		return &cfgCopy

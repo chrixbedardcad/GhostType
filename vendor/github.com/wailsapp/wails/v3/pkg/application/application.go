@@ -39,6 +39,13 @@ func Get() *App {
 	return globalApplication
 }
 
+// ResetGlobal clears the singleton so a fresh App can be created with New().
+// GhostType patch: needed because the settings GUI and the system-tray each
+// require their own Wails App lifecycle.
+func ResetGlobal() {
+	globalApplication = nil
+}
+
 func New(appOptions Options) *App {
 	if globalApplication != nil {
 		return globalApplication

@@ -145,13 +145,22 @@ func (s *SettingsService) SetDefault(label string) string {
 // TestConnection tests provider credentials.
 func (s *SettingsService) TestConnection(provider, apiKey, model, endpoint string) string {
 	guiLog("[GUI] JS called: TestConnection(%s)", provider)
+
+	// Ollama needs much longer timeout — first request loads model into memory.
+	timeout := 10 * time.Second
+	timeoutMs := 10000
+	if provider == "ollama" {
+		timeout = 120 * time.Second
+		timeoutMs = 120000
+	}
+
 	def := config.LLMProviderDef{
 		Provider:    provider,
 		APIKey:      apiKey,
 		Model:       model,
 		APIEndpoint: endpoint,
 		MaxTokens:   32,
-		TimeoutMs:   10000,
+		TimeoutMs:   timeoutMs,
 	}
 
 	client, err := llm.NewClientFromDef(def)
@@ -159,7 +168,7 @@ func (s *SettingsService) TestConnection(provider, apiKey, model, endpoint strin
 		return fmt.Sprintf("error: %v", err)
 	}
 
-	tctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	tctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	_, err = client.Send(tctx, llm.Request{
@@ -182,15 +191,23 @@ func (s *SettingsService) TestProvider(label string) string {
 		return "error: provider not found"
 	}
 
+	// Ollama needs much longer timeout — first request loads model into memory.
+	timeout := 10 * time.Second
+	timeoutMs := 10000
+	if def.Provider == "ollama" {
+		timeout = 120 * time.Second
+		timeoutMs = 120000
+	}
+
 	def.MaxTokens = 32
-	def.TimeoutMs = 10000
+	def.TimeoutMs = timeoutMs
 
 	client, err := llm.NewClientFromDef(def)
 	if err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}
 
-	tctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	tctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	_, err = client.Send(tctx, llm.Request{

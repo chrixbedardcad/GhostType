@@ -8,6 +8,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/chrixbedardcad/GhostType/config"
@@ -26,10 +27,7 @@ type OllamaClient struct {
 
 // NewOllamaClient creates a new Ollama client from config.
 func NewOllamaClient(cfg *config.Config) *OllamaClient {
-	endpoint := cfg.APIEndpoint
-	if endpoint == "" {
-		endpoint = defaultOllamaEndpoint
-	}
+	endpoint := normalizeOllamaEndpoint(cfg.APIEndpoint)
 
 	return &OllamaClient{
 		model:      cfg.Model,
@@ -40,12 +38,22 @@ func NewOllamaClient(cfg *config.Config) *OllamaClient {
 	}
 }
 
+// normalizeOllamaEndpoint ensures the endpoint includes the /api/generate path.
+// Users often enter just the base URL (e.g. http://localhost:11434).
+func normalizeOllamaEndpoint(endpoint string) string {
+	if endpoint == "" {
+		return defaultOllamaEndpoint
+	}
+	endpoint = strings.TrimRight(endpoint, "/")
+	if !strings.HasSuffix(endpoint, "/api/generate") {
+		endpoint += "/api/generate"
+	}
+	return endpoint
+}
+
 // newOllamaFromDef creates a new Ollama client from a provider definition.
 func newOllamaFromDef(def config.LLMProviderDef) *OllamaClient {
-	endpoint := def.APIEndpoint
-	if endpoint == "" {
-		endpoint = defaultOllamaEndpoint
-	}
+	endpoint := normalizeOllamaEndpoint(def.APIEndpoint)
 	maxTokens := def.MaxTokens
 	if maxTokens == 0 {
 		maxTokens = 256
