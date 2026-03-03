@@ -2,7 +2,10 @@ module github.com/chrixbedardcad/GhostType
 
 go 1.25
 
-require github.com/wailsapp/wails/v3 v3.0.0-alpha.74
+require (
+	github.com/wailsapp/wails/v3 v3.0.0-alpha.74
+	golang.design/x/hotkey v0.4.1
+)
 
 require (
 	dario.cat/mergo v1.0.2 // indirect
@@ -39,7 +42,6 @@ require (
 	github.com/skeema/knownhosts v1.3.2 // indirect
 	github.com/wailsapp/go-webview2 v1.0.23 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
-	golang.design/x/hotkey v0.4.1 // indirect
 	golang.org/x/crypto v0.47.0 // indirect
 	golang.org/x/net v0.49.0 // indirect
 	golang.org/x/sys v0.40.0 // indirect
