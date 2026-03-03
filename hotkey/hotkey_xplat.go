@@ -126,7 +126,7 @@ func parseKeyXPlat(key string) ([]hotkey.Modifier, hotkey.Key, error) {
 		case "ctrl", "cmd":
 			mods = append(mods, hotkey.ModCtrl)
 		case "alt", "option":
-			mods = append(mods, hotkey.Mod1) // Mod1 = Alt on X11/Windows, Option on macOS
+			mods = append(mods, modAltXPlat)
 		case "shift":
 			mods = append(mods, hotkey.ModShift)
 		default:
