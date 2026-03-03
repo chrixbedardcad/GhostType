@@ -4,9 +4,9 @@
 
 # GhostType
 
-**AI-powered multilingual auto-correction, translation, and creative rewriting for virtual world chat.**
+**AI-powered multilingual auto-correction, translation, and creative rewriting — for any text input.**
 
-GhostType is a lightweight background service that hooks into your chat application (primarily Firestorm Second Life viewer) and provides real-time spelling correction, language translation, and creative text rewriting — powered by your choice of LLM provider.
+GhostType is a lightweight background service that provides real-time spelling correction, language translation, and creative text rewriting — powered by your choice of LLM provider. It works globally with any application: chat clients, text editors, browsers, email — anywhere you type.
 
 Type in French, hit **Ctrl+G**, get it corrected. Switch to English, hit **Ctrl+G**, corrected too. Want to translate or rewrite instead? Change the active mode in the system tray (or `config.json`) — **Ctrl+G** always does whatever mode is active. Undo with **Ctrl+Z** or cancel from the tray menu. That simple.
 
@@ -25,13 +25,12 @@ Type in French, hit **Ctrl+G**, get it corrected. Switch to English, hit **Ctrl+
 | **macOS** (Intel) | [ghosttype-darwin-amd64](https://github.com/chrixbedardcad/GhostType/releases/latest/download/ghosttype-darwin-amd64) |
 | **macOS** (Apple Silicon) | [ghosttype-darwin-arm64](https://github.com/chrixbedardcad/GhostType/releases/latest/download/ghosttype-darwin-arm64) |
 
-> **Note**: GhostType currently only runs on Windows. Linux and macOS binaries are provided for future compatibility — they will print "Windows only" until platform support is added.
-
 ---
 
 ## Table of Contents
 
 - [Download](#download)
+- [Platform Requirements](#platform-requirements)
 - [Features](#features)
 - [Quick Start](#quick-start)
 - [Hotkeys](#hotkeys)
@@ -46,46 +45,72 @@ Type in French, hit **Ctrl+G**, get it corrected. Switch to English, hit **Ctrl+
 
 ---
 
+## Platform Requirements
+
+### Windows
+
+No additional dependencies. Download and run.
+
+### Linux
+
+Install the following packages before running GhostType:
+
+```bash
+sudo apt install libwebkit2gtk-4.1-0 libgtk-3-0 xclip xdotool
+```
+
+| Package | Purpose |
+|---------|---------|
+| `libwebkit2gtk-4.1-0` | Settings GUI and system tray |
+| `libgtk-3-0` | GTK window toolkit |
+| `xclip` | Clipboard read/write |
+| `xdotool` | Keyboard simulation (Ctrl+A/C/V) |
+
+Sound requires PulseAudio (`paplay`) or ALSA (`aplay`) — usually pre-installed on desktop Linux.
+
+### macOS
+
+No additional packages to install. On first launch, macOS will prompt you to grant:
+
+- **Accessibility** permission (System Settings → Privacy & Security → Accessibility) — required for keyboard simulation
+- **Input Monitoring** permission — required for global hotkeys
+
+---
+
 ## Features
 
-- **Correct** — Auto-detects French or English and fixes spelling, grammar, and syntax errors
-- **Translate** — Instantly translates between French and English (or any configured language pair)
+- **Correct** — Auto-detects language and fixes spelling, grammar, and syntax errors
+- **Translate** — Instantly translates between any configured language pair
 - **Rewrite** — Rewrites your text using customizable prompt templates (funny, formal, sarcastic, flirty, poetic, and more)
-- **Multi-Provider** — Works with Anthropic Claude, OpenAI GPT, Google Gemini, xAI Grok, or local Ollama models
-- **Hotkey Driven** — One hotkey to learn: Ctrl+G performs the active mode (correct, translate, or rewrite). Cancel from the tray menu. Optional dedicated hotkeys for power users
-- **System Tray** — Switch modes, languages, templates, and toggle sound from the tray icon
-- **Sound Effects** — Audio feedback with random WAV variants for each event (start, working, success, error, toggle). Disable via tray or config
-- **Configurable** — JSON config file for API keys, providers, hotkeys, prompts, overlay settings, and custom rewrite templates
+- **Settings GUI** — Built-in settings panel for managing providers, testing connections, and configuring options — no hand-editing JSON required
+- **Multi-Provider** — Named providers with per-mode LLM selection (e.g., use Claude for corrections, GPT for translations, Ollama for rewrites)
+- **Ollama One-Click Setup** — Detect, install, pull models, and activate Ollama directly from the Settings GUI — no terminal needed
+- **Hotkey Driven** — One hotkey to learn: Ctrl+G performs the active mode (correct, translate, or rewrite). Optional dedicated hotkeys for power users
+- **System Tray** — Switch modes, languages, templates, providers, and toggle sound from the tray icon
+- **Sound Effects** — Audio feedback with random WAV variants for each event (startup, working, success, error, toggle)
+- **Configurable** — JSON config file for providers, hotkeys, prompts, and custom rewrite templates — or just use the GUI
 - **Lightweight** — Single binary, runs in the background, under 50 MB memory, near-zero CPU at idle
-- **Cross-Platform** — Windows first, Linux and macOS coming in future releases
+- **Cross-Platform** — Windows, macOS, and Linux
 
 ---
 
 ## Quick Start
 
-### 1. Download
+### Cloud Provider (Anthropic, OpenAI, etc.)
 
-Download the latest release for your platform from the [Releases](https://github.com/chrixbedardcad/GhostType/releases) page.
+1. **Download** the latest release for your platform from the [Releases](https://github.com/chrixbedardcad/GhostType/releases) page.
+2. **Install dependencies** (Linux only — see [Platform Requirements](#platform-requirements)).
+3. **Run** GhostType — the Settings GUI opens automatically on first launch.
+4. **Add a provider** — pick a provider from the dropdown (e.g., Anthropic), paste your API key, choose a model, click **Test**, then **Save**.
+5. **Use it** — open any application, type something, press **Ctrl+G**.
 
-### 2. Configure
+### Local AI (Ollama)
 
-On first run, GhostType creates a default `config.json` in the same directory. Open it and add your API key:
-
-```json
-{
-  "llm_provider": "anthropic",
-  "api_key": "YOUR_API_KEY_HERE",
-  "model": "claude-sonnet-4-5-20250929"
-}
-```
-
-### 3. Run
-
-```bash
-ghosttype.exe
-```
-
-GhostType starts minimized in your system tray. Open Firestorm, type something in chat, and press **Ctrl+G**.
+1. **Run** GhostType and open the Settings GUI.
+2. **Click Ollama** in the provider dropdown — the Ollama panel appears.
+3. If Ollama isn't installed, click **Install** — the GUI downloads and installs it for you.
+4. **Pull a model** (e.g., `mistral`) from the GUI, then click **Activate**.
+5. Press **Ctrl+G** in any application — corrections run locally, no API key needed.
 
 ---
 
@@ -113,6 +138,8 @@ Power users can add dedicated hotkeys for specific modes:
 
 All hotkeys are configurable in `config.json`. Set `active_mode` to `"correct"`, `"translate"`, or `"rewrite"` to choose what **Ctrl+G** does.
 
+> **macOS note**: Hotkeys use the same key names (e.g., `Ctrl+G`). The `Ctrl` modifier maps to the Command key on macOS.
+
 ### Why These Keys?
 
 - **Ctrl+G** — G for Grammar
@@ -125,14 +152,55 @@ All hotkeys are configurable in `config.json`. Set `active_mode` to `"correct"`,
 
 ## Configuration
 
-GhostType is configured entirely through `config.json`. Here is a full example:
+Most users won't need to hand-edit config — the **Settings GUI** handles provider management, testing, and defaults. For power users, GhostType stores everything in `config.json`.
+
+### Provider Map (`llm_providers`)
+
+Providers are stored as a named map. Each label is a user-defined name:
 
 ```json
 {
-  "llm_provider": "anthropic",
-  "api_key": "sk-ant-xxxxx",
-  "model": "claude-sonnet-4-5-20250929",
-  "api_endpoint": "",
+  "llm_providers": {
+    "claude": {
+      "provider": "anthropic",
+      "api_key": "sk-ant-xxxxx",
+      "model": "claude-sonnet-4-5-20250929"
+    },
+    "gpt": {
+      "provider": "openai",
+      "api_key": "sk-xxxxx",
+      "model": "gpt-4o"
+    },
+    "local": {
+      "provider": "ollama",
+      "model": "mistral"
+    }
+  },
+  "default_llm": "claude",
+  "correct_llm": "",
+  "translate_llm": ""
+}
+```
+
+- `default_llm` — the provider used for all modes unless overridden
+- `correct_llm` — optional override for corrections (falls back to `default_llm`)
+- `translate_llm` — optional override for translations (falls back to `default_llm`)
+- Rewrite templates can also specify a per-template `"llm"` label
+
+### Full Example
+
+```json
+{
+  "llm_providers": {
+    "claude": {
+      "provider": "anthropic",
+      "api_key": "sk-ant-xxxxx",
+      "model": "claude-sonnet-4-5-20250929"
+    }
+  },
+  "default_llm": "claude",
+  "correct_llm": "",
+  "translate_llm": "",
   "languages": ["en", "fr"],
   "language_names": {
     "en": "English",
@@ -184,7 +252,7 @@ GhostType is configured entirely through `config.json`. Here is a full example:
 | OpenAI GPT | `openai` | GPT-4o or GPT-4 Turbo recommended. |
 | Google Gemini | `gemini` | Good for multilingual tasks. |
 | xAI Grok | `xai` | Fast inference. |
-| Ollama (local) | `ollama` | Free, private, no API key needed. Requires Ollama running locally. |
+| Ollama (local) | `ollama` | Free, private, no API key needed. One-click install and model pull from the Settings GUI. |
 
 Set `api_endpoint` to override the default endpoint for any provider — useful for proxies or custom deployments.
 
@@ -209,26 +277,49 @@ Switch between templates from the system tray menu, or assign a dedicated hotkey
 
 ### Requirements
 
-- Go 1.22 or later
-- Windows 10/11 (MVP target)
+- **Go 1.25** or later
+- Platform-specific build dependencies (see below)
 
-### Build (console + tray)
+### Windows
 
-Standard build — opens a console window alongside the tray icon (useful for development and debugging):
+No additional dependencies. Pure Go build with `CGO_ENABLED=0`:
 
 ```bash
 git clone https://github.com/chrixbedardcad/GhostType.git
 cd GhostType
-go mod download
-go build -o ghosttype.exe
+go build -o ghosttype.exe .
 ```
 
-### Build (tray only, no console)
-
-Production build — runs as a tray icon only with no console window:
+Windowless build (tray only, no console window):
 
 ```bash
-go build -ldflags -H=windowsgui -o ghosttype.exe
+go build -ldflags "-H=windowsgui" -o ghosttype.exe .
+```
+
+### Linux
+
+Install build dependencies:
+
+```bash
+sudo apt install libwebkit2gtk-4.1-dev libgtk-3-dev
+```
+
+Build with CGO and the webkit2_41 tag:
+
+```bash
+git clone https://github.com/chrixbedardcad/GhostType.git
+cd GhostType
+CGO_ENABLED=1 go build -tags webkit2_41 -o ghosttype .
+```
+
+### macOS
+
+No additional build dependencies (uses system frameworks via CGO):
+
+```bash
+git clone https://github.com/chrixbedardcad/GhostType.git
+cd GhostType
+CGO_ENABLED=1 go build -o ghosttype .
 ```
 
 ### Run Tests
@@ -253,13 +344,14 @@ go test ./...
 
 ## Roadmap
 
-| Version | Focus | Highlights |
-|---------|-------|------------|
-| **v0.1** | MVP (current) | Windows desktop app. Correct, translate, and rewrite modes. Anthropic and OpenAI support. System tray with mode/language/template switching. Sound effects. |
-| **v0.2** | Platform & Providers | Ollama local LLM support. Linux support. Gemini and xAI providers. |
-| **v0.3** | Polish | Cursor animation during processing. macOS support. Config hot-reload. |
-| **v0.4** | GUI & Overlay | GUI config panel. Transparent overlay with diff view. |
-| **v0.5** | Power Features | Real-time Grammarly-style correction. Usage stats. Custom plugins. |
+| Version | Focus | Status |
+|---------|-------|--------|
+| **v0.1.0** | MVP | Done — Correct, translate, rewrite. Anthropic + OpenAI. System tray. Sound effects. |
+| **v0.1.10–30** | Providers & Polish | Done — Ollama, Gemini, xAI providers. Config hot-reload. Multi-provider named map. |
+| **v0.1.30–48** | GUI & Lifecycle | Done — Settings GUI. Ollama one-click install/pull/activate. Per-mode LLM selection. Tray provider switching. |
+| **v0.1.49–56** | Cross-Platform | Done — Wails v3 migration. macOS and Linux support. |
+| **v0.2** | Overlay & UX | Planned — Transparent overlay with diff view. Cursor animation during processing. |
+| **v0.3** | Power Features | Planned — Real-time Grammarly-style correction. Usage stats. Custom plugins. |
 
 ---
 
@@ -271,6 +363,12 @@ go test ./...
 | API errors | Check your API key in `config.json`. Check `ghosttype.log` for details. Verify your provider account has credits. |
 | Slow corrections | Response time depends on provider and network. Try a faster model or switch to a local Ollama instance. |
 | Hotkey conflicts | If Ctrl+G conflicts with another app, change it via `hotkeys.correct` in `config.json`. |
+| **Linux**: `xclip not found` | Install xclip: `sudo apt install xclip` |
+| **Linux**: `xdotool not found` | Install xdotool: `sudo apt install xdotool` |
+| **Linux**: No sound | Install PulseAudio (`paplay`) or ALSA (`aplay`). Check `pactl list sinks` for audio output. |
+| **Linux**: Settings GUI won't open | Install webkit2gtk: `sudo apt install libwebkit2gtk-4.1-0 libgtk-3-0` |
+| **macOS**: Hotkeys don't work | Grant Input Monitoring permission in System Settings → Privacy & Security. |
+| **macOS**: Keyboard simulation fails | Grant Accessibility permission in System Settings → Privacy & Security → Accessibility. |
 
 ---
 
@@ -284,4 +382,4 @@ Chris
 
 ## Acknowledgments
 
-Inspired by the UX patterns of [Grammarly](https://www.grammarly.com/), [LanguageTool](https://languagetool.org/), [Espanso](https://espanso.org/), [Raycast AI](https://www.raycast.com/), and macOS inline autocorrect. Built for the Second Life community.
+Inspired by the UX patterns of [Grammarly](https://www.grammarly.com/), [LanguageTool](https://languagetool.org/), [Espanso](https://espanso.org/), [Raycast AI](https://www.raycast.com/), and macOS inline autocorrect.
