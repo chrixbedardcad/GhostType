@@ -154,7 +154,7 @@
     <span class="logo">&#128123;</span>
     <div>
       <h1>GhostType Settings</h1>
-      <div style="font-size:0.8em;color:#6c7086">Manage your providers</div>
+      <div style="font-size:0.8em;color:#6c7086">Manage your providers <span id="app-version"></span></div>
     </div>
   </div>
 
@@ -242,6 +242,8 @@ async function goCall(fn, ...args) {
 
 // ---- Init ----
 async function init() {
+  const ver = await goCall('getVersion');
+  if (ver) document.getElementById('app-version').textContent = 'v' + ver;
   const raw = await goCall('getConfig');
   if (raw) configData = JSON.parse(raw);
   renderProviderList();
@@ -652,15 +654,15 @@ async function onOllamaInstall() {
   const statusEl = document.getElementById('ollama-action-status');
   if (btn) btn.disabled = true;
   statusEl.className = 'status info';
-  statusEl.textContent = 'Downloading Ollama installer...';
+  statusEl.textContent = 'Opening download page...';
 
   const result = await goCall('ollamaDownloadInstaller');
   if (result && result.startsWith('ok')) {
     statusEl.className = 'status success';
-    statusEl.textContent = 'Installer launched! Complete the setup, then click Refresh.';
+    statusEl.textContent = 'Download page opened! Install Ollama, then click Refresh.';
   } else {
     statusEl.className = 'status error';
-    statusEl.textContent = result || 'Download failed';
+    statusEl.textContent = result || 'Could not open download page';
   }
   if (btn) btn.disabled = false;
 }

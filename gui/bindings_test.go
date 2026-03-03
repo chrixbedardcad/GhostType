@@ -15,6 +15,7 @@ func TestSettingsServiceHasAllMethods(t *testing.T) {
 
 	// All methods that must be exposed to the frontend.
 	expected := []string{
+		"GetVersion",
 		"GetConfig",
 		"GetKnownModels",
 		"SaveProvider",

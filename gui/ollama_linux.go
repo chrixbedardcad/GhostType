@@ -2,16 +2,9 @@
 
 package gui
 
-import (
-	"fmt"
-	"os/exec"
-)
+import "os/exec"
 
-// ollamaDownloadInstallerPlatform installs Ollama on Linux via the official install script.
+// ollamaDownloadInstallerPlatform opens the Ollama download page in the default browser.
 func ollamaDownloadInstallerPlatform() error {
-	cmd := exec.Command("bash", "-c", "curl -fsSL https://ollama.com/install.sh | sh")
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("install failed: %s", string(out))
-	}
-	return nil
+	return exec.Command("xdg-open", "https://ollama.com/download").Start()
 }

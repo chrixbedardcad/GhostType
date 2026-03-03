@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/chrixbedardcad/GhostType/config"
+	"github.com/chrixbedardcad/GhostType/internal/version"
 	"github.com/chrixbedardcad/GhostType/llm"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -45,6 +46,11 @@ func (s *SettingsService) clearLegacyAndSave() error {
 		s.onSaved()
 	}
 	return nil
+}
+
+// GetVersion returns the app version string.
+func (s *SettingsService) GetVersion() string {
+	return version.Version
 }
 
 // GetConfig returns the current config as JSON.
