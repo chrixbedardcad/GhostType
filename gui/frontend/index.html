@@ -229,11 +229,13 @@
 let configData = null;
 
 // ---- Go bridge helpers (Wails v3) ----
+// Wails v3 bindings use fully-qualified names: "importpath.Struct.Method"
+const _bindingPkg = 'github.com/chrixbedardcad/GhostType/gui';
 async function goCall(fn, ...args) {
   try {
     // Capitalize first letter to match Go public method names.
-    const method = 'SettingsService.' + fn.charAt(0).toUpperCase() + fn.slice(1);
-    return await wails.Call(method, ...args);
+    const method = _bindingPkg + '.SettingsService.' + fn.charAt(0).toUpperCase() + fn.slice(1);
+    return await wails.Call.ByName(method, ...args);
   } catch (e) {
     console.error('Bridge call failed:', fn, e);
     return null;
