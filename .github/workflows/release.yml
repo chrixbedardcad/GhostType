@@ -11,13 +11,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
-      - run: go vet ./...
-      - run: go test ./...
+          go-version: '1.25'
+      - name: Install system deps
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev
+      - run: go vet -tags webkit2_41 ./...
+      - run: go test -tags webkit2_41 ./...
 
   release:
     needs: test
-    runs-on: ubuntu-latest
     permissions:
       contents: write
     strategy:
@@ -25,27 +26,44 @@ jobs:
         include:
           - goos: windows
             goarch: amd64
+            runner: ubuntu-latest
             ext: .exe
+            cgo: '0'
           - goos: linux
             goarch: amd64
+            runner: ubuntu-latest
             ext: ""
+            cgo: '1'
           - goos: darwin
             goarch: amd64
+            runner: macos-13
             ext: ""
+            cgo: '1'
           - goos: darwin
             goarch: arm64
+            runner: macos-latest
             ext: ""
+            cgo: '1'
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.25'
+      - name: Install Linux system deps
+        if: matrix.goos == 'linux'
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev
       - name: Build
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: ${{ matrix.cgo }}
         run: |
-          go build -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
+          TAGS=""
+          if [ "${{ matrix.goos }}" = "linux" ]; then
+            TAGS="-tags webkit2_41"
+          fi
+          go build $TAGS -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
           if [ "${{ matrix.goos }}" = "windows" ]; then
             go build -ldflags "-H=windowsgui" -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}-windowless${{ matrix.ext }}
           fi
