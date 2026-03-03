@@ -14,9 +14,9 @@ jobs:
           go-version: '1.25'
       - name: Install system deps
         run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libx11-dev xvfb
-      - run: go vet -tags webkit2_41 ./...
+      - run: go vet -tags "webkit2_41 production" ./...
       - name: Test (with virtual display)
-        run: xvfb-run go test -tags webkit2_41 ./...
+        run: xvfb-run go test -tags "webkit2_41 production" ./...
 
   release:
     needs: test
@@ -60,13 +60,13 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: ${{ matrix.cgo }}
         run: |
-          TAGS=""
+          TAGS="production"
           if [ "${{ matrix.goos }}" = "linux" ]; then
-            TAGS="-tags webkit2_41"
+            TAGS="webkit2_41 production"
           fi
-          go build $TAGS -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
+          go build -tags "$TAGS" -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
           if [ "${{ matrix.goos }}" = "windows" ]; then
-            go build -ldflags "-H=windowsgui" -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}-windowless${{ matrix.ext }}
+            go build -tags "$TAGS" -ldflags "-H=windowsgui" -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}-windowless${{ matrix.ext }}
           fi
       - uses: actions/upload-artifact@v4
         with:
