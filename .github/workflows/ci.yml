@@ -59,16 +59,18 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: ${{ matrix.cgo }}
+          SHORT_SHA: ${{ github.sha }}
         run: |
           TAGS=""
           if [ "${{ matrix.goos }}" = "linux" ]; then
             TAGS="-tags webkit2_41"
           fi
+          REF="${SHORT_SHA:0:7}"
           # Main binary
-          go build $TAGS -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
+          go build $TAGS -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}-${REF}${{ matrix.ext }}
           # Windowless build (Windows only)
           if [ "${{ matrix.goos }}" = "windows" ]; then
-            go build -ldflags "-H=windowsgui" -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}-windowless${{ matrix.ext }}
+            go build -ldflags "-H=windowsgui" -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}-${REF}-windowless${{ matrix.ext }}
           fi
       - uses: actions/upload-artifact@v4
         with:
