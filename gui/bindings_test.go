@@ -27,11 +27,6 @@ func TestSettingsServiceHasAllMethods(t *testing.T) {
 		"OllamaStatus",
 		"OllamaListModels",
 		"OllamaPullModel",
-		"OllamaGetPullProgress",
-		"OllamaCancelPull",
-		"OllamaDetectHardware",
-		"OllamaDeleteModel",
-		"OllamaStartServeCmd",
 		"OllamaDownloadInstaller",
 	}
 

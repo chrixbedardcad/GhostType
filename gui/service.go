@@ -215,10 +215,31 @@ func (s *SettingsService) CloseWindow() string {
 	return "ok"
 }
 
-// OllamaStatus checks if Ollama is running.
+// OllamaStatus checks if Ollama is running and returns status + models in one call.
 func (s *SettingsService) OllamaStatus(endpoint string) string {
 	guiLog("[GUI] JS called: OllamaStatus(%s)", endpoint)
-	data, _ := json.Marshal(ollamaGetStatus(endpoint))
+	st := ollamaGetStatus(endpoint)
+
+	result := map[string]interface{}{
+		"status": st["status"],
+	}
+	if v, ok := st["version"]; ok {
+		result["version"] = v
+	}
+
+	// If running, include models in the same response.
+	if st["status"] == "running" {
+		base := ollamaBaseURL(endpoint)
+		models, err := ollamaFetchModels(base)
+		if err != nil {
+			guiLog("[GUI] OllamaStatus model fetch error: %v", err)
+			result["models"] = []ollamaModelInfo{}
+		} else {
+			result["models"] = models
+		}
+	}
+
+	data, _ := json.Marshal(result)
 	return string(data)
 }
 
@@ -235,55 +256,10 @@ func (s *SettingsService) OllamaListModels(endpoint string) string {
 	return string(data)
 }
 
-// OllamaPullModel starts an async model pull.
-func (s *SettingsService) OllamaPullModel(model, endpoint string) string {
-	guiLog("[GUI] JS called: OllamaPullModel(%s, %s)", model, endpoint)
-	base := ollamaBaseURL(endpoint)
-	ollamaStartPull(base, model)
-	return "ok"
-}
-
-// OllamaGetPullProgress returns the current pull progress as JSON.
-func (s *SettingsService) OllamaGetPullProgress() string {
-	return ollamaGetPullProgress()
-}
-
-// OllamaCancelPull cancels the active pull.
-func (s *SettingsService) OllamaCancelPull() string {
-	guiLog("[GUI] JS called: OllamaCancelPull")
-	ollamaCancelPull()
-	return "ok"
-}
-
-// OllamaDetectHardware returns system hardware info as JSON.
-func (s *SettingsService) OllamaDetectHardware() string {
-	guiLog("[GUI] JS called: OllamaDetectHardware")
-	cap := detectSystemCapacity()
-	model, reason := ollamaRecommendModel(cap)
-	data, _ := json.Marshal(map[string]interface{}{
-		"ram_gb":            cap.TotalRAMGB,
-		"has_gpu":           cap.HasNVIDIA,
-		"vram_gb":           cap.NVIDIAVRAMGB,
-		"recommended_model": model,
-		"reason":            reason,
-	})
-	return string(data)
-}
-
-// OllamaDeleteModel deletes a model via the Ollama API.
-func (s *SettingsService) OllamaDeleteModel(model, endpoint string) string {
-	guiLog("[GUI] JS called: OllamaDeleteModel(%s)", model)
-	base := ollamaBaseURL(endpoint)
-	if err := ollamaDeleteModelAPI(base, model); err != nil {
-		return fmt.Sprintf("error: %v", err)
-	}
-	return "ok"
-}
-
-// OllamaStartServeCmd launches the Ollama server (platform-specific).
-func (s *SettingsService) OllamaStartServeCmd() string {
-	guiLog("[GUI] JS called: OllamaStartServeCmd")
-	if err := ollamaStartServePlatform(); err != nil {
+// OllamaPullModel runs "ollama pull" synchronously (up to 10 minutes).
+func (s *SettingsService) OllamaPullModel(model string) string {
+	guiLog("[GUI] JS called: OllamaPullModel(%s)", model)
+	if err := ollamaPullModelSync(model); err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}
 	return "ok"

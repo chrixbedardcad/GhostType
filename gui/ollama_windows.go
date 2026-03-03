@@ -10,7 +10,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"syscall"
-	"time"
 )
 
 // ollamaDownloadInstallerPlatform downloads OllamaSetup.exe to %TEMP% and launches it.
@@ -46,29 +45,4 @@ func ollamaDownloadInstallerPlatform() error {
 		return fmt.Errorf("launch installer: %w", err)
 	}
 	return nil
-}
-
-// ollamaStartServePlatform starts "ollama serve" as a detached background process
-// and polls GET / for up to 10 seconds until the server is reachable.
-func ollamaStartServePlatform() error {
-	cmd := exec.Command("ollama", "serve")
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		CreationFlags: 0x00000008 | 0x00000010, // DETACHED_PROCESS | CREATE_NEW_CONSOLE
-	}
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("start ollama serve: %w", err)
-	}
-
-	// Poll until the server responds.
-	client := &http.Client{Timeout: 1 * time.Second}
-	deadline := time.Now().Add(10 * time.Second)
-	for time.Now().Before(deadline) {
-		time.Sleep(500 * time.Millisecond)
-		resp, err := client.Get("http://localhost:11434/")
-		if err == nil {
-			resp.Body.Close()
-			return nil
-		}
-	}
-	return fmt.Errorf("ollama serve started but server not reachable after 10s")
 }
