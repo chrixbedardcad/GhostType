@@ -16,7 +16,7 @@ Type in French, hit **Ctrl+G**, get it corrected. Switch to English, hit **Ctrl+
 
 [![CI](https://github.com/chrixbedardcad/GhostType/actions/workflows/ci.yml/badge.svg)](https://github.com/chrixbedardcad/GhostType/actions/workflows/ci.yml)
 [![Release](https://github.com/chrixbedardcad/GhostType/actions/workflows/release.yml/badge.svg)](https://github.com/chrixbedardcad/GhostType/releases/latest)
-**v0.1.67** — [All releases](https://github.com/chrixbedardcad/GhostType/releases)
+[![Version](https://img.shields.io/badge/version-v0.1.68-blue)](https://github.com/chrixbedardcad/GhostType/releases/latest)
 
 | Platform | Download |
 |----------|----------|
