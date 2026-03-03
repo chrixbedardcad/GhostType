@@ -658,13 +658,14 @@ async function onOllamaInstall() {
   statusEl.className = 'status info';
   statusEl.textContent = 'Opening download page...';
 
-  const result = await goCall('ollamaDownloadInstaller');
-  if (result && result.startsWith('ok')) {
+  try {
+    await wails.Browser.OpenURL('https://ollama.com/download');
     statusEl.className = 'status success';
     statusEl.textContent = 'Download page opened! Install Ollama, then click Refresh.';
-  } else {
+  } catch (e) {
+    console.error('Failed to open Ollama download page:', e);
     statusEl.className = 'status error';
-    statusEl.textContent = result || 'Could not open download page';
+    statusEl.textContent = 'Could not open download page: ' + (e.message || e);
   }
   if (btn) btn.disabled = false;
 }
