@@ -74,3 +74,28 @@ time=2026-03-03T21:59:40.213-05:00 level=INFO msg="[tray] Menu built and set" ac
 time=2026-03-03T21:59:47.148-05:00 level=INFO msg="GhostType shutting down (signal)"
 time=2026-03-03T21:59:47.148-05:00 level=INFO msg="[tray] Stop function called — quitting app"
 time=2026-03-03T21:59:47.158-05:00 level=INFO msg="[tray] Wails app.Run() returned successfully"
+time=2026-03-03T22:01:16.162-05:00 level=INFO msg="GhostType starting" version=0.1.79 default_llm=ollama-qwen3-4b llm_providers=1
+time=2026-03-03T22:01:16.162-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=ollama-qwen3-4b
+time=2026-03-03T22:01:16.162-05:00 level=INFO msg="[ollama] newOllamaFromDef" model=qwen3:4b raw_endpoint="" timeout_ms=120000
+time=2026-03-03T22:01:16.176-05:00 level=INFO msg="GhostType ready" version=0.1.79 active_mode=correct hotkey_action=Ctrl+G
+time=2026-03-03T22:01:16.176-05:00 level=INFO msg="[tray] Start() called" os=windows icon_bytes=194169 target_labels=1 template_names=5
+time=2026-03-03T22:01:16.176-05:00 level=INFO msg="[tray] Creating Wails application..."
+time=2026-03-03T22:01:16.184-05:00 level=INFO msg="[tray] Wails application created" app_nil=false
+time=2026-03-03T22:01:16.184-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-03T22:01:16.184-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-03T22:01:16.184-05:00 level=INFO msg="[tray] Icon set" bytes=194169
+time=2026-03-03T22:01:16.184-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-03T22:01:16.185-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-03T22:01:16.185-05:00 level=INFO msg="[tray] Starting Wails app.Run() in goroutine..."
+time=2026-03-03T22:01:16.185-05:00 level=INFO msg="[tray] Start() complete — tray is running"
+time=2026-03-03T22:01:16.185-05:00 level=INFO msg="[tray] goroutine: calling app.Run()"
+time=2026-03-03T22:01:42.011-05:00 level=INFO msg="Correction triggered"
+time=2026-03-03T22:01:42.407-05:00 level=INFO msg="Captured text" mode=Correction len=28 selection=false text="thi is a test for helo world"
+time=2026-03-03T22:01:42.408-05:00 level=INFO msg="[ollama] sending request" model=qwen3:4b endpoint=http://localhost:11434/api/generate body_len=281
+time=2026-03-03T22:02:20.668-05:00 level=INFO msg="Correction triggered"
+time=2026-03-03T22:02:21.391-05:00 level=INFO msg="Captured text" mode=Correction len=28 selection=false text="thi is a test for helo world"
+time=2026-03-03T22:02:21.392-05:00 level=INFO msg="[ollama] sending request" model=qwen3:4b endpoint=http://localhost:11434/api/generate body_len=281
+time=2026-03-03T22:02:39.108-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-03T22:02:46.783-05:00 level=INFO msg="GhostType shutting down (signal)"
+time=2026-03-03T22:02:46.783-05:00 level=INFO msg="[tray] Stop function called — quitting app"
+time=2026-03-03T22:02:48.069-05:00 level=INFO msg="[tray] Wails app.Run() returned successfully"
