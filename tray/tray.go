@@ -53,8 +53,10 @@ type trayState struct {
 }
 
 // Start launches the system tray icon in a background goroutine.
-// Returns a stop function that removes the icon and shuts down.
-func Start(cfg Config) (stop func()) {
+// The provided app must be a fully-configured Wails application (with services
+// and assets already registered). Start sets up the system tray and calls
+// app.Run() in a goroutine. Returns a stop function that quits the app.
+func Start(cfg Config, app *application.App) (stop func()) {
 	slog.Info("[tray] Start() called",
 		"os", runtime.GOOS,
 		"icon_bytes", len(cfg.IconPNG),
@@ -63,18 +65,9 @@ func Start(cfg Config) (stop func()) {
 	)
 	fmt.Printf("[tray] Start() called on %s, icon=%d bytes\n", runtime.GOOS, len(cfg.IconPNG))
 
-	ts := &trayState{cfg: cfg}
-
-	slog.Info("[tray] Creating Wails application...")
-	fmt.Println("[tray] Creating Wails application...")
-	ts.app = application.New(application.Options{
-		Name: "GhostType",
-		Mac: application.MacOptions{
-			ActivationPolicy: application.ActivationPolicyAccessory,
-		},
-	})
-	slog.Info("[tray] Wails application created", "app_nil", ts.app == nil)
-	fmt.Printf("[tray] Wails application created (nil=%v)\n", ts.app == nil)
+	ts := &trayState{cfg: cfg, app: app}
+	slog.Info("[tray] Using provided Wails application", "app_nil", ts.app == nil)
+	fmt.Printf("[tray] Using provided Wails application (nil=%v)\n", ts.app == nil)
 
 	slog.Info("[tray] Creating SystemTray...")
 	fmt.Println("[tray] Creating SystemTray...")

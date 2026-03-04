@@ -6,6 +6,7 @@ import (
 
 	"github.com/chrixbedardcad/GhostType/config"
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
 // settingsGuard prevents multiple settings windows.
@@ -14,20 +15,35 @@ var (
 	settingsOpenMu sync.Mutex
 )
 
+// FrontendSubFS returns the embedded frontend sub-filesystem with the
+// "frontend/" prefix stripped, suitable for use as a Wails asset handler.
+func FrontendSubFS() (fs.FS, error) {
+	return fs.Sub(frontendFS, "frontend")
+}
+
+// NewSettingsService creates a SettingsService instance. The caller should
+// register it on the Wails app before calling app.Run(). Call Reset() before
+// each settings window open to reinitialize the service state.
+func NewSettingsService() *SettingsService {
+	return &SettingsService{}
+}
+
 // ShowSettingsBlocking opens the settings window and blocks until it closes.
-// Returns the (potentially updated) config. Used by main.go on first launch.
+// Creates a standalone Wails app (used on first launch before the tray exists).
+// Returns the (potentially updated) config.
 func ShowSettingsBlocking(cfg *config.Config, configPath string) *config.Config {
 	guiLog("[GUI] ShowSettingsBlocking called, configPath=%s", configPath)
-	updated := showWindow(cfg, configPath, nil)
+	updated := showStandaloneWindow(cfg, configPath, nil)
 	if updated != nil {
 		return updated
 	}
 	return cfg
 }
 
-// ShowSettings opens the settings window. Non-blocking (for tray).
-// onSaved is called after each save so the caller can reload the live config.
-func ShowSettings(cfg *config.Config, configPath string, onSaved func()) {
+// ShowSettings opens the settings window on the already-running tray Wails app.
+// Non-blocking — creates a window and returns immediately.
+// svc must be the SettingsService that was pre-registered on the app before Run().
+func ShowSettings(svc *SettingsService, cfg *config.Config, configPath string, onSaved func()) {
 	guiLog("[GUI] ShowSettings (async) called")
 	settingsOpenMu.Lock()
 	if settingsOpen {
@@ -37,26 +53,48 @@ func ShowSettings(cfg *config.Config, configPath string, onSaved func()) {
 	}
 	settingsOpen = true
 	settingsOpenMu.Unlock()
-	guiLog("[GUI] ShowSettings: launching goroutine")
 
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				guiLog("[GUI] PANIC in ShowSettings goroutine: %v", r)
-			}
-			settingsOpenMu.Lock()
-			settingsOpen = false
-			settingsOpenMu.Unlock()
-			guiLog("[GUI] ShowSettings goroutine exited")
-		}()
-		showWindow(cfg, configPath, onSaved)
-	}()
+	// Reset service with a fresh copy of the live config.
+	svc.Reset(cfg, configPath, onSaved)
+
+	app := application.Get()
+	if app == nil {
+		guiLog("[GUI] ERROR: no running Wails app for settings window")
+		settingsOpenMu.Lock()
+		settingsOpen = false
+		settingsOpenMu.Unlock()
+		return
+	}
+	svc.app = app
+
+	guiLog("[GUI] Creating settings window on running tray app...")
+	win := app.Window.NewWithOptions(application.WebviewWindowOptions{
+		Title:  "GhostType Settings",
+		Width:  720,
+		Height: 580,
+		URL:    "/index.html",
+		Mac: application.MacWindow{
+			InvisibleTitleBarHeight: 50,
+			Backdrop:               application.MacBackdropTranslucent,
+		},
+	})
+	svc.window = win
+
+	// Reset the guard when the window closes so it can be reopened later.
+	win.OnWindowEvent(events.Common.WindowClosing, func(event *application.WindowEvent) {
+		guiLog("[GUI] Settings window closing event received")
+		settingsOpenMu.Lock()
+		settingsOpen = false
+		settingsOpenMu.Unlock()
+	})
+
+	guiLog("[GUI] Settings window created on running app")
 }
 
-// showWindow creates a Wails app with a settings window and blocks until closed.
-// Returns the updated config if any saves occurred, or nil if no changes were made.
-func showWindow(cfg *config.Config, configPath string, onSaved func()) *config.Config {
-	guiLog("[GUI] showWindow entered")
+// showStandaloneWindow creates a standalone Wails app with a settings window
+// and blocks until closed. Used for first-launch setup before the tray exists.
+func showStandaloneWindow(cfg *config.Config, configPath string, onSaved func()) *config.Config {
+	guiLog("[GUI] showStandaloneWindow entered")
 
 	// Work on a copy so cancelled edits don't corrupt the live config.
 	cfgCopy := *cfg
@@ -67,21 +105,20 @@ func showWindow(cfg *config.Config, configPath string, onSaved func()) *config.C
 		}
 	}
 
-	// Create the settings service with all state.
 	svc := &SettingsService{
 		cfgCopy:    &cfgCopy,
 		configPath: configPath,
 		onSaved:    onSaved,
+		standalone: true,
 	}
 
-	// Sub-filesystem strips the "frontend/" prefix so URL can be "/index.html".
 	subFS, err := fs.Sub(frontendFS, "frontend")
 	if err != nil {
 		guiLog("[GUI] ERROR: fs.Sub failed: %v", err)
 		return nil
 	}
 
-	guiLog("[GUI] Creating Wails app (checking if globalApplication exists=%v)...", application.Get() != nil)
+	guiLog("[GUI] Creating standalone Wails app for first-launch settings...")
 	app := application.New(application.Options{
 		Name: "GhostType Settings",
 		Services: []application.Service{
@@ -92,9 +129,7 @@ func showWindow(cfg *config.Config, configPath string, onSaved func()) *config.C
 		},
 	})
 	svc.app = app
-	guiLog("[GUI] Wails app created (app_nil=%v)", app == nil)
 
-	// Create the settings window.
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:  "GhostType Settings",
 		Width:  720,
@@ -106,18 +141,14 @@ func showWindow(cfg *config.Config, configPath string, onSaved func()) *config.C
 		},
 	})
 
-	guiLog("[GUI] Wails app created, calling Run (blocks until window closes)...")
-
-	// Run blocks until the app quits (window closed or CloseWindow called).
+	guiLog("[GUI] Standalone Wails app created, calling Run (blocks until window closes)...")
 	if err := app.Run(); err != nil {
 		guiLog("[GUI] Wails app.Run error: %v", err)
 	} else {
 		guiLog("[GUI] Wails app.Run completed without error")
 	}
 
-	// Reset the Wails singleton so the tray (or a later settings window)
-	// can create a fresh App. Without this, New() returns the stale app
-	// and Run() fails with "application is running or a previous run has failed".
+	// Reset the Wails singleton so the tray can create a fresh App.
 	guiLog("[GUI] Calling ResetGlobal() to clear Wails singleton...")
 	application.ResetGlobal()
 	guiLog("[GUI] ResetGlobal() done (globalApplication should be nil now: %v)", application.Get() == nil)

@@ -29,7 +29,27 @@ type SettingsService struct {
 	configPath string
 	onSaved    func()
 	app        *application.App
+	window     *application.WebviewWindow
 	saved      bool
+	standalone bool // true for first-launch (app.Quit on close), false when tray app is running
+}
+
+// Reset reinitializes the service for a new settings session. Called each time
+// the settings window is opened from the tray so the service operates on a
+// fresh copy of the live config.
+func (s *SettingsService) Reset(cfg *config.Config, configPath string, onSaved func()) {
+	cfgCopy := *cfg
+	if cfg.LLMProviders != nil {
+		cfgCopy.LLMProviders = make(map[string]config.LLMProviderDef, len(cfg.LLMProviders))
+		for k, v := range cfg.LLMProviders {
+			cfgCopy.LLMProviders[k] = v
+		}
+	}
+	s.cfgCopy = &cfgCopy
+	s.configPath = configPath
+	s.onSaved = onSaved
+	s.window = nil
+	s.saved = false
 }
 
 // clearLegacyAndSave writes the config to disk, clearing legacy flat fields.
@@ -247,9 +267,13 @@ func (s *SettingsService) OpenConfigFile() string {
 
 // CloseWindow terminates the settings window.
 func (s *SettingsService) CloseWindow() string {
-	guiLog("[GUI] JS called: CloseWindow")
-	if s.app != nil {
+	guiLog("[GUI] JS called: CloseWindow (standalone=%v)", s.standalone)
+	if s.standalone && s.app != nil {
+		// First-launch standalone app — quit the whole app to unblock Run().
 		s.app.Quit()
+	} else if s.window != nil {
+		// Tray-running mode — just close the settings window, keep app alive.
+		s.window.Close()
 	}
 	return "ok"
 }

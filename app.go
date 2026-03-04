@@ -19,6 +19,7 @@ import (
 	"github.com/chrixbedardcad/GhostType/mode"
 	"github.com/chrixbedardcad/GhostType/sound"
 	"github.com/chrixbedardcad/GhostType/tray"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 // captureText detects whether the user has an active text selection. It clears
@@ -212,6 +213,31 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string) {
 		templNames[i] = t.Name
 	}
 
+	// Create the shared Wails application used by both the tray and settings.
+	// The SettingsService is pre-registered so its JS bindings are available
+	// whenever a settings window is created on this app.
+	settingsSvc := gui.NewSettingsService()
+	subFS, err := gui.FrontendSubFS()
+	if err != nil {
+		slog.Error("Failed to load frontend assets", "error", err)
+		fmt.Fprintf(os.Stderr, "Error: failed to load frontend assets: %v\n", err)
+		return
+	}
+	wailsApp := application.New(application.Options{
+		Name: "GhostType",
+		Services: []application.Service{
+			application.NewService(settingsSvc),
+		},
+		Assets: application.AssetOptions{
+			Handler: application.BundledAssetFileServer(subFS),
+		},
+		Mac: application.MacOptions{
+			ActivationPolicy: application.ActivationPolicyAccessory,
+		},
+		// Prevent auto-quit when the settings window closes; the tray keeps running.
+		ShouldQuit: func() bool { return false },
+	})
+
 	// Pointer indirection so OnExit can reference stopTray before it's assigned.
 	var stopTrayFn func()
 
@@ -246,7 +272,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string) {
 			}
 		},
 		OnSettings: func() {
-			gui.ShowSettings(cfg, configPath, func() {
+			gui.ShowSettings(settingsSvc, cfg, configPath, func() {
 				// Reload config from disk after settings save.
 				newCfg, err := config.LoadRaw(configPath)
 				if err != nil {
@@ -321,7 +347,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string) {
 		TemplateNames:  templNames,
 	}
 
-	stopTrayFn = tray.Start(trayCfg)
+	stopTrayFn = tray.Start(trayCfg, wailsApp)
 
 	// Register main action hotkey — dispatches based on active mode.
 	err := hk.Register("action", cfg.Hotkeys.Correct, func() {
