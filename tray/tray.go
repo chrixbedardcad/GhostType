@@ -52,11 +52,11 @@ type trayState struct {
 	systray *application.SystemTray
 }
 
-// Start launches the system tray icon in a background goroutine.
-// The provided app must be a fully-configured Wails application (with services
-// and assets already registered). Start sets up the system tray and calls
-// app.Run() in a goroutine. Returns a stop function that quits the app.
-func Start(cfg Config, app *application.App) (stop func()) {
+// Start configures the system tray icon and menu on the given Wails application.
+// It returns a run function that starts the Cocoa/GTK/Win32 event loop (blocking),
+// and a stop function that quits the app. The caller decides which goroutine
+// calls run — this is critical on macOS where Cocoa must run on the main thread.
+func Start(cfg Config, app *application.App) (run func() error, stop func()) {
 	slog.Info("[tray] Start() called",
 		"os", runtime.GOOS,
 		"icon_bytes", len(cfg.IconPNG),
@@ -106,29 +106,22 @@ func Start(cfg Config, app *application.App) (stop func()) {
 		})
 	}
 
-	slog.Info("[tray] Starting Wails app.Run() in goroutine...")
-	fmt.Println("[tray] Starting Wails app.Run() in goroutine...")
-	go func() {
-		runtime.LockOSThread()
-		slog.Info("[tray] goroutine: calling app.Run()")
-		fmt.Println("[tray] goroutine: calling app.Run()")
-		if err := ts.app.Run(); err != nil {
-			slog.Error("[tray] Wails app.Run() FAILED", "error", err)
-			fmt.Printf("[tray] ERROR: Wails app.Run() failed: %v\n", err)
-		} else {
-			slog.Info("[tray] Wails app.Run() returned successfully")
-			fmt.Println("[tray] Wails app.Run() returned successfully")
-		}
-	}()
+	slog.Info("[tray] Start() setup complete — returning run/stop/setIcon")
+	fmt.Println("[tray] Start() setup complete — returning run/stop/setIcon")
 
-	slog.Info("[tray] Start() complete — tray is running")
-	fmt.Println("[tray] Start() complete — tray is running")
+	run = func() error {
+		slog.Info("[tray] run: calling app.Run()")
+		fmt.Println("[tray] run: calling app.Run()")
+		return ts.app.Run()
+	}
 
-	return func() {
+	stop = func() {
 		slog.Info("[tray] Stop function called — quitting app")
 		fmt.Println("[tray] Stop function called — quitting app")
 		ts.app.Quit()
 	}
+
+	return run, stop
 }
 
 // refreshMenu rebuilds the tray context menu from current state.

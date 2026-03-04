@@ -12,4 +12,10 @@ func newClipboard() *clipboard.Clipboard  { return clipboard.NewLinuxClipboard()
 func newKeyboard() keyboard.Simulator     { return keyboard.NewLinuxSimulator() }
 func newHotkeyManager() hotkey.Manager    { return hotkey.NewXPlatManager() }
 
-func preListen() {} // no OS thread lock needed on Linux
+// startMainLoop preserves Linux behavior: register hotkeys, run Wails in a
+// background goroutine, then block on the hotkey listener.
+func startMainLoop(trayRun func() error, registerHotkeys func() error, hk hotkey.Manager) {
+	registerHotkeys()
+	go func() { trayRun() }()
+	hk.Listen()
+}

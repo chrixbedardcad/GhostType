@@ -68,10 +68,17 @@ jobs:
           if [ "${{ matrix.goos }}" = "windows" ]; then
             go build -tags "$TAGS" -ldflags "-H=windowsgui" -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}-windowless${{ matrix.ext }}
           fi
+      - name: Bundle macOS .app
+        if: matrix.goos == 'darwin'
+        run: |
+          chmod +x scripts/bundle-macos.sh
+          ./scripts/bundle-macos.sh ghosttype-${{ matrix.goos }}-${{ matrix.goarch }} ${{ matrix.goarch }}
       - uses: actions/upload-artifact@v4
         with:
           name: release-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: ghosttype-*
+          path: |
+            ghosttype-*
+            GhostType-darwin-*.zip
 
   publish:
     needs: release

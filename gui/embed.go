@@ -2,5 +2,5 @@ package gui
 
 import "embed"
 
-//go:embed frontend/index.html
+//go:embed frontend/index.html frontend/wizard.html
 var frontendFS embed.FS

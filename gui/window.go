@@ -131,10 +131,10 @@ func showStandaloneWindow(cfg *config.Config, configPath string, onSaved func())
 	svc.app = app
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:  "GhostType Settings",
-		Width:  720,
-		Height: 580,
-		URL:    "/index.html",
+		Title:  "GhostType Setup",
+		Width:  600,
+		Height: 640,
+		URL:    "/wizard.html",
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
 			Backdrop:               application.MacBackdropTranslucent,

@@ -16,15 +16,15 @@ Type in French, hit **Ctrl+G**, get it corrected. Switch to English, hit **Ctrl+
 
 [![CI](https://github.com/chrixbedardcad/GhostType/actions/workflows/ci.yml/badge.svg)](https://github.com/chrixbedardcad/GhostType/actions/workflows/ci.yml)
 [![Release](https://github.com/chrixbedardcad/GhostType/actions/workflows/release.yml/badge.svg)](https://github.com/chrixbedardcad/GhostType/releases/latest)
-[![Version](https://img.shields.io/badge/version-v0.1.82-blue)](https://github.com/chrixbedardcad/GhostType/releases/latest)
+[![Version](https://img.shields.io/badge/version-v0.1.84-blue)](https://github.com/chrixbedardcad/GhostType/releases/latest)
 
 | Platform | Download |
 |----------|----------|
 | **Windows** (recommended) | [ghosttype-windows-amd64.exe](https://github.com/chrixbedardcad/GhostType/releases/latest/download/ghosttype-windows-amd64.exe) |
 | **Windows** (no console) | [ghosttype-windows-amd64-windowless.exe](https://github.com/chrixbedardcad/GhostType/releases/latest/download/ghosttype-windows-amd64-windowless.exe) |
 | **Linux** | [ghosttype-linux-amd64](https://github.com/chrixbedardcad/GhostType/releases/latest/download/ghosttype-linux-amd64) |
-| **macOS** (Intel) | [ghosttype-darwin-amd64](https://github.com/chrixbedardcad/GhostType/releases/latest/download/ghosttype-darwin-amd64) |
-| **macOS** (Apple Silicon) | [ghosttype-darwin-arm64](https://github.com/chrixbedardcad/GhostType/releases/latest/download/ghosttype-darwin-arm64) |
+| **macOS** (Intel) | [GhostType-darwin-amd64.zip](https://github.com/chrixbedardcad/GhostType/releases/latest/download/GhostType-darwin-amd64.zip) |
+| **macOS** (Apple Silicon) | [GhostType-darwin-arm64.zip](https://github.com/chrixbedardcad/GhostType/releases/latest/download/GhostType-darwin-arm64.zip) |
 
 ---
 
@@ -71,25 +71,27 @@ Sound requires PulseAudio (`paplay`) or ALSA (`aplay`) — usually pre-installed
 
 ### macOS
 
-No additional packages to install, but macOS requires a few one-time setup steps.
+No additional packages to install. GhostType ships as a `.app` bundle (inside a `.zip`).
 
-#### 1. Allow the app to run (Gatekeeper)
+#### 1. Install
 
-GhostType is not signed with an Apple Developer certificate, so macOS will block it by default. After downloading, open Terminal and run:
+1. **Download** the `.zip` for your Mac ([Apple Silicon](https://github.com/chrixbedardcad/GhostType/releases/latest/download/GhostType-darwin-arm64.zip) or [Intel](https://github.com/chrixbedardcad/GhostType/releases/latest/download/GhostType-darwin-amd64.zip)).
+2. **Unzip** — double-click the `.zip` or run `unzip GhostType-darwin-arm64.zip`.
+3. **Drag** `GhostType.app` to your **Applications** folder.
+
+#### 2. Allow the app to run (Gatekeeper)
+
+GhostType is not signed with an Apple Developer certificate, so macOS will block it by default.
+
+**Right-click** `GhostType.app` → **Open** → click **Open** in the security dialog.
+
+Or from Terminal:
 
 ```bash
-# Make it executable
-chmod +x ~/Downloads/ghosttype-darwin-arm64
-
-# Remove the quarantine flag so macOS allows it to run
-xattr -d com.apple.quarantine ~/Downloads/ghosttype-darwin-arm64
+xattr -d com.apple.quarantine /Applications/GhostType.app
 ```
 
-> **Note:** Replace `ghosttype-darwin-arm64` with `ghosttype-darwin-amd64` if you have an Intel Mac.
-
-**Alternative (no Terminal):** Right-click the file → **Open** → click **Open** in the security warning dialog.
-
-#### 2. Grant permissions
+#### 3. Grant permissions
 
 On first launch, macOS will prompt you to grant:
 
@@ -98,18 +100,15 @@ On first launch, macOS will prompt you to grant:
 
 If the prompts don't appear automatically, add GhostType manually in System Settings → Privacy & Security.
 
-#### 3. Run
+#### 4. Run
+
+Double-click `GhostType.app` in Applications, or:
 
 ```bash
-./ghosttype-darwin-arm64
+open /Applications/GhostType.app
 ```
 
-Or move it to a permanent location:
-
-```bash
-sudo mv ~/Downloads/ghosttype-darwin-arm64 /usr/local/bin/ghosttype
-ghosttype
-```
+GhostType runs as a tray-only app (no Dock icon) — look for the icon in the menu bar.
 
 ---
 

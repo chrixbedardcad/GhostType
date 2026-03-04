@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GhostType Setup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #1e1e2e;
+    color: #cdd6f4;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  .container { max-width: 540px; margin: 0 auto; padding: 24px; }
+
+  /* --- Header --- */
+  .header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 20px; padding-bottom: 14px;
+    border-bottom: 1px solid #313244;
+  }
+  .header .logo { font-size: 1.8em; }
+  .header h1 { font-size: 1.3em; font-weight: 600; }
+  .header .sub { font-size: 0.8em; color: #6c7086; }
+
+  /* --- Step indicator --- */
+  .steps {
+    display: flex; justify-content: center; gap: 8px;
+    margin-bottom: 24px;
+  }
+  .step-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #45475a; transition: background 0.2s;
+  }
+  .step-dot.active { background: #89b4fa; }
+  .step-dot.done { background: #a6e3a1; }
+
+  /* --- Cards --- */
+  .card {
+    background: #313244; border: 2px solid #45475a;
+    border-radius: 10px; padding: 18px; margin-bottom: 10px;
+    cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  }
+  .card:hover { border-color: #89b4fa; background: #3b3b52; }
+  .card.selected { border-color: #89b4fa; background: #2a2d42; }
+  .card .card-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+  }
+  .card .card-icon { font-size: 1.5em; }
+  .card .card-title { font-weight: 600; font-size: 1em; }
+  .card .card-desc { font-size: 0.85em; color: #a6adc8; line-height: 1.4; }
+
+  /* --- Badges --- */
+  .badge {
+    display: inline-block; font-size: 0.65em; font-weight: 700;
+    padding: 2px 7px; border-radius: 4px; vertical-align: middle; margin-left: 6px;
+  }
+  .badge-free { background: #a6e3a1; color: #1e1e2e; }
+  .badge-rec { background: #89b4fa; color: #1e1e2e; }
+  .badge-paid { background: #f9e2af; color: #1e1e2e; }
+
+  /* --- Form elements --- */
+  .form-group { margin-bottom: 14px; }
+  .form-group label {
+    display: block; font-size: 0.85em; color: #bac2de;
+    margin-bottom: 4px; font-weight: 500;
+  }
+  input[type="text"], input[type="password"], select {
+    width: 100%; padding: 10px 12px;
+    background: #313244; border: 1px solid #45475a;
+    border-radius: 6px; color: #cdd6f4; font-size: 0.9em;
+    outline: none; transition: border-color 0.15s;
+  }
+  input:focus, select:focus { border-color: #89b4fa; }
+  select { cursor: pointer; }
+
+  /* --- Buttons --- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 20px; border: none; border-radius: 6px;
+    font-size: 0.9em; font-weight: 500; cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: #89b4fa; color: #1e1e2e; }
+  .btn-primary:hover:not(:disabled) { background: #74c7ec; }
+  .btn-secondary { background: #45475a; color: #cdd6f4; }
+  .btn-secondary:hover:not(:disabled) { background: #585b70; }
+  .btn-sm { padding: 6px 12px; font-size: 0.8em; }
+  .btn-row {
+    display: flex; justify-content: space-between; gap: 8px;
+    margin-top: 20px;
+  }
+
+  /* --- Status --- */
+  .status {
+    padding: 8px 12px; border-radius: 6px; font-size: 0.85em;
+    margin-top: 10px; display: none;
+  }
+  .status.success { display: block; background: #1e3a2e; color: #a6e3a1; border: 1px solid #a6e3a1; }
+  .status.error { display: block; background: #3a1e1e; color: #f38ba8; border: 1px solid #f38ba8; }
+  .status.info { display: block; background: #1e2e3a; color: #89b4fa; border: 1px solid #89b4fa; }
+
+  /* --- Ollama status bar --- */
+  .ollama-status-bar {
+    display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+    border-radius: 6px; font-size: 0.85em; margin-bottom: 12px;
+  }
+  .ollama-status-bar.running { background: #1e3a2e; color: #a6e3a1; }
+  .ollama-status-bar.installed { background: #1e2e3a; color: #89b4fa; }
+  .ollama-status-bar.not-installed { background: #3a1e1e; color: #f38ba8; }
+  .ollama-status-bar.checking { background: #2a2a3e; color: #a6adc8; }
+  .ollama-status-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .ollama-status-bar.running .ollama-status-dot { background: #a6e3a1; }
+  .ollama-status-bar.installed .ollama-status-dot { background: #89b4fa; }
+  .ollama-status-bar.not-installed .ollama-status-dot { background: #f38ba8; }
+  .ollama-status-bar.checking .ollama-status-dot { background: #a6adc8; }
+
+  /* --- Spinner --- */
+  .spinner {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid #45475a; border-top-color: #89b4fa;
+    border-radius: 50%; animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* --- Step sections --- */
+  .step-section { display: none; }
+  .step-section.active { display: block; }
+
+  /* --- Done page --- */
+  .done-summary {
+    background: #313244; border-radius: 8px; padding: 16px;
+    margin: 16px 0; font-size: 0.9em; line-height: 1.6;
+  }
+  .done-summary .row { display: flex; gap: 8px; }
+  .done-summary .row .lbl { color: #6c7086; min-width: 80px; }
+  .done-summary .row .val { color: #cdd6f4; font-weight: 500; }
+
+  .hotkey-hint {
+    text-align: center; margin: 20px 0; padding: 16px;
+    background: #2a2d42; border-radius: 8px;
+  }
+  .hotkey-hint kbd {
+    background: #45475a; padding: 4px 10px; border-radius: 4px;
+    font-family: monospace; font-size: 1.1em; color: #89b4fa;
+  }
+
+  /* --- Ollama model cards for wizard --- */
+  .model-card {
+    background: #313244; border: 1px solid #45475a;
+    border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .model-card .model-info .model-name { font-weight: 600; font-size: 0.9em; }
+  .model-card .model-info .model-meta { font-size: 0.78em; color: #6c7086; margin-top: 2px; }
+
+  /* --- API key link --- */
+  .api-key-link {
+    font-size: 0.82em; color: #89b4fa; cursor: pointer;
+    text-decoration: underline; margin-top: 4px; display: inline-block;
+  }
+  .api-key-link:hover { color: #74c7ec; }
+
+  /* Hide scrollbar but keep scrollable */
+  .container::-webkit-scrollbar { width: 6px; }
+  .container::-webkit-scrollbar-track { background: transparent; }
+  .container::-webkit-scrollbar-thumb { background: #45475a; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <span class="logo">&#128123;</span>
+    <div>
+      <h1>GhostType Setup</h1>
+      <div class="sub">Quick setup — takes under 1 minute</div>
+    </div>
+  </div>
+
+  <!-- Step dots -->
+  <div class="steps" id="step-dots"></div>
+
+  <!-- ============ STEP 1: WELCOME ============ -->
+  <div class="step-section" id="step-1">
+    <h2 style="font-size:1.1em;margin-bottom:14px;color:#bac2de">Choose your AI source</h2>
+
+    <div class="card" onclick="selectCategory('cloud')">
+      <div class="card-header">
+        <span class="card-icon">&#9729;&#65039;</span>
+        <span class="card-title">Cloud AI <span class="badge badge-rec">RECOMMENDED</span></span>
+      </div>
+      <div class="card-desc">
+        Use an API from Google Gemini, Anthropic, or OpenAI.<br>
+        Free tiers available &mdash; no credit card required!
+      </div>
+    </div>
+
+    <div class="card" onclick="selectCategory('ollama')">
+      <div class="card-header">
+        <span class="card-icon">&#128187;</span>
+        <span class="card-title">Local AI (Ollama)</span>
+      </div>
+      <div class="card-desc">
+        Run AI on your computer. Free, private, no API key needed.<br>
+        Requires ~4 GB disk space for a model.
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ STEP 2a: CLOUD PROVIDER SELECTION ============ -->
+  <div class="step-section" id="step-2a">
+    <h2 style="font-size:1.1em;margin-bottom:14px;color:#bac2de">Pick a provider</h2>
+
+    <div class="card" onclick="selectCloudProvider('gemini')">
+      <div class="card-header">
+        <span class="card-icon">&#10024;</span>
+        <span class="card-title">Google Gemini <span class="badge badge-free">FREE</span> <span class="badge badge-rec">RECOMMENDED</span></span>
+      </div>
+      <div class="card-desc">Free tier: 250 requests/day. Great for getting started.</div>
+    </div>
+
+    <div class="card" onclick="selectCloudProvider('xai')">
+      <div class="card-header">
+        <span class="card-icon">&#129302;</span>
+        <span class="card-title">xAI Grok</span>
+      </div>
+      <div class="card-desc">$25 free credits at signup. Fast inference.</div>
+    </div>
+
+    <div class="card" onclick="selectCloudProvider('anthropic')">
+      <div class="card-header">
+        <span class="card-icon">&#129504;</span>
+        <span class="card-title">Anthropic Claude <span class="badge badge-paid">$</span></span>
+      </div>
+      <div class="card-desc">Premium quality, best multilingual support.</div>
+    </div>
+
+    <div class="card" onclick="selectCloudProvider('openai')">
+      <div class="card-header">
+        <span class="card-icon">&#128161;</span>
+        <span class="card-title">OpenAI GPT <span class="badge badge-paid">$</span></span>
+      </div>
+      <div class="card-desc">Popular choice, wide ecosystem.</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(1)">Back</button>
+      <span></span>
+    </div>
+  </div>
+
+  <!-- ============ STEP 2b: OLLAMA SETUP ============ -->
+  <div class="step-section" id="step-2b">
+    <h2 style="font-size:1.1em;margin-bottom:14px;color:#bac2de">Ollama Setup</h2>
+
+    <div id="ollama-status-bar" class="ollama-status-bar checking">
+      <span class="ollama-status-dot"></span>
+      <span id="ollama-status-text">Checking Ollama...</span>
+    </div>
+    <div id="ollama-body"></div>
+    <div id="ollama-action-status" class="status"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(1)">Back</button>
+      <button class="btn btn-secondary btn-sm" onclick="ollamaRefresh()">Refresh</button>
+    </div>
+  </div>
+
+  <!-- ============ STEP 3: CONFIGURE (CLOUD) ============ -->
+  <div class="step-section" id="step-3">
+    <h2 style="font-size:1.1em;margin-bottom:14px;color:#bac2de" id="step3-title">Configure</h2>
+
+    <div class="form-group">
+      <label for="cfg-apikey">API Key</label>
+      <input type="password" id="cfg-apikey" placeholder="Paste your API key here">
+      <span class="api-key-link" id="cfg-apikey-link" onclick="openKeyPage()">How to get an API key</span>
+    </div>
+
+    <div class="form-group">
+      <label for="cfg-model">Model</label>
+      <select id="cfg-model"></select>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(2)">Back</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" onclick="testCloudConnection()" id="test-btn">Test Connection</button>
+        <button class="btn btn-primary" onclick="finishCloud()" id="next-btn">Next</button>
+      </div>
+    </div>
+    <div class="status" id="step3-status"></div>
+  </div>
+
+  <!-- ============ STEP 4: DONE ============ -->
+  <div class="step-section" id="step-4">
+    <div style="text-align:center;margin-bottom:16px">
+      <span style="font-size:2.5em">&#9989;</span>
+      <h2 style="font-size:1.2em;color:#a6e3a1;margin-top:8px">You're all set!</h2>
+    </div>
+
+    <div class="done-summary" id="done-summary"></div>
+
+    <div class="hotkey-hint">
+      <div style="color:#bac2de;margin-bottom:8px">Select text anywhere and press</div>
+      <kbd>Ctrl+G</kbd>
+      <div style="color:#6c7086;margin-top:8px;font-size:0.85em">to correct your text</div>
+    </div>
+
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn btn-primary" onclick="finishWizard()" style="padding:12px 40px;font-size:1em">Finish</button>
+    </div>
+    <div class="status" id="step4-status"></div>
+  </div>
+</div>
+
+<!-- Load the Wails v3 runtime (provides wails.Call, wails.Browser, etc.) -->
+<script type="module" src="/wails/runtime.js"></script>
+
+<script>
+// ==================== STATE ====================
+let currentStep = 1;
+let totalSteps = 4;
+let category = '';       // 'cloud' or 'ollama'
+let cloudProvider = '';  // 'gemini', 'anthropic', 'openai', 'xai'
+let ollamaModel = '';    // selected ollama model name
+
+// ==================== PROVIDER METADATA ====================
+const PROVIDERS = {
+  gemini:    { label: 'gemini',    name: 'Google Gemini',    keyUrl: 'https://aistudio.google.com/apikey' },
+  xai:      { label: 'xai',       name: 'xAI Grok',        keyUrl: 'https://console.x.ai/' },
+  anthropic: { label: 'anthropic', name: 'Anthropic Claude', keyUrl: 'https://console.anthropic.com/settings/keys' },
+  openai:   { label: 'openai',    name: 'OpenAI GPT',       keyUrl: 'https://platform.openai.com/api-keys' },
+};
+
+// ==================== WAILS BRIDGE ====================
+const _pkg = 'github.com/chrixbedardcad/GhostType/gui';
+async function goCall(fn, ...args) {
+  try {
+    const method = _pkg + '.SettingsService.' + fn.charAt(0).toUpperCase() + fn.slice(1);
+    return await wails.Call.ByName(method, ...args);
+  } catch (e) {
+    console.error('Bridge call failed:', fn, e);
+    return null;
+  }
+}
+
+// ==================== STEP NAVIGATION ====================
+function goToStep(n) {
+  currentStep = n;
+  renderSteps();
+}
+
+function renderSteps() {
+  // Hide all sections
+  document.querySelectorAll('.step-section').forEach(s => s.classList.remove('active'));
+
+  // Determine which section to show
+  let sectionId;
+  if (currentStep === 1) sectionId = 'step-1';
+  else if (currentStep === 2 && category === 'cloud') sectionId = 'step-2a';
+  else if (currentStep === 2 && category === 'ollama') sectionId = 'step-2b';
+  else if (currentStep === 3) sectionId = 'step-3';
+  else if (currentStep === 4) sectionId = 'step-4';
+
+  if (sectionId) document.getElementById(sectionId).classList.add('active');
+
+  // Update dots
+  const dots = document.getElementById('step-dots');
+  let html = '';
+  for (let i = 1; i <= totalSteps; i++) {
+    let cls = 'step-dot';
+    if (i < currentStep) cls += ' done';
+    else if (i === currentStep) cls += ' active';
+    html += '<div class="' + cls + '"></div>';
+  }
+  dots.innerHTML = html;
+}
+
+// ==================== STEP 1: WELCOME ====================
+function selectCategory(cat) {
+  category = cat;
+  if (cat === 'cloud') {
+    goToStep(2);
+  } else {
+    goToStep(2);
+    ollamaRefresh();
+  }
+}
+
+// ==================== STEP 2a: CLOUD PROVIDER ====================
+function selectCloudProvider(provider) {
+  cloudProvider = provider;
+  setupCloudForm();
+  goToStep(3);
+}
+
+function setupCloudForm() {
+  const p = PROVIDERS[cloudProvider];
+  document.getElementById('step3-title').textContent = 'Configure ' + p.name;
+  document.getElementById('cfg-apikey').value = '';
+  clearStatus('step3-status');
+  loadCloudModels();
+}
+
+async function loadCloudModels() {
+  const sel = document.getElementById('cfg-model');
+  sel.innerHTML = '';
+  const raw = await goCall('getKnownModels', cloudProvider);
+  let models = [];
+  if (raw) { try { models = JSON.parse(raw); } catch(e) {} }
+  for (const m of models) {
+    const opt = document.createElement('option');
+    opt.value = m; opt.textContent = m;
+    sel.appendChild(opt);
+  }
+}
+
+function openKeyPage() {
+  const p = PROVIDERS[cloudProvider];
+  if (p && p.keyUrl) {
+    try { wails.Browser.OpenURL(p.keyUrl); } catch(e) { console.error(e); }
+  }
+}
+
+async function testCloudConnection() {
+  const apiKey = document.getElementById('cfg-apikey').value.trim();
+  const model = document.getElementById('cfg-model').value;
+  if (!apiKey) { setStatus('step3-status', 'error', 'Please enter your API key'); return; }
+
+  const btn = document.getElementById('test-btn');
+  btn.disabled = true; btn.textContent = 'Testing...';
+  setStatus('step3-status', 'info', 'Connecting...');
+
+  const result = await goCall('testConnection', cloudProvider, apiKey, model, '');
+
+  btn.disabled = false; btn.textContent = 'Test Connection';
+  if (result && result.startsWith('ok')) {
+    setStatus('step3-status', 'success', 'Connection successful!');
+  } else {
+    setStatus('step3-status', 'error', result || 'Connection failed');
+  }
+}
+
+async function finishCloud() {
+  const apiKey = document.getElementById('cfg-apikey').value.trim();
+  const model = document.getElementById('cfg-model').value;
+  if (!apiKey) { setStatus('step3-status', 'error', 'Please enter your API key'); return; }
+  if (!model) { setStatus('step3-status', 'error', 'Please select a model'); return; }
+
+  const label = cloudProvider;
+  const btn = document.getElementById('next-btn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+
+  const result = await goCall('saveProvider', label, cloudProvider, apiKey, model, '', '');
+
+  btn.disabled = false; btn.textContent = 'Next';
+  if (result && result.startsWith('ok')) {
+    showDone(label, cloudProvider, model);
+    goToStep(4);
+  } else {
+    setStatus('step3-status', 'error', result || 'Failed to save');
+  }
+}
+
+// ==================== STEP 2b: OLLAMA ====================
+async function ollamaRefresh() {
+  const bar = document.getElementById('ollama-status-bar');
+  const text = document.getElementById('ollama-status-text');
+  const body = document.getElementById('ollama-body');
+  const statusEl = document.getElementById('ollama-action-status');
+  bar.className = 'ollama-status-bar checking';
+  text.textContent = 'Checking Ollama...';
+  body.innerHTML = '';
+  statusEl.className = 'status'; statusEl.textContent = '';
+
+  const raw = await goCall('ollamaStatus', '');
+  if (!raw) {
+    bar.className = 'ollama-status-bar not-installed';
+    text.textContent = 'Could not check status';
+    renderOllamaNotInstalled(body);
+    return;
+  }
+
+  let st;
+  try { st = JSON.parse(raw); } catch(e) {
+    bar.className = 'ollama-status-bar not-installed';
+    text.textContent = 'Status check failed';
+    renderOllamaNotInstalled(body);
+    return;
+  }
+
+  const status = st.status || 'not_installed';
+
+  if (status === 'running') {
+    bar.className = 'ollama-status-bar running';
+    text.textContent = 'Running' + (st.version ? ' \u2014 ' + st.version : '');
+    const models = st.models || [];
+    if (models.length > 0) {
+      renderOllamaDropdown(body, models);
+    } else {
+      renderOllamaRecommend(body);
+    }
+  } else if (status === 'installed') {
+    bar.className = 'ollama-status-bar installed';
+    text.textContent = 'Installed but not running';
+    renderOllamaServeHint(body);
+  } else {
+    bar.className = 'ollama-status-bar not-installed';
+    text.textContent = 'Not installed';
+    renderOllamaNotInstalled(body);
+  }
+}
+
+function renderOllamaNotInstalled(container) {
+  container.innerHTML = `
+    <div style="text-align:center;padding:16px 0">
+      <div style="font-size:0.88em;color:#bac2de;margin-bottom:12px">
+        Ollama is not installed on this computer.
+      </div>
+      <button class="btn btn-primary" onclick="ollamaInstall()" id="ollama-install-btn">
+        Install Ollama
+      </button>
+      <div style="font-size:0.78em;color:#6c7086;margin-top:8px">
+        Opens the download page. After installing, click <strong>Refresh</strong>.
+      </div>
+    </div>`;
+}
+
+function renderOllamaServeHint(container) {
+  container.innerHTML = `
+    <div style="font-size:0.88em;color:#bac2de;line-height:1.5;padding:12px 0">
+      Ollama is installed but the server isn't running.<br>
+      Open a terminal and run: <code style="background:#313244;padding:2px 6px;border-radius:4px;color:#f9e2af">ollama serve</code><br>
+      Then click <strong>Refresh</strong>.
+    </div>`;
+}
+
+function renderOllamaRecommend(container) {
+  const models = [
+    { name: 'mistral', size: '7B', disk: '~4 GB', desc: 'Fast & accurate. Best for text correction.', rec: true },
+    { name: 'gemma2',  size: '9B', disk: '~5 GB', desc: 'Great multilingual support.' },
+    { name: 'llama3.2', size: '8B', disk: '~4.7 GB', desc: 'Good all-around model.' },
+  ];
+
+  let html = '<div style="font-size:0.88em;color:#bac2de;margin-bottom:10px">No models installed. Pick one to download:</div>';
+  for (const m of models) {
+    html += `
+      <div class="model-card">
+        <div class="model-info">
+          <div class="model-name">${esc(m.name)} (${esc(m.size)}, ${esc(m.disk)})${m.rec ? '<span class="badge badge-rec" style="margin-left:6px">RECOMMENDED</span>' : ''}</div>
+          <div class="model-meta">${esc(m.desc)}</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="ollamaPull('${escJS(m.name)}', this)" id="pull-${esc(m.name)}">Download</button>
+      </div>`;
+  }
+  container.innerHTML = html;
+}
+
+function renderOllamaDropdown(container, models) {
+  let html = '<div class="form-group" style="margin-bottom:4px">';
+  html += '<label>Select a model</label><select id="ollama-model-select">';
+  for (const m of models) {
+    const meta = [m.parameter_size, m.quantization_level, m.size_human].filter(Boolean).join(' \u00b7 ');
+    html += '<option value="' + esc(m.name) + '">' + esc(m.name) + ' (' + esc(meta) + ')</option>';
+  }
+  html += '</select></div>';
+  html += '<div style="margin-top:10px"><button class="btn btn-primary" onclick="ollamaFinish()">Use this model</button></div>';
+  container.innerHTML = html;
+}
+
+async function ollamaInstall() {
+  const btn = document.getElementById('ollama-install-btn');
+  const statusEl = document.getElementById('ollama-action-status');
+  if (btn) btn.disabled = true;
+  statusEl.className = 'status info';
+  statusEl.textContent = 'Opening download page...';
+
+  try {
+    await wails.Browser.OpenURL('https://ollama.com/download');
+    statusEl.className = 'status success';
+    statusEl.textContent = 'Download page opened! Install Ollama, then click Refresh.';
+  } catch (e) {
+    const result = await goCall('ollamaDownloadInstaller');
+    if (result && String(result).startsWith('ok')) {
+      statusEl.className = 'status success';
+      statusEl.textContent = 'Download page opened! Install Ollama, then click Refresh.';
+    } else {
+      statusEl.className = 'status error';
+      statusEl.textContent = 'Could not open automatically. Visit: https://ollama.com/download';
+    }
+  }
+  if (btn) btn.disabled = false;
+}
+
+async function ollamaPull(modelName, btnEl) {
+  const statusEl = document.getElementById('ollama-action-status');
+  // Disable all download buttons
+  document.querySelectorAll('.model-card .btn').forEach(b => b.disabled = true);
+  if (btnEl) { btnEl.textContent = 'Downloading...'; }
+  statusEl.className = 'status info';
+  statusEl.textContent = 'Downloading ' + modelName + '... This may take a few minutes.';
+
+  const result = await goCall('ollamaPullModel', modelName);
+
+  if (result && result.startsWith('ok')) {
+    statusEl.className = 'status success';
+    statusEl.textContent = modelName + ' downloaded successfully!';
+    ollamaModel = modelName;
+    // Save and go to done
+    await saveOllamaProvider(modelName);
+  } else {
+    statusEl.className = 'status error';
+    statusEl.textContent = 'Download failed: ' + (result || 'unknown error');
+    document.querySelectorAll('.model-card .btn').forEach(b => b.disabled = false);
+    if (btnEl) { btnEl.textContent = 'Download'; }
+  }
+}
+
+async function ollamaFinish() {
+  const sel = document.getElementById('ollama-model-select');
+  if (!sel || !sel.value) return;
+  ollamaModel = sel.value;
+  await saveOllamaProvider(ollamaModel);
+}
+
+async function saveOllamaProvider(modelName) {
+  const label = 'ollama-' + modelName.replace(/[:/]/g, '-');
+  const result = await goCall('saveProvider', label, 'ollama', '', modelName, '', '');
+  if (result && result.startsWith('ok')) {
+    showDone(label, 'ollama', modelName);
+    goToStep(4);
+  } else {
+    const statusEl = document.getElementById('ollama-action-status');
+    statusEl.className = 'status error';
+    statusEl.textContent = 'Failed to save: ' + (result || 'unknown error');
+  }
+}
+
+// ==================== STEP 4: DONE ====================
+function showDone(label, provider, model) {
+  const summary = document.getElementById('done-summary');
+  const providerName = PROVIDERS[provider] ? PROVIDERS[provider].name : (provider === 'ollama' ? 'Ollama (Local)' : provider);
+  summary.innerHTML = `
+    <div class="row"><span class="lbl">Provider</span><span class="val">${esc(providerName)}</span></div>
+    <div class="row"><span class="lbl">Model</span><span class="val">${esc(model)}</span></div>
+    <div class="row"><span class="lbl">Label</span><span class="val">${esc(label)}</span></div>
+  `;
+}
+
+async function finishWizard() {
+  const btn = document.querySelector('#step-4 .btn-primary');
+  btn.disabled = true; btn.textContent = 'Starting...';
+  await goCall('closeWindow');
+}
+
+// ==================== HELPERS ====================
+function setStatus(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ' + type;
+  el.textContent = msg;
+}
+
+function clearStatus(id) {
+  const el = document.getElementById(id);
+  el.className = 'status';
+  el.textContent = '';
+}
+
+function esc(s) {
+  const el = document.createElement('span');
+  el.textContent = s;
+  return el.innerHTML;
+}
+
+function escJS(s) {
+  return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+}
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', function() {
+  goToStep(1);
+});
+</script>
+</body>
+</html>
