@@ -180,19 +180,9 @@ func (s *linuxSystemTray) processMenu(menu *Menu, parentId int32) {
 
 func (s *linuxSystemTray) refresh() {
 	s.menuVersion++
-	fmt.Printf("[systray-linux] refresh() — emitting LayoutUpdated, version=%d\n", s.menuVersion)
-	if s.menuProps == nil {
-		fmt.Println("[systray-linux] refresh() — menuProps is nil, skipping (menu set before DBus init)")
-		return
-	}
 	if err := s.menuProps.Set("com.canonical.dbusmenu", "Version",
 		dbus.MakeVariant(s.menuVersion)); err != nil {
 		globalApplication.error("systray error: failed to update menu version: %w", err)
-		fmt.Printf("[systray-linux] refresh() ERROR setting version: %v\n", err)
-		return
-	}
-	if s.conn == nil {
-		fmt.Println("[systray-linux] refresh() — conn is nil, skipping emit")
 		return
 	}
 	if err := menu.Emit(s.conn, &menu.Dbusmenu_LayoutUpdatedSignal{
@@ -202,14 +192,10 @@ func (s *linuxSystemTray) refresh() {
 		},
 	}); err != nil {
 		globalApplication.error("systray error: failed to emit layout updated signal: %w", err)
-		fmt.Printf("[systray-linux] refresh() ERROR emitting signal: %v\n", err)
-	} else {
-		fmt.Println("[systray-linux] refresh() — LayoutUpdated emitted OK")
 	}
 }
 
 func (s *linuxSystemTray) setMenu(menu *Menu) {
-	fmt.Printf("[systray-linux] setMenu() called, menu_nil=%v\n", menu == nil)
 	s.itemMap = map[int32]*systrayMenuItem{}
 	s.itemMap[0] = &systrayMenuItem{
 		menuItem: nil,
@@ -224,13 +210,6 @@ func (s *linuxSystemTray) setMenu(menu *Menu) {
 		s.processMenu(menu, 0)
 	}
 	s.menu = menu
-	// Count items registered.
-	rootItem := s.itemMap[0]
-	childCount := 0
-	if rootItem != nil && rootItem.dbusItem != nil {
-		childCount = len(rootItem.dbusItem.V2)
-	}
-	fmt.Printf("[systray-linux] setMenu() done: %d items in itemMap, %d root children\n", len(s.itemMap), childCount)
 	s.refresh()
 }
 
@@ -305,61 +284,38 @@ func (s *linuxSystemTray) bounds() (*Rect, error) {
 }
 
 func (s *linuxSystemTray) run() {
-	fmt.Println("[systray-linux] run() called — connecting to DBus session bus...")
 	conn, err := dbus.SessionBus()
 	if err != nil {
 		globalApplication.error("systray error: failed to connect to DBus: %w\n", err)
-		fmt.Printf("[systray-linux] FATAL: DBus connection failed: %v\n", err)
 		return
 	}
-	fmt.Println("[systray-linux] DBus session bus connected OK")
-
-	fmt.Println("[systray-linux] Exporting StatusNotifierItem at", itemPath)
 	err = notifier.ExportStatusNotifierItem(conn, itemPath, s)
 	if err != nil {
 		globalApplication.error("systray error: failed to export status notifier item: %w\n", err)
-		fmt.Printf("[systray-linux] ERROR: ExportStatusNotifierItem failed: %v\n", err)
-	} else {
-		fmt.Println("[systray-linux] StatusNotifierItem exported OK")
 	}
 
-	fmt.Println("[systray-linux] Exporting DBusMenu at", menuPath)
 	err = menu.ExportDbusmenu(conn, menuPath, s)
 	if err != nil {
 		globalApplication.error("systray error: failed to export status notifier menu: %w", err)
-		fmt.Printf("[systray-linux] FATAL: ExportDbusmenu failed: %v\n", err)
 		return
 	}
-	fmt.Println("[systray-linux] DBusMenu exported OK")
 
 	name := fmt.Sprintf("org.kde.StatusNotifierItem-%d-1", os.Getpid()) // register id 1 for this process
-	fmt.Printf("[systray-linux] Requesting DBus name: %s\n", name)
 	_, err = conn.RequestName(name, dbus.NameFlagDoNotQueue)
 	if err != nil {
 		globalApplication.error("systray error: failed to request name: %w", err)
-		fmt.Printf("[systray-linux] WARN: RequestName failed (non-critical): %v\n", err)
 		// it's not critical error: continue
-	} else {
-		fmt.Printf("[systray-linux] DBus name acquired: %s\n", name)
 	}
-
-	fmt.Println("[systray-linux] Exporting item properties...")
 	props, err := prop.Export(conn, itemPath, s.createPropSpec())
 	if err != nil {
 		globalApplication.error("systray error: failed to export notifier item properties to bus: %w", err)
-		fmt.Printf("[systray-linux] FATAL: item prop export failed: %v\n", err)
 		return
 	}
-	fmt.Println("[systray-linux] Item properties exported OK")
-
-	fmt.Println("[systray-linux] Exporting menu properties...")
 	menuProps, err := prop.Export(conn, menuPath, s.createMenuPropSpec())
 	if err != nil {
 		globalApplication.error("systray error: failed to export notifier menu properties to bus: %w", err)
-		fmt.Printf("[systray-linux] FATAL: menu prop export failed: %v\n", err)
 		return
 	}
-	fmt.Println("[systray-linux] Menu properties exported OK")
 
 	s.conn = conn
 	s.props = props
@@ -393,21 +349,6 @@ func (s *linuxSystemTray) run() {
 		return
 	}
 	s.setLabel(s.label)
-
-	// GhostType patch: populate menu and labels BEFORE registering with DBus.
-	// The original code called register() in a goroutine first, then setMenu()
-	// after. This caused a race: GNOME's appindicator extension queries the
-	// menu immediately after registration, and if setMenu() hasn't populated
-	// the items yet, the extension sees an empty menu and never shows it.
-	if s.parent.label != "" {
-		s.setLabel(s.parent.label)
-	}
-
-	if s.parent.tooltip != "" {
-		s.setTooltip(s.parent.tooltip)
-	}
-	s.setMenu(s.menu)
-
 	go func() {
 		defer handlePanic()
 		s.register()
@@ -442,6 +383,15 @@ func (s *linuxSystemTray) run() {
 			}
 		}
 	}()
+
+	if s.parent.label != "" {
+		s.setLabel(s.parent.label)
+	}
+
+	if s.parent.tooltip != "" {
+		s.setTooltip(s.parent.tooltip)
+	}
+	s.setMenu(s.menu)
 }
 
 func (s *linuxSystemTray) setTooltip(_ string) {
@@ -611,7 +561,7 @@ func (s *linuxSystemTray) createPropSpec() map[string]map[string]*prop.Prop {
 			Callback: nil,
 		},
 		"ItemIsMenu": {
-			Value:    true,
+			Value:    false,
 			Writable: false,
 			Emit:     prop.EmitTrue,
 			Callback: nil,
@@ -656,16 +606,13 @@ func (s *linuxSystemTray) update(i *systrayMenuItem) {
 }
 
 func (s *linuxSystemTray) register() bool {
-	fmt.Println("[systray-linux] register() — calling RegisterStatusNotifierItem on DBus...")
 	obj := s.conn.Object("org.kde.StatusNotifierWatcher", "/StatusNotifierWatcher")
 	call := obj.Call("org.kde.StatusNotifierWatcher.RegisterStatusNotifierItem", 0, itemPath)
 	if call.Err != nil {
 		globalApplication.error("systray error: failed to register: %w", call.Err)
-		fmt.Printf("[systray-linux] register() FAILED: %v\n", call.Err)
 		return false
 	}
 
-	fmt.Println("[systray-linux] register() SUCCESS — tray icon registered with StatusNotifierWatcher")
 	return true
 }
 
@@ -779,17 +726,13 @@ func (s *linuxSystemTray) GetGroupProperties(ids []int32, propertyNames []string
 func (s *linuxSystemTray) GetLayout(parentID int32, recursionDepth int32, propertyNames []string) (revision uint32, layout dbusMenu, err *dbus.Error) {
 	// FIXME: RLock?
 	if m, ok := s.itemMap[parentID]; ok {
-		childCount := len(m.dbusItem.V2)
-		fmt.Printf("[systray-linux] GetLayout(parentID=%d) → rev=%d, children=%d\n", parentID, s.menuVersion, childCount)
 		return s.menuVersion, *m.dbusItem, nil
 	}
 
-	fmt.Printf("[systray-linux] GetLayout(parentID=%d) → NOT FOUND in itemMap (len=%d)\n", parentID, len(s.itemMap))
 	return
 }
 
 func (s *linuxSystemTray) Activate(x int32, y int32) (err *dbus.Error) {
-	fmt.Printf("[systray-linux] Activate(x=%d, y=%d) — left-click on tray icon, clickHandler=%v\n", x, y, s.parent.clickHandler != nil)
 	s.lastClickX = int(x)
 	s.lastClickY = int(y)
 	globalApplication.debug("systray Activate called", "x", x, "y", y)
@@ -800,7 +743,6 @@ func (s *linuxSystemTray) Activate(x int32, y int32) (err *dbus.Error) {
 }
 
 func (s *linuxSystemTray) ContextMenu(x int32, y int32) (err *dbus.Error) {
-	fmt.Printf("[systray-linux] ContextMenu(x=%d, y=%d) — right-click on tray icon\n", x, y)
 	s.lastClickX = int(x)
 	s.lastClickY = int(y)
 	return nil
