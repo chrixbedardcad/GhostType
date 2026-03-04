@@ -1,0 +1,156 @@
+time=2026-03-03T23:36:03.540-05:00 level=INFO msg="GhostType starting" version=0.1.81 default_llm=default llm_providers=1
+time=2026-03-03T23:36:03.540-05:00 level=INFO msg="First-launch check" needs_setup=true providers=1 default_llm=default
+time=2026-03-03T23:36:03.540-05:00 level=INFO msg="Opening first-launch settings GUI (this creates a Wails app)"
+time=2026-03-03T23:36:03.540-05:00 level=INFO msg="[GUI] ShowSettingsBlocking called, configPath=C:\\Users\\ghost\\Downloads\\config.json"
+time=2026-03-03T23:36:03.540-05:00 level=INFO msg="[GUI] showStandaloneWindow entered"
+time=2026-03-03T23:36:03.540-05:00 level=INFO msg="[GUI] Creating standalone Wails app for first-launch settings..."
+time=2026-03-03T23:36:03.544-05:00 level=INFO msg="[GUI] Standalone Wails app created, calling Run (blocks until window closes)..."
+time=2026-03-03T23:36:03.552-05:00 level=INFO msg="[WebView2] Environment created successfully"
+time=2026-03-03T23:36:04.190-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-03T23:36:04.204-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-03T23:36:09.127-05:00 level=INFO msg="[GUI] JS called: DeleteProvider(default)"
+time=2026-03-03T23:36:09.134-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-03T23:36:09.883-05:00 level=INFO msg="[GUI] JS called: GetKnownModels(anthropic)"
+time=2026-03-03T23:36:12.359-05:00 level=INFO msg="[GUI] JS called: OllamaStatus()"
+time=2026-03-03T23:36:14.892-05:00 level=INFO msg="[GUI] JS called: SaveProvider(ollama-qwen3-4b, ollama)"
+time=2026-03-03T23:36:14.893-05:00 level=INFO msg="[GUI] Provider saved: label=ollama-qwen3-4b provider=ollama"
+time=2026-03-03T23:36:14.904-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-03T23:36:17.037-05:00 level=INFO msg="[GUI] Wails app.Run completed without error"
+time=2026-03-03T23:36:17.037-05:00 level=INFO msg="[GUI] Calling ResetGlobal() to clear Wails singleton..."
+time=2026-03-03T23:36:17.037-05:00 level=INFO msg="[GUI] ResetGlobal() done (globalApplication should be nil now: true)"
+time=2026-03-03T23:36:17.038-05:00 level=INFO msg="[GUI] Run returned, window closed"
+time=2026-03-03T23:36:17.038-05:00 level=INFO msg="Settings GUI closed, checking if setup still needed"
+time=2026-03-03T23:36:17.040-05:00 level=INFO msg="Config reloaded after first-launch setup" providers=1 default_llm=ollama-qwen3-4b
+time=2026-03-03T23:36:17.040-05:00 level=INFO msg="[ollama] newOllamaFromDef" model=qwen3:4b raw_endpoint="" timeout_ms=120000
+time=2026-03-03T23:36:17.066-05:00 level=INFO msg="GhostType ready" version=0.1.81 active_mode=correct hotkey_action=Ctrl+G
+time=2026-03-03T23:36:17.069-05:00 level=INFO msg="[tray] Start() called" os=windows icon_bytes=194169 target_labels=1 template_names=5
+time=2026-03-03T23:36:17.069-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-03T23:36:17.069-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-03T23:36:17.069-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-03T23:36:17.069-05:00 level=INFO msg="[tray] Icon set" bytes=194169
+time=2026-03-03T23:36:17.069-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-03T23:36:17.069-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-03T23:36:17.069-05:00 level=INFO msg="[tray] Starting Wails app.Run() in goroutine..."
+time=2026-03-03T23:36:17.069-05:00 level=INFO msg="[tray] Start() complete — tray is running"
+time=2026-03-03T23:36:17.069-05:00 level=INFO msg="[tray] goroutine: calling app.Run()"
+time=2026-03-03T23:36:21.205-05:00 level=INFO msg="GhostType starting" version=0.1.81 default_llm=ollama-qwen3-4b llm_providers=1
+time=2026-03-03T23:36:21.206-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=ollama-qwen3-4b
+time=2026-03-03T23:36:21.206-05:00 level=INFO msg="[ollama] newOllamaFromDef" model=qwen3:4b raw_endpoint="" timeout_ms=120000
+time=2026-03-03T23:36:21.233-05:00 level=INFO msg="GhostType ready" version=0.1.81 active_mode=correct hotkey_action=Ctrl+G
+time=2026-03-03T23:36:21.236-05:00 level=INFO msg="[tray] Start() called" os=windows icon_bytes=194169 target_labels=1 template_names=5
+time=2026-03-03T23:36:21.239-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-03T23:36:21.242-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-03T23:36:21.242-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-03T23:36:21.242-05:00 level=INFO msg="[tray] Icon set" bytes=194169
+time=2026-03-03T23:36:21.242-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-03T23:36:21.242-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-03T23:36:21.242-05:00 level=INFO msg="[tray] Starting Wails app.Run() in goroutine..."
+time=2026-03-03T23:36:21.242-05:00 level=INFO msg="[tray] Start() complete — tray is running"
+time=2026-03-03T23:36:21.242-05:00 level=INFO msg="[tray] goroutine: calling app.Run()"
+time=2026-03-03T23:36:23.990-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-03T23:36:27.238-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-03T23:36:38.074-05:00 level=INFO msg="Correction triggered"
+time=2026-03-03T23:36:38.241-05:00 level=INFO msg="Selection detected" mode=Correction len=28
+time=2026-03-03T23:36:38.241-05:00 level=INFO msg="Captured text" mode=Correction len=28 selection=true text="thi is a test for helo world"
+time=2026-03-03T23:36:38.241-05:00 level=INFO msg="[ollama] sending request" model=qwen3:4b endpoint=http://localhost:11434/api/generate body_len=322
+time=2026-03-03T23:37:00.481-05:00 level=INFO msg="[ollama] response received" status=200 elapsed=22.2400313s
+time=2026-03-03T23:37:00.482-05:00 level=ERROR msg="LLM processing failed" mode=Correction error="LLM request failed: empty response from Ollama"
+time=2026-03-03T23:37:07.109-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-03T23:37:08.857-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-03T23:37:08.857-05:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-03T23:37:08.862-05:00 level=INFO msg="[WebView2] Environment created successfully"
+time=2026-03-03T23:37:09.184-05:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-03T23:37:09.332-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-03T23:37:09.341-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-03T23:37:14.587-05:00 level=INFO msg="[GUI] JS called: OllamaStatus()"
+time=2026-03-03T23:39:20.739-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-03T23:39:22.252-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-03T23:39:22.252-05:00 level=INFO msg="[GUI] ShowSettings: window already open, skipping"
+time=2026-03-03T23:39:31.824-05:00 level=INFO msg="[GUI] JS called: OllamaStatus()"
+time=2026-03-03T23:39:41.501-05:00 level=INFO msg="[GUI] JS called: SaveProvider(ollama-qwen3-4b, ollama)"
+time=2026-03-03T23:39:42.876-05:00 level=INFO msg="Live config reloaded after settings save"
+time=2026-03-03T23:39:42.882-05:00 level=INFO msg="[GUI] Provider saved: label=ollama-qwen3-4b provider=ollama"
+time=2026-03-03T23:39:43.408-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-03T23:39:46.181-05:00 level=INFO msg="[GUI] Settings window closing event received"
+time=2026-03-03T23:39:49.499-05:00 level=INFO msg="[tray] Wails app.Run() returned successfully"
+time=2026-03-03T23:40:05.770-05:00 level=INFO msg="GhostType starting" version=0.1.81 default_llm=ollama-qwen3-4b llm_providers=1
+time=2026-03-03T23:40:05.771-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=ollama-qwen3-4b
+time=2026-03-03T23:40:05.772-05:00 level=INFO msg="[ollama] newOllamaFromDef" model=Mistral:latest raw_endpoint="" timeout_ms=120000
+time=2026-03-03T23:40:05.794-05:00 level=INFO msg="GhostType ready" version=0.1.81 active_mode=correct hotkey_action=Ctrl+G
+time=2026-03-03T23:40:05.804-05:00 level=INFO msg="[tray] Start() called" os=windows icon_bytes=194169 target_labels=1 template_names=5
+time=2026-03-03T23:40:05.804-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-03T23:40:05.804-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-03T23:40:05.804-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-03T23:40:05.808-05:00 level=INFO msg="[tray] Icon set" bytes=194169
+time=2026-03-03T23:40:05.808-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-03T23:40:05.808-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-03T23:40:05.808-05:00 level=INFO msg="[tray] Starting Wails app.Run() in goroutine..."
+time=2026-03-03T23:40:05.808-05:00 level=INFO msg="[tray] Start() complete — tray is running"
+time=2026-03-03T23:40:05.808-05:00 level=INFO msg="[tray] goroutine: calling app.Run()"
+time=2026-03-03T23:40:09.144-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-03T23:40:12.579-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-03T23:40:12.580-05:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-03T23:40:12.592-05:00 level=INFO msg="[WebView2] Environment created successfully"
+time=2026-03-03T23:40:13.088-05:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-03T23:40:13.327-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-03T23:40:13.339-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-03T23:40:16.121-05:00 level=INFO msg="[GUI] JS called: OllamaStatus()"
+time=2026-03-03T23:40:21.003-05:00 level=INFO msg="[GUI] JS called: SaveProvider(ollama-qwen3-4b, ollama)"
+time=2026-03-03T23:40:21.006-05:00 level=INFO msg="Live config reloaded after settings save"
+time=2026-03-03T23:40:21.007-05:00 level=INFO msg="[GUI] Provider saved: label=ollama-qwen3-4b provider=ollama"
+time=2026-03-03T23:40:21.012-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-03T23:40:22.901-05:00 level=INFO msg="[GUI] JS called: OllamaStatus()"
+time=2026-03-03T23:40:32.104-05:00 level=INFO msg="[GUI] JS called: SaveProvider(Mistral, ollama)"
+time=2026-03-03T23:40:32.106-05:00 level=INFO msg="Live config reloaded after settings save"
+time=2026-03-03T23:40:32.106-05:00 level=INFO msg="[GUI] Provider saved: label=Mistral provider=ollama"
+time=2026-03-03T23:40:32.125-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-03T23:40:33.975-05:00 level=INFO msg="[GUI] Settings window closing event received"
+time=2026-03-03T23:40:34.045-05:00 level=INFO msg="[tray] Wails app.Run() returned successfully"
+time=2026-03-03T23:40:40.856-05:00 level=INFO msg="GhostType starting" version=0.1.81 default_llm=Mistral llm_providers=1
+time=2026-03-03T23:40:40.856-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=Mistral
+time=2026-03-03T23:40:40.856-05:00 level=INFO msg="[ollama] newOllamaFromDef" model=Mistral:latest raw_endpoint="" timeout_ms=120000
+time=2026-03-03T23:40:40.865-05:00 level=INFO msg="GhostType ready" version=0.1.81 active_mode=correct hotkey_action=Ctrl+G
+time=2026-03-03T23:40:40.869-05:00 level=INFO msg="[tray] Start() called" os=windows icon_bytes=194169 target_labels=1 template_names=5
+time=2026-03-03T23:40:40.869-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-03T23:40:40.869-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-03T23:40:40.869-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-03T23:40:40.870-05:00 level=INFO msg="[tray] Icon set" bytes=194169
+time=2026-03-03T23:40:40.870-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-03T23:40:40.871-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-03T23:40:40.871-05:00 level=INFO msg="[tray] Starting Wails app.Run() in goroutine..."
+time=2026-03-03T23:40:40.871-05:00 level=INFO msg="[tray] Start() complete — tray is running"
+time=2026-03-03T23:40:40.871-05:00 level=INFO msg="[tray] goroutine: calling app.Run()"
+time=2026-03-03T23:40:40.872-05:00 level=ERROR msg="RegisterHotKey failed" name=action key=Ctrl+G id=1 mod=0x2 vk=0x47 error="Hot key is already registered."
+time=2026-03-03T23:40:40.873-05:00 level=ERROR msg="Failed to register action hotkey" key=Ctrl+G error="failed to register hotkey 'Ctrl+G' (id=1)"
+time=2026-03-03T23:40:44.012-05:00 level=INFO msg="GhostType starting" version=0.1.81 default_llm=Mistral llm_providers=1
+time=2026-03-03T23:40:44.012-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=Mistral
+time=2026-03-03T23:40:44.012-05:00 level=INFO msg="[ollama] newOllamaFromDef" model=Mistral:latest raw_endpoint="" timeout_ms=120000
+time=2026-03-03T23:40:44.014-05:00 level=INFO msg="GhostType ready" version=0.1.81 active_mode=correct hotkey_action=Ctrl+G
+time=2026-03-03T23:40:44.014-05:00 level=INFO msg="[tray] Start() called" os=windows icon_bytes=194169 target_labels=1 template_names=5
+time=2026-03-03T23:40:44.014-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-03T23:40:44.014-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-03T23:40:44.014-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-03T23:40:44.014-05:00 level=INFO msg="[tray] Icon set" bytes=194169
+time=2026-03-03T23:40:44.014-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-03T23:40:44.014-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-03T23:40:44.014-05:00 level=INFO msg="[tray] Starting Wails app.Run() in goroutine..."
+time=2026-03-03T23:40:44.014-05:00 level=INFO msg="[tray] Start() complete — tray is running"
+time=2026-03-03T23:40:44.014-05:00 level=INFO msg="[tray] goroutine: calling app.Run()"
+time=2026-03-03T23:40:44.014-05:00 level=ERROR msg="RegisterHotKey failed" name=action key=Ctrl+G id=1 mod=0x2 vk=0x47 error="Hot key is already registered."
+time=2026-03-03T23:40:44.014-05:00 level=ERROR msg="Failed to register action hotkey" key=Ctrl+G error="failed to register hotkey 'Ctrl+G' (id=1)"
+time=2026-03-03T23:40:47.612-05:00 level=INFO msg="GhostType starting" version=0.1.81 default_llm=Mistral llm_providers=1
+time=2026-03-03T23:40:47.612-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=Mistral
+time=2026-03-03T23:40:47.612-05:00 level=INFO msg="[ollama] newOllamaFromDef" model=Mistral:latest raw_endpoint="" timeout_ms=120000
+time=2026-03-03T23:40:47.620-05:00 level=INFO msg="GhostType ready" version=0.1.81 active_mode=correct hotkey_action=Ctrl+G
+time=2026-03-03T23:40:47.626-05:00 level=INFO msg="[tray] Start() called" os=windows icon_bytes=194169 target_labels=1 template_names=5
+time=2026-03-03T23:40:47.626-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-03T23:40:47.626-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-03T23:40:47.626-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-03T23:40:47.626-05:00 level=INFO msg="[tray] Icon set" bytes=194169
+time=2026-03-03T23:40:47.626-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-03T23:40:47.627-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-03T23:40:47.627-05:00 level=INFO msg="[tray] Starting Wails app.Run() in goroutine..."
+time=2026-03-03T23:40:47.627-05:00 level=INFO msg="[tray] Start() complete — tray is running"
+time=2026-03-03T23:40:47.628-05:00 level=INFO msg="[tray] goroutine: calling app.Run()"
+time=2026-03-03T23:40:47.628-05:00 level=ERROR msg="RegisterHotKey failed" name=action key=Ctrl+G id=1 mod=0x2 vk=0x47 error="Hot key is already registered."
+time=2026-03-03T23:40:47.628-05:00 level=ERROR msg="Failed to register action hotkey" key=Ctrl+G error="failed to register hotkey 'Ctrl+G' (id=1)"
