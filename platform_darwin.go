@@ -3,6 +3,7 @@
 package main
 
 import (
+	"os"
 	"time"
 
 	"github.com/chrixbedardcad/GhostType/clipboard"
@@ -21,7 +22,9 @@ func startMainLoop(trayRun func() error, registerHotkeys func() error, hk hotkey
 	go func() {
 		// Give Cocoa event loop time to start processing the main dispatch queue.
 		time.Sleep(500 * time.Millisecond)
-		registerHotkeys()
+		if err := registerHotkeys(); err != nil {
+			os.Exit(1)
+		}
 		hk.Listen()
 	}()
 	// Cocoa event loop on main thread — blocks until app quits.

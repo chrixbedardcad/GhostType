@@ -3,6 +3,9 @@
 package main
 
 import (
+	"os"
+	"runtime"
+
 	"github.com/chrixbedardcad/GhostType/clipboard"
 	"github.com/chrixbedardcad/GhostType/hotkey"
 	"github.com/chrixbedardcad/GhostType/keyboard"
@@ -16,7 +19,14 @@ func newHotkeyManager() hotkey.Manager    { return hotkey.NewXPlatManager() }
 // the wizard window can render if needed), then registers hotkeys (which may
 // block waiting for the wizard to complete), then blocks on the hotkey listener.
 func startMainLoop(trayRun func() error, registerHotkeys func() error, hk hotkey.Manager) {
-	go func() { trayRun() }()
-	registerHotkeys()
+	go func() {
+		// LockOSThread keeps GTK's g_application_run on a single OS thread
+		// for the lifetime of the event loop (matches old tray.Start behaviour).
+		runtime.LockOSThread()
+		trayRun()
+	}()
+	if err := registerHotkeys(); err != nil {
+		os.Exit(1)
+	}
 	hk.Listen()
 }
