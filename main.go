@@ -134,14 +134,15 @@ func main() {
 
 	var router *mode.Router
 	if !needsSetup {
-		// Validate the config now that we know it has a provider.
+		// Validate the config — if invalid, fall back to the wizard instead of crashing.
 		if err := config.Validate(cfg); err != nil {
-			logStartupError(filepath.Dir(configPath), "Config validation failed", err)
-			fmt.Fprintf(os.Stderr, "Error: config validation failed: %v\n", err)
-			os.Exit(1)
+			slog.Warn("Config invalid, will show setup wizard", "error", err)
+			fmt.Fprintf(os.Stderr, "Config invalid: %v — opening setup wizard\n", err)
+			needsSetup = true
 		}
-
-		// Initialize LLM client
+	}
+	if !needsSetup {
+		// Initialize LLM client — if it fails, fall back to the wizard.
 		var client llm.Client
 		if cfg.DefaultLLM != "" {
 			def := cfg.LLMProviders[cfg.DefaultLLM]
@@ -150,21 +151,18 @@ func main() {
 			client, err = llm.NewClient(cfg)
 		}
 		if err != nil {
-			logStartupError(filepath.Dir(configPath), "Failed to initialize LLM client", err)
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
+			slog.Warn("LLM init failed, will show setup wizard", "error", err)
+			fmt.Fprintf(os.Stderr, "LLM init failed: %v — opening setup wizard\n", err)
+			needsSetup = true
+		} else {
+			router = mode.NewRouter(cfg, client)
+			sound.Init(*cfg.SoundEnabled)
+			sound.PlayStart()
+			printStatus(cfg, client, router)
 		}
-
-		// Initialize mode router
-		router = mode.NewRouter(cfg, client)
-
-		// Initialize sound system and play startup sound.
-		sound.Init(*cfg.SoundEnabled)
-		sound.PlayStart()
-
-		printStatus(cfg, client, router)
-	} else {
-		fmt.Println("No API key configured — wizard will open...")
+	}
+	if needsSetup {
+		fmt.Println("Setup needed — wizard will open...")
 	}
 
 	slog.Info("GhostType launching",

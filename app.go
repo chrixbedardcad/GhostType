@@ -298,9 +298,6 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 			}
 		},
 		OnSettings: func() {
-			if router == nil {
-				return
-			}
 			gui.ShowSettings(settingsSvc, cfg, configPath, func() {
 				// Reload config from disk after settings save.
 				newCfg, err := config.LoadRaw(configPath)
@@ -311,7 +308,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				mu.Lock()
 				*cfg = *newCfg
 				mu.Unlock()
-				router.ResetClients()
+				if router != nil {
+					router.ResetClients()
+				}
 				slog.Info("Live config reloaded after settings save")
 			})
 		},

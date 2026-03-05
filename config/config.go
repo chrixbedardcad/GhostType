@@ -97,9 +97,9 @@ func boolPtr(v bool) *bool { return &v }
 // DefaultConfig returns a Config populated with default values.
 func DefaultConfig() Config {
 	return Config{
-		LLMProvider: "anthropic",
+		LLMProvider: "",
 		APIKey:      "",
-		Model:       "claude-sonnet-4-6",
+		Model:       "",
 		APIEndpoint: "",
 		Languages:   []string{"en", "fr"},
 		LanguageNames: map[string]string{
