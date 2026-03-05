@@ -465,8 +465,14 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	// client and router are ready.
 	registerHotkeys := func() error {
 		// Wait for the event loop to be ready — required on macOS where the
-		// Carbon hotkey API dispatches to the main queue.
-		<-appReady
+		// Carbon hotkey API dispatches to the main queue. Timeout is a safety
+		// net in case the Wails event never fires.
+		select {
+		case <-appReady:
+			slog.Debug("Event loop ready (ApplicationStarted)")
+		case <-time.After(5 * time.Second):
+			slog.Warn("ApplicationStarted event not received within 5s, proceeding anyway")
+		}
 		<-wizardDone
 
 		fmt.Println("GhostType is ready. Waiting for hotkey input...")
