@@ -86,11 +86,16 @@ install_macos() {
 
     rm -rf "$tmpdir"
 
-    ok ""
-    ok "GhostType ${version} installed to /Applications/GhostType.app"
-    ok ""
-    info "To launch:"
-    echo "  open /Applications/GhostType.app"
+    echo ""
+    echo "============================================"
+    ok "  GhostType ${version} installed successfully!"
+    echo "============================================"
+    echo ""
+    info "Launching GhostType..."
+    open /Applications/GhostType.app
+    echo ""
+    echo "  GhostType is running in your menu bar (top right)."
+    echo "  Look for the GhostType icon — there is no app window."
     echo ""
     info "On first launch, macOS will ask for permissions:"
     echo "  - Accessibility (System Settings > Privacy & Security > Accessibility)"
@@ -128,9 +133,11 @@ install_linux() {
 
     rm -rf "$tmpdir"
 
-    ok ""
-    ok "GhostType ${version} installed to ${INSTALL_DIR}/ghosttype"
-    ok ""
+    echo ""
+    echo "============================================"
+    ok "  GhostType ${version} installed successfully!"
+    echo "============================================"
+    echo ""
 
     # Check for required system dependencies.
     local missing=()
