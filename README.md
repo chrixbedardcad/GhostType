@@ -459,6 +459,26 @@ go test ./...
 
 ## Uninstall
 
+### Quick Uninstall
+
+Stops GhostType, removes the binary, and deletes all config/log files.
+
+**macOS / Linux:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/chrixbedardcad/GhostType/main/scripts/uninstall.sh | bash
+```
+
+**Windows:**
+
+```cmd
+powershell -c "irm https://raw.githubusercontent.com/chrixbedardcad/GhostType/main/scripts/uninstall.ps1 | iex"
+```
+
+### Manual Uninstall
+
+If you prefer to do it yourself:
+
 **macOS:**
 ```bash
 rm -rf /Applications/GhostType.app
@@ -477,7 +497,7 @@ Remove-Item -Recurse -Force "$env:LOCALAPPDATA\GhostType"
 Remove-Item -Recurse -Force "$env:APPDATA\GhostType"
 ```
 
-This removes the app binary and all config/log files. Your settings are gone after this — back up `config.json` first if you want to keep them.
+> Back up `config.json` first if you want to keep your settings.
 
 ---
 
