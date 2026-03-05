@@ -67,10 +67,10 @@ type Overlay struct {
 
 // Config is the top-level configuration for GhostType.
 type Config struct {
-	LLMProvider            string            `json:"llm_provider"`
-	APIKey                 string            `json:"api_key"`
-	Model                  string            `json:"model"`
-	APIEndpoint            string                     `json:"api_endpoint"`
+	LLMProvider            string            `json:"llm_provider,omitempty"`
+	APIKey                 string            `json:"api_key,omitempty"`
+	Model                  string            `json:"model,omitempty"`
+	APIEndpoint            string                     `json:"api_endpoint,omitempty"`
 	LLMProviders           map[string]LLMProviderDef  `json:"llm_providers,omitempty"`
 	DefaultLLM             string                     `json:"default_llm,omitempty"`
 	CorrectLLM             string                     `json:"correct_llm,omitempty"`

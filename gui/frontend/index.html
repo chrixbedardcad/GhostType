@@ -185,6 +185,7 @@
       <div class="form-group" id="form-apikey-group">
         <label for="form-apikey">API Key</label>
         <input type="password" id="form-apikey" placeholder="sk-...">
+        <a href="#" id="form-apikey-link" onclick="openApiKeyPage(); return false;" style="font-size:0.8em;color:#89b4fa;margin-top:4px;display:inline-block">Get API Key &rarr;</a>
       </div>
 
       <!-- Ollama inline panel (shown when provider = ollama) -->
@@ -402,6 +403,12 @@ function onFormProviderChange() {
   document.getElementById('form-endpoint-group').style.display = isOllama ? 'block' : 'none';
   document.getElementById('ollama-panel').style.display = isOllama ? 'block' : 'none';
   document.getElementById('form-model-group').style.display = isOllama ? 'none' : 'block';
+  // Update "Get API Key" link text for the selected provider.
+  const keyLink = document.getElementById('form-apikey-link');
+  if (keyLink) {
+    const url = PROVIDER_KEY_URLS[provider];
+    keyLink.style.display = url ? 'inline-block' : 'none';
+  }
   if (!isOllama) {
     loadModels('form-model', provider);
   } else {
@@ -489,6 +496,20 @@ async function loadModels(selectId, provider) {
       }
     }
   };
+}
+
+// ---- API Key URLs ----
+const PROVIDER_KEY_URLS = {
+  anthropic: 'https://console.anthropic.com/settings/keys',
+  openai:    'https://platform.openai.com/api-keys',
+  gemini:    'https://aistudio.google.com/apikey',
+  xai:       'https://console.x.ai/',
+};
+
+function openApiKeyPage() {
+  const provider = document.getElementById('form-provider').value;
+  const url = PROVIDER_KEY_URLS[provider];
+  if (url) wails.Browser.OpenURL(url);
 }
 
 // ---- Helpers ----
