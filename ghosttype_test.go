@@ -233,14 +233,15 @@ func TestConfigLoadAndCreateDefault(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.json")
 
-	// Load should create a default
-	cfg, err := config.Load(path)
+	// LoadRaw should create a default (Load would fail validation since no provider is configured).
+	cfg, err := config.LoadRaw(path)
 	if err != nil {
 		t.Fatalf("Failed to load/create config: %v", err)
 	}
 
-	if cfg.LLMProvider != "anthropic" {
-		t.Errorf("Expected default provider 'anthropic', got '%s'", cfg.LLMProvider)
+	// Default config has empty flat fields — wizard populates llm_providers.
+	if cfg.ActiveMode != "correct" {
+		t.Errorf("Expected default active_mode 'correct', got '%s'", cfg.ActiveMode)
 	}
 
 	// Verify the file was created and can be read
@@ -254,8 +255,8 @@ func TestConfigLoadAndCreateDefault(t *testing.T) {
 		t.Fatalf("Created config is invalid JSON: %v", err)
 	}
 
-	if reloaded.Model != "claude-sonnet-4-6" {
-		t.Errorf("Expected default model in file, got '%s'", reloaded.Model)
+	if reloaded.Hotkeys.Correct != "Ctrl+G" {
+		t.Errorf("Expected default hotkey 'Ctrl+G' in file, got '%s'", reloaded.Hotkeys.Correct)
 	}
 }
 

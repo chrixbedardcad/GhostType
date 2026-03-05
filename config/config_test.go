@@ -10,11 +10,12 @@ import (
 func TestDefaultConfig(t *testing.T) {
 	cfg := DefaultConfig()
 
-	if cfg.LLMProvider != "anthropic" {
-		t.Errorf("expected default provider 'anthropic', got '%s'", cfg.LLMProvider)
+	// Legacy flat fields are empty — providers are configured via llm_providers map.
+	if cfg.LLMProvider != "" {
+		t.Errorf("expected default provider empty (wizard handles setup), got '%s'", cfg.LLMProvider)
 	}
-	if cfg.Model != "claude-sonnet-4-6" {
-		t.Errorf("expected default model 'claude-sonnet-4-6', got '%s'", cfg.Model)
+	if cfg.Model != "" {
+		t.Errorf("expected default model empty (wizard handles setup), got '%s'", cfg.Model)
 	}
 	if cfg.MaxTokens != 256 {
 		t.Errorf("expected default max_tokens 256, got %d", cfg.MaxTokens)
@@ -49,13 +50,17 @@ func TestLoadCreatesDefaultWhenMissing(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.json")
 
-	cfg, err := Load(path)
+	cfg, err := LoadRaw(path)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if cfg.LLMProvider != "anthropic" {
-		t.Errorf("expected default provider, got '%s'", cfg.LLMProvider)
+	// Default config has empty flat fields — wizard sets up llm_providers.
+	if cfg.LLMProvider != "" {
+		t.Errorf("expected empty default provider, got '%s'", cfg.LLMProvider)
+	}
+	if cfg.ActiveMode != "correct" {
+		t.Errorf("expected default active_mode 'correct', got '%s'", cfg.ActiveMode)
 	}
 
 	// Verify file was created
@@ -430,8 +435,12 @@ func TestWriteDefault(t *testing.T) {
 		t.Fatalf("written file is not valid JSON: %v", err)
 	}
 
-	if loaded.LLMProvider != "anthropic" {
-		t.Errorf("expected provider 'anthropic' in written file, got '%s'", loaded.LLMProvider)
+	// Default config writes empty flat fields — wizard populates llm_providers.
+	if loaded.ActiveMode != "correct" {
+		t.Errorf("expected active_mode 'correct' in written file, got '%s'", loaded.ActiveMode)
+	}
+	if loaded.Hotkeys.Correct != "Ctrl+G" {
+		t.Errorf("expected hotkey 'Ctrl+G' in written file, got '%s'", loaded.Hotkeys.Correct)
 	}
 }
 
