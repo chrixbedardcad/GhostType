@@ -1,0 +1,108 @@
+time=2026-03-04T20:06:56.708-05:00 level=INFO msg="GhostType starting" version=0.1.87 default_llm=default llm_providers=1
+time=2026-03-04T20:06:56.709-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=default
+time=2026-03-04T20:06:56.709-05:00 level=ERROR msg="Config validation failed" error="api_key is required for provider anthropic"
+time=2026-03-04T20:07:31.003-05:00 level=INFO msg="GhostType starting" version=0.1.87 default_llm=default llm_providers=1
+time=2026-03-04T20:07:31.003-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=default
+time=2026-03-04T20:07:31.003-05:00 level=ERROR msg="Config validation failed" error="api_key is required for provider anthropic"
+time=2026-03-04T20:23:27.468-05:00 level=INFO msg="GhostType starting" version=0.1.88 default_llm=default llm_providers=1
+time=2026-03-04T20:23:27.469-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=default
+time=2026-03-04T20:23:27.469-05:00 level=WARN msg="Config invalid, will show setup wizard" error="api_key is required for provider anthropic"
+time=2026-03-04T20:23:27.469-05:00 level=INFO msg="GhostType launching" version=0.1.88 needs_setup=true
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] Start() called" os=windows icon_bytes=194169 target_labels=1 template_names=5
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] Icon set" bytes=194169
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[GUI] ShowWizardOnApp: creating wizard window on tray app"
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-04T20:23:27.487-05:00 level=INFO msg="[WebView2] Environment created successfully"
+time=2026-03-04T20:23:34.389-05:00 level=INFO msg="[GUI] JS called: GetKnownModels(gemini)"
+time=2026-03-04T20:23:45.459-05:00 level=INFO msg="[GUI] JS called: SaveProvider(gemini, gemini)"
+time=2026-03-04T20:23:45.460-05:00 level=INFO msg="Wizard: provider saved, initialising LLM client..."
+time=2026-03-04T20:23:45.467-05:00 level=ERROR msg="Config validation failed after wizard" error="llm_providers[default]: api_key is required for provider anthropic"
+time=2026-03-04T22:21:33.257-05:00 level=INFO msg="GhostType starting" version=0.1.89 default_llm=default llm_providers=2
+time=2026-03-04T22:21:33.257-05:00 level=INFO msg="First-launch check" needs_setup=false providers=2 default_llm=default
+time=2026-03-04T22:21:33.257-05:00 level=WARN msg="Config invalid, will show setup wizard" error="llm_providers[default]: api_key is required for provider anthropic"
+time=2026-03-04T22:21:33.257-05:00 level=INFO msg="GhostType launching" version=0.1.89 needs_setup=true
+time=2026-03-04T22:21:33.259-05:00 level=INFO msg="[tray] Start() called" os=windows icon_bytes=194169 target_labels=1 template_names=5
+time=2026-03-04T22:21:33.259-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-04T22:21:33.259-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-04T22:21:33.259-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-04T22:21:33.259-05:00 level=INFO msg="[tray] Icon set" bytes=194169
+time=2026-03-04T22:21:33.259-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-04T22:21:33.259-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=2 targets=1 templates=5 approx_items=8
+time=2026-03-04T22:21:33.259-05:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-04T22:21:33.259-05:00 level=INFO msg="[GUI] ShowWizardOnApp: creating wizard window on tray app"
+time=2026-03-04T22:21:33.259-05:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-04T22:21:33.276-05:00 level=INFO msg="[WebView2] Environment created successfully"
+time=2026-03-04T22:21:46.469-05:00 level=INFO msg="[GUI] JS called: GetKnownModels(gemini)"
+time=2026-03-04T22:22:27.606-05:00 level=INFO msg="[GUI] JS called: SaveProvider(gemini, gemini)"
+time=2026-03-04T22:22:27.606-05:00 level=INFO msg="Wizard: provider saved, initialising LLM client..."
+time=2026-03-04T22:22:27.608-05:00 level=ERROR msg="Config validation failed after wizard" error="llm_providers[default]: api_key is required for provider anthropic"
+time=2026-03-04T22:22:27.608-05:00 level=INFO msg="[GUI] Provider saved: label=gemini provider=gemini"
+time=2026-03-04T22:22:33.067-05:00 level=INFO msg="[GUI] JS called: CloseWindow (standalone=false)"
+time=2026-03-04T22:22:33.067-05:00 level=INFO msg="[GUI] Wizard window closing (saved=true)"
+time=2026-03-04T22:22:37.140-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=2 targets=1 templates=5 approx_items=8
+time=2026-03-04T22:23:19.109-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=2 targets=1 templates=5 approx_items=8
+time=2026-03-04T22:23:21.134-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-04T22:23:21.135-05:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-04T22:23:21.137-05:00 level=INFO msg="[WebView2] Environment created successfully"
+time=2026-03-04T22:23:21.288-05:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-04T22:23:21.355-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-04T22:23:21.358-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-04T22:23:27.846-05:00 level=INFO msg="[GUI] JS called: TestProvider(default)"
+time=2026-03-04T22:23:27.847-05:00 level=INFO msg="[GUI] TestProvider: provider=anthropic model=claude-sonnet-4-6 endpoint=\"\""
+time=2026-03-04T22:23:27.847-05:00 level=INFO msg="[GUI] TestProvider: sending test request (timeout=10s)..."
+time=2026-03-04T22:23:27.932-05:00 level=INFO msg="[GUI] TestProvider FAILED after 85.2921ms: API returned status 401: {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"x-api-key header is required\"},\"request_id\":\"req_011CYjDXiFgT6D3h6NXy3Z2j\"}"
+time=2026-03-04T22:23:29.939-05:00 level=INFO msg="[GUI] JS called: DeleteProvider(default)"
+time=2026-03-04T22:23:29.947-05:00 level=INFO msg="Live config reloaded after settings save"
+time=2026-03-04T22:23:29.949-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-04T22:23:31.124-05:00 level=INFO msg="[GUI] JS called: TestProvider(gemini)"
+time=2026-03-04T22:23:31.124-05:00 level=INFO msg="[GUI] TestProvider: provider=gemini model=gemini-2.5-pro endpoint=\"\""
+time=2026-03-04T22:23:31.124-05:00 level=INFO msg="[GUI] TestProvider: sending test request (timeout=10s)..."
+time=2026-03-04T22:23:33.419-05:00 level=INFO msg="[GUI] TestProvider OK (elapsed=2.2943889s)"
+time=2026-03-04T22:23:35.421-05:00 level=INFO msg="[GUI] Settings window closing event received"
+time=2026-03-04T22:23:37.538-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-04T22:23:48.615-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-04T22:23:49.397-05:00 level=INFO msg="Exit requested via tray menu"
+time=2026-03-04T22:23:59.931-05:00 level=INFO msg="GhostType starting" version=0.1.89 default_llm=gemini llm_providers=1
+time=2026-03-04T22:23:59.931-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=gemini
+time=2026-03-04T22:23:59.936-05:00 level=INFO msg="GhostType launching" version=0.1.89 needs_setup=false
+time=2026-03-04T22:23:59.937-05:00 level=INFO msg="[tray] Start() called" os=windows icon_bytes=194169 target_labels=1 template_names=5
+time=2026-03-04T22:23:59.937-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-04T22:23:59.937-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-04T22:23:59.937-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-04T22:23:59.937-05:00 level=INFO msg="[tray] Icon set" bytes=194169
+time=2026-03-04T22:23:59.937-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-04T22:23:59.937-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-04T22:23:59.937-05:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-04T22:23:59.937-05:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-04T22:24:03.563-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-04T22:24:25.145-05:00 level=INFO msg="Correction triggered"
+time=2026-03-04T22:24:25.485-05:00 level=INFO msg="Captured text" mode=Correction len=48 selection=false text="this is a test for a text that need to be review"
+time=2026-03-04T22:24:29.443-05:00 level=INFO msg="Correction complete" result=""
+time=2026-03-04T22:24:40.464-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-04T22:24:42.400-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-04T22:24:42.400-05:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-04T22:24:42.403-05:00 level=INFO msg="[WebView2] Environment created successfully"
+time=2026-03-04T22:24:42.557-05:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-04T22:24:42.623-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-04T22:24:42.627-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-04T22:24:44.813-05:00 level=INFO msg="[GUI] JS called: TestProvider(gemini)"
+time=2026-03-04T22:24:44.813-05:00 level=INFO msg="[GUI] TestProvider: provider=gemini model=gemini-2.5-pro endpoint=\"\""
+time=2026-03-04T22:24:44.813-05:00 level=INFO msg="[GUI] TestProvider: sending test request (timeout=10s)..."
+time=2026-03-04T22:24:47.101-05:00 level=INFO msg="[GUI] TestProvider OK (elapsed=2.2873326s)"
+time=2026-03-04T22:24:55.066-05:00 level=INFO msg="[GUI] Settings window closing event received"
+time=2026-03-04T22:24:56.895-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-04T22:24:59.710-05:00 level=INFO msg="Active mode changed" mode=rewrite
+time=2026-03-04T22:25:01.592-05:00 level=INFO msg="[tray] Menu built and set" active_mode=rewrite models=1 targets=1 templates=5 approx_items=7
+time=2026-03-04T22:25:02.583-05:00 level=INFO msg="Active mode changed" mode=correct
+time=2026-03-04T22:25:05.094-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-04T22:25:10.488-05:00 level=INFO msg="Correction triggered"
+time=2026-03-04T22:25:10.826-05:00 level=INFO msg="Captured text" mode=Correction len=48 selection=false text="this is a test for a text that need to be review"
+time=2026-03-04T22:25:13.722-05:00 level=INFO msg="Correction complete" result=""
+time=2026-03-04T22:25:24.543-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-04T22:25:25.496-05:00 level=INFO msg="Exit requested via tray menu"
