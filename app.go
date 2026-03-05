@@ -22,6 +22,7 @@ import (
 	"github.com/chrixbedardcad/GhostType/sound"
 	"github.com/chrixbedardcad/GhostType/tray"
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
 // captureText detects whether the user has an active text selection. It clears
@@ -252,6 +253,16 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		ShouldQuit: func() bool { return false },
 	})
 
+	// appReady is closed when the Wails/Cocoa/GTK event loop has started.
+	// On macOS this is critical: the Carbon hotkey API calls dispatch_sync to the
+	// main queue, which deadlocks unless the Cocoa event loop is running.
+	// Using this event-based signal replaces the fragile time.Sleep approach.
+	appReady := make(chan struct{})
+	var appReadyOnce sync.Once
+	wailsApp.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(event *application.ApplicationEvent) {
+		appReadyOnce.Do(func() { close(appReady) })
+	})
+
 	// Pre-declare so closures in trayCfg can reference these before assignment.
 	var stopTrayFn func()
 	var trayRun func() error
@@ -453,6 +464,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	// It blocks on wizardDone so hotkeys are only registered after the LLM
 	// client and router are ready.
 	registerHotkeys := func() error {
+		// Wait for the event loop to be ready — required on macOS where the
+		// Carbon hotkey API dispatches to the main queue.
+		<-appReady
 		<-wizardDone
 
 		fmt.Println("GhostType is ready. Waiting for hotkey input...")
