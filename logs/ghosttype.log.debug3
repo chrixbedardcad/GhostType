@@ -1,0 +1,25 @@
+time=2026-03-04T20:06:56.708-05:00 level=INFO msg="GhostType starting" version=0.1.87 default_llm=default llm_providers=1
+time=2026-03-04T20:06:56.709-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=default
+time=2026-03-04T20:06:56.709-05:00 level=ERROR msg="Config validation failed" error="api_key is required for provider anthropic"
+time=2026-03-04T20:07:31.003-05:00 level=INFO msg="GhostType starting" version=0.1.87 default_llm=default llm_providers=1
+time=2026-03-04T20:07:31.003-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=default
+time=2026-03-04T20:07:31.003-05:00 level=ERROR msg="Config validation failed" error="api_key is required for provider anthropic"
+time=2026-03-04T20:23:27.468-05:00 level=INFO msg="GhostType starting" version=0.1.88 default_llm=default llm_providers=1
+time=2026-03-04T20:23:27.469-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=default
+time=2026-03-04T20:23:27.469-05:00 level=WARN msg="Config invalid, will show setup wizard" error="api_key is required for provider anthropic"
+time=2026-03-04T20:23:27.469-05:00 level=INFO msg="GhostType launching" version=0.1.88 needs_setup=true
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] Start() called" os=windows icon_bytes=194169 target_labels=1 template_names=5
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] Icon set" bytes=194169
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5 approx_items=7
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[GUI] ShowWizardOnApp: creating wizard window on tray app"
+time=2026-03-04T20:23:27.470-05:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-04T20:23:27.487-05:00 level=INFO msg="[WebView2] Environment created successfully"
+time=2026-03-04T20:23:34.389-05:00 level=INFO msg="[GUI] JS called: GetKnownModels(gemini)"
+time=2026-03-04T20:23:45.459-05:00 level=INFO msg="[GUI] JS called: SaveProvider(gemini, gemini)"
+time=2026-03-04T20:23:45.460-05:00 level=INFO msg="Wizard: provider saved, initialising LLM client..."
+time=2026-03-04T20:23:45.467-05:00 level=ERROR msg="Config validation failed after wizard" error="llm_providers[default]: api_key is required for provider anthropic"
