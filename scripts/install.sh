@@ -65,24 +65,43 @@ install_macos() {
     curl -fsSL -o "${tmpdir}/${asset}" "$url" || fail "Download failed. Check your internet connection."
 
     info "Mounting disk image..."
-    local mount_point
-    mount_point=$(hdiutil attach "${tmpdir}/${asset}" -nobrowse -quiet | grep '/Volumes' | awk '{print $NF}')
+    local mount_output
+    mount_output=$(hdiutil attach "${tmpdir}/${asset}" -nobrowse 2>&1) || fail "Failed to mount DMG: ${mount_output}"
 
-    if [ -z "$mount_point" ]; then
-        # Fallback: try to find the mount point
+    # Extract mount point — grab everything after /Volumes (handles spaces in path).
+    local mount_point
+    mount_point=$(echo "$mount_output" | grep '/Volumes/' | sed 's|.*\(/Volumes/.*\)|\1|' | head -1 | xargs)
+
+    if [ -z "$mount_point" ] || [ ! -d "$mount_point" ]; then
+        # Fallback: check common mount point.
         mount_point="/Volumes/GhostType"
     fi
 
+    if [ ! -d "${mount_point}/GhostType.app" ]; then
+        hdiutil detach "$mount_point" -quiet 2>/dev/null || true
+        rm -rf "$tmpdir"
+        fail "Could not find GhostType.app in DMG (mount: ${mount_point})"
+    fi
+
     info "Installing GhostType.app to /Applications..."
-    # Remove old version if present.
-    [ -d "/Applications/GhostType.app" ] && rm -rf "/Applications/GhostType.app"
-    cp -R "${mount_point}/GhostType.app" /Applications/
+    # Remove old version if present, then copy.
+    if [ -w /Applications ] || [ ! -d /Applications/GhostType.app ]; then
+        rm -rf /Applications/GhostType.app 2>/dev/null || true
+        cp -R "${mount_point}/GhostType.app" /Applications/ || {
+            info "Need admin permission to install to /Applications..."
+            sudo cp -R "${mount_point}/GhostType.app" /Applications/
+        }
+    else
+        info "Need admin permission to install to /Applications..."
+        sudo rm -rf /Applications/GhostType.app
+        sudo cp -R "${mount_point}/GhostType.app" /Applications/
+    fi
 
     info "Unmounting disk image..."
     hdiutil detach "$mount_point" -quiet 2>/dev/null || true
 
     # Remove quarantine so Gatekeeper doesn't block the unsigned app.
-    xattr -d com.apple.quarantine /Applications/GhostType.app 2>/dev/null || true
+    xattr -dr com.apple.quarantine /Applications/GhostType.app 2>/dev/null || true
 
     rm -rf "$tmpdir"
 
