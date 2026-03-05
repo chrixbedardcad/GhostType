@@ -12,11 +12,41 @@ Type in French, hit **Ctrl+G**, get it corrected. Switch to English, hit **Ctrl+
 
 ---
 
-## Download
+## Install
 
 [![CI](https://github.com/chrixbedardcad/GhostType/actions/workflows/ci.yml/badge.svg)](https://github.com/chrixbedardcad/GhostType/actions/workflows/ci.yml)
 [![Release](https://github.com/chrixbedardcad/GhostType/actions/workflows/release.yml/badge.svg)](https://github.com/chrixbedardcad/GhostType/releases/latest)
-[![Version](https://img.shields.io/badge/version-v0.1.95-blue)](https://github.com/chrixbedardcad/GhostType/releases/latest)
+[![Version](https://img.shields.io/badge/version-v0.1.96-blue)](https://github.com/chrixbedardcad/GhostType/releases/latest)
+
+### Quick Install (recommended)
+
+Open a terminal and paste the command for your platform. It downloads the latest release, installs GhostType, and you're ready to go.
+
+**macOS / Linux:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/chrixbedardcad/GhostType/main/scripts/install.sh | bash
+```
+
+**Windows (PowerShell):**
+
+```powershell
+irm https://raw.githubusercontent.com/chrixbedardcad/GhostType/main/scripts/install.ps1 | iex
+```
+
+<details>
+<summary>What does the install script do?</summary>
+
+**macOS:** Downloads the `.dmg` for your chip (Intel or Apple Silicon), mounts it, copies `GhostType.app` to `/Applications`, and removes the Gatekeeper quarantine flag so it launches without the "unidentified developer" warning.
+
+**Linux:** Downloads the binary to `/usr/local/bin/ghosttype` and checks for required system dependencies (`xclip`, `xdotool`, `libwebkit2gtk-4.1`, `libgtk-3`). Prints install commands for any missing packages.
+
+**Windows:** Downloads both `ghosttype.exe` (with console) and `ghosttype-windowless.exe` (tray only) to `%LOCALAPPDATA%\GhostType\` and adds that directory to your user PATH.
+
+The scripts only download from official GitHub releases — you can inspect them at [`scripts/install.sh`](scripts/install.sh) and [`scripts/install.ps1`](scripts/install.ps1).
+</details>
+
+### Manual Download
 
 | Platform | Download |
 |----------|----------|
@@ -30,7 +60,7 @@ Type in French, hit **Ctrl+G**, get it corrected. Switch to English, hit **Ctrl+
 
 ## Table of Contents
 
-- [Download](#download)
+- [Install](#install)
 - [Platform Requirements](#platform-requirements)
 - [Features](#features)
 - [Quick Start](#quick-start)
@@ -42,6 +72,7 @@ Type in French, hit **Ctrl+G**, get it corrected. Switch to English, hit **Ctrl+
 - [How It Works](#how-it-works)
 - [Roadmap](#roadmap)
 - [Troubleshooting](#troubleshooting)
+- [Uninstall](#uninstall)
 - [License](#license)
 
 ---
@@ -133,9 +164,8 @@ GhostType runs as a tray-only app (no Dock icon) — look for the icon in the me
 
 ### Cloud Provider (Anthropic, OpenAI, etc.)
 
-1. **Download** the latest release for your platform from the [Releases](https://github.com/chrixbedardcad/GhostType/releases) page.
-2. **Install dependencies** (Linux only — see [Platform Requirements](#platform-requirements)).
-3. **Run** GhostType — the Settings GUI opens automatically on first launch.
+1. **Install** GhostType using the [one-liner](#quick-install-recommended) or [manual download](#manual-download).
+2. **Run** GhostType — the Settings GUI opens automatically on first launch.
 4. **Add a provider** — pick a provider from the dropdown (e.g., Anthropic), paste your API key, choose a model, click **Test**, then **Save**.
 5. **Use it** — open any application, type something, press **Ctrl+G**.
 
@@ -424,6 +454,30 @@ go test ./...
 | **Linux**: Settings GUI won't open | Install webkit2gtk: `sudo apt install libwebkit2gtk-4.1-0 libgtk-3-0` |
 | **macOS**: Hotkeys don't work | Grant Input Monitoring permission in System Settings → Privacy & Security. |
 | **macOS**: Keyboard simulation fails | Grant Accessibility permission in System Settings → Privacy & Security → Accessibility. |
+
+---
+
+## Uninstall
+
+**macOS:**
+```bash
+rm -rf /Applications/GhostType.app
+rm -rf ~/Library/Application\ Support/GhostType
+```
+
+**Linux:**
+```bash
+sudo rm /usr/local/bin/ghosttype
+rm -rf ~/.config/GhostType
+```
+
+**Windows (PowerShell):**
+```powershell
+Remove-Item -Recurse -Force "$env:LOCALAPPDATA\GhostType"
+Remove-Item -Recurse -Force "$env:APPDATA\GhostType"
+```
+
+This removes the app binary and all config/log files. Your settings are gone after this — back up `config.json` first if you want to keep them.
 
 ---
 
