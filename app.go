@@ -402,7 +402,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				if err != nil {
 					slog.Error("Failed to reload config after wizard", "error", err)
 					fmt.Fprintf(os.Stderr, "Error reloading config: %v\n", err)
-					os.Exit(1)
+					return
 				}
 				mu.Lock()
 				*cfg = *newCfg
@@ -414,7 +414,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				if err := config.Validate(cfg); err != nil {
 					slog.Error("Config validation failed after wizard", "error", err)
 					fmt.Fprintf(os.Stderr, "Config validation failed: %v\n", err)
-					os.Exit(1)
+					return
 				}
 
 				var client llm.Client
@@ -427,7 +427,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				if err != nil {
 					slog.Error("Failed to init LLM client after wizard", "error", err)
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-					os.Exit(1)
+					return
 				}
 
 				router = mode.NewRouter(cfg, client)

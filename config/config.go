@@ -269,19 +269,25 @@ func applyDefaults(cfg *Config) {
 	}
 
 	// Synthesize LLMProviders from legacy flat fields if not set.
+	// Only migrate when the legacy provider is actually usable (has an API key,
+	// or is ollama which doesn't need one). An empty API key for a cloud provider
+	// means the user never completed setup — don't create a phantom entry that
+	// would block the wizard.
 	if len(cfg.LLMProviders) == 0 && cfg.LLMProvider != "" {
-		cfg.LLMProviders = map[string]LLMProviderDef{
-			"default": {
-				Provider:    cfg.LLMProvider,
-				APIKey:      cfg.APIKey,
-				Model:       cfg.Model,
-				APIEndpoint: cfg.APIEndpoint,
-				MaxTokens:   cfg.MaxTokens,
-				TimeoutMs:   cfg.TimeoutMs,
-			},
-		}
-		if cfg.DefaultLLM == "" {
-			cfg.DefaultLLM = "default"
+		if cfg.LLMProvider == "ollama" || cfg.APIKey != "" {
+			cfg.LLMProviders = map[string]LLMProviderDef{
+				"default": {
+					Provider:    cfg.LLMProvider,
+					APIKey:      cfg.APIKey,
+					Model:       cfg.Model,
+					APIEndpoint: cfg.APIEndpoint,
+					MaxTokens:   cfg.MaxTokens,
+					TimeoutMs:   cfg.TimeoutMs,
+				},
+			}
+			if cfg.DefaultLLM == "" {
+				cfg.DefaultLLM = "default"
+			}
 		}
 	}
 
