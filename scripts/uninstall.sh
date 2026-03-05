@@ -36,7 +36,12 @@ os=$(detect_os)
 case "$os" in
     darwin)
         info "Removing /Applications/GhostType.app..."
-        rm -rf /Applications/GhostType.app
+        if [ -d /Applications/GhostType.app ]; then
+            rm -rf /Applications/GhostType.app 2>/dev/null || {
+                info "Need admin permission..."
+                sudo rm -rf /Applications/GhostType.app
+            }
+        fi
 
         info "Removing app data (~/Library/Application Support/GhostType/)..."
         rm -rf "$HOME/Library/Application Support/GhostType"
@@ -63,3 +68,13 @@ esac
 ok ""
 ok "GhostType has been uninstalled."
 ok ""
+
+if [ "$os" = "darwin" ]; then
+    warn "NOTE: macOS privacy permissions must be removed manually."
+    echo "  Open System Settings and remove GhostType from both:"
+    echo "  1. Privacy & Security > Accessibility"
+    echo "  2. Privacy & Security > Input Monitoring"
+    echo ""
+    info "Opening Privacy & Security settings..."
+    open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility" 2>/dev/null || true
+fi

@@ -16,7 +16,7 @@ Type in French, hit **Ctrl+G**, get it corrected. Switch to English, hit **Ctrl+
 
 [![CI](https://github.com/chrixbedardcad/GhostType/actions/workflows/ci.yml/badge.svg)](https://github.com/chrixbedardcad/GhostType/actions/workflows/ci.yml)
 [![Release](https://github.com/chrixbedardcad/GhostType/actions/workflows/release.yml/badge.svg)](https://github.com/chrixbedardcad/GhostType/releases/latest)
-[![Version](https://img.shields.io/badge/version-v0.1.99-blue)](https://github.com/chrixbedardcad/GhostType/releases/latest)
+[![Version](https://img.shields.io/badge/version-v0.1.100-blue)](https://github.com/chrixbedardcad/GhostType/releases/latest)
 
 ### Quick Install (recommended)
 
@@ -498,6 +498,8 @@ Remove-Item -Recurse -Force "$env:APPDATA\GhostType"
 ```
 
 > Back up `config.json` first if you want to keep your settings.
+
+> **macOS note:** The uninstall script cannot revoke privacy permissions. After uninstalling, open **System Settings > Privacy & Security** and remove GhostType from both **Accessibility** and **Input Monitoring**.
 
 ---
 
