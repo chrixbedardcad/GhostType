@@ -273,7 +273,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	wizardDone := make(chan struct{})
 
 	trayCfg := tray.Config{
-		IconPNG: assets.AppIcon512,
+		IconPNG: assets.AppIcon32,
 		OnModeChange: func(modeName string) {
 			setActiveMode(modeName)
 		},
