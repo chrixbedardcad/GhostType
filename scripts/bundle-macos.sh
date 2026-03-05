@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# bundle-macos.sh — Package a bare GhostType binary into a macOS .app bundle.
+# bundle-macos.sh — Package a bare GhostType binary into a macOS .app bundle
+# and create a .dmg disk image with a drag-to-Applications layout.
 #
 # Usage: ./scripts/bundle-macos.sh <binary-path> <arch>
 #   e.g.: ./scripts/bundle-macos.sh ghosttype-darwin-arm64 arm64
 #
-# Produces: GhostType-darwin-<arch>.zip containing GhostType.app
+# Produces: GhostType-darwin-<arch>.dmg
 set -euo pipefail
 
 BINARY="${1:?Usage: $0 <binary-path> <arch>}"
@@ -79,16 +80,28 @@ cat > "${CONTENTS}/Info.plist" <<PLIST
     <true/>
     <key>NSHighResolutionCapable</key>
     <true/>
+    <key>NSAccessibilityUsageDescription</key>
+    <string>GhostType needs Accessibility access to register global hotkeys and simulate keyboard shortcuts for text correction.</string>
 </dict>
 </plist>
 PLIST
 
 echo "Info.plist written"
 
-# Create distributable zip using ditto (preserves macOS metadata).
-ZIP_NAME="GhostType-darwin-${ARCH}.zip"
-ditto -c -k --sequesterRsrc --keepParent "${APP_NAME}" "${ZIP_NAME}"
-echo "Bundle complete: ${ZIP_NAME}"
+# Create .dmg disk image with drag-to-Applications layout.
+DMG_NAME="GhostType-darwin-${ARCH}.dmg"
+DMG_STAGING="dmg_contents"
+rm -rf "${DMG_STAGING}"
+mkdir -p "${DMG_STAGING}"
+cp -R "${APP_NAME}" "${DMG_STAGING}/"
+ln -s /Applications "${DMG_STAGING}/Applications"
 
-# Clean up the .app directory (the zip is the artifact).
-rm -rf "${APP_NAME}"
+hdiutil create -volname "GhostType" \
+    -srcfolder "${DMG_STAGING}" \
+    -ov -format UDZO \
+    "${DMG_NAME}"
+
+echo "Bundle complete: ${DMG_NAME}"
+
+# Clean up staging files.
+rm -rf "${APP_NAME}" "${DMG_STAGING}"

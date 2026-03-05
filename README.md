@@ -16,15 +16,15 @@ Type in French, hit **Ctrl+G**, get it corrected. Switch to English, hit **Ctrl+
 
 [![CI](https://github.com/chrixbedardcad/GhostType/actions/workflows/ci.yml/badge.svg)](https://github.com/chrixbedardcad/GhostType/actions/workflows/ci.yml)
 [![Release](https://github.com/chrixbedardcad/GhostType/actions/workflows/release.yml/badge.svg)](https://github.com/chrixbedardcad/GhostType/releases/latest)
-[![Version](https://img.shields.io/badge/version-v0.1.93-blue)](https://github.com/chrixbedardcad/GhostType/releases/latest)
+[![Version](https://img.shields.io/badge/version-v0.1.94-blue)](https://github.com/chrixbedardcad/GhostType/releases/latest)
 
 | Platform | Download |
 |----------|----------|
 | **Windows** (recommended) | [ghosttype-windows-amd64.exe](https://github.com/chrixbedardcad/GhostType/releases/latest/download/ghosttype-windows-amd64.exe) |
 | **Windows** (no console) | [ghosttype-windows-amd64-windowless.exe](https://github.com/chrixbedardcad/GhostType/releases/latest/download/ghosttype-windows-amd64-windowless.exe) |
 | **Linux** | [ghosttype-linux-amd64](https://github.com/chrixbedardcad/GhostType/releases/latest/download/ghosttype-linux-amd64) |
-| **macOS** (Intel) | [GhostType-darwin-amd64.zip](https://github.com/chrixbedardcad/GhostType/releases/latest/download/GhostType-darwin-amd64.zip) |
-| **macOS** (Apple Silicon) | [GhostType-darwin-arm64.zip](https://github.com/chrixbedardcad/GhostType/releases/latest/download/GhostType-darwin-arm64.zip) |
+| **macOS** (Intel) | [GhostType-darwin-amd64.dmg](https://github.com/chrixbedardcad/GhostType/releases/latest/download/GhostType-darwin-amd64.dmg) |
+| **macOS** (Apple Silicon) | [GhostType-darwin-arm64.dmg](https://github.com/chrixbedardcad/GhostType/releases/latest/download/GhostType-darwin-arm64.dmg) |
 
 ---
 
@@ -71,13 +71,13 @@ Sound requires PulseAudio (`paplay`) or ALSA (`aplay`) — usually pre-installed
 
 ### macOS
 
-No additional packages to install. GhostType ships as a `.app` bundle (inside a `.zip`).
+No additional packages to install. GhostType ships as a `.dmg` disk image.
 
 #### 1. Install
 
-1. **Download** the `.zip` for your Mac ([Apple Silicon](https://github.com/chrixbedardcad/GhostType/releases/latest/download/GhostType-darwin-arm64.zip) or [Intel](https://github.com/chrixbedardcad/GhostType/releases/latest/download/GhostType-darwin-amd64.zip)).
-2. **Unzip** — double-click the `.zip` or run `unzip GhostType-darwin-arm64.zip`.
-3. **Drag** `GhostType.app` to your **Applications** folder.
+1. **Download** the `.dmg` for your Mac ([Apple Silicon](https://github.com/chrixbedardcad/GhostType/releases/latest/download/GhostType-darwin-arm64.dmg) or [Intel](https://github.com/chrixbedardcad/GhostType/releases/latest/download/GhostType-darwin-amd64.dmg)).
+2. **Open** the `.dmg` — double-click to mount it.
+3. **Drag** `GhostType.app` to the **Applications** folder shortcut inside the disk image.
 
 #### 2. Allow the app to run (Gatekeeper)
 
@@ -173,7 +173,7 @@ Power users can add dedicated hotkeys for specific modes:
 
 All hotkeys are configurable in `config.json`. Set `active_mode` to `"correct"`, `"translate"`, or `"rewrite"` to choose what **Ctrl+G** does.
 
-> **macOS note**: Hotkeys use the same key names (e.g., `Ctrl+G`). The `Ctrl` modifier maps to the Command key on macOS.
+> **macOS note**: Hotkeys use the same key names (e.g., `Ctrl+G`). On macOS, `Ctrl` automatically maps to the Command key (⌘), so `Ctrl+G` in the config registers as **⌘G**. The `Alt` modifier maps to Option (⌥).
 
 ### Why These Keys?
 

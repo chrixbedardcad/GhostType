@@ -76,8 +76,12 @@ jobs:
           chmod +x scripts/bundle-macos.sh
           ./scripts/bundle-macos.sh ghosttype-${{ matrix.goos }}-${{ matrix.goarch }} ${{ matrix.goarch }}
       - uses: actions/upload-artifact@v4
+        if: matrix.goos != 'darwin'
         with:
           name: ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: |
-            ghosttype-*
-            GhostType-darwin-*.zip
+          path: ghosttype-*
+      - uses: actions/upload-artifact@v4
+        if: matrix.goos == 'darwin'
+        with:
+          name: ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: GhostType-darwin-*.dmg

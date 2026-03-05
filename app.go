@@ -465,15 +465,30 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	// client and router are ready.
 	registerHotkeys := func() error {
 		// Wait for the event loop to be ready — required on macOS where the
-		// Carbon hotkey API dispatches to the main queue. Timeout is a safety
-		// net in case the Wails event never fires.
+		// Carbon hotkey API dispatches to the main queue. If the event loop
+		// never starts, proceeding would cause a deadlock (SIGTRAP), so we
+		// exit with a clear error after 30s rather than crashing.
 		select {
 		case <-appReady:
 			slog.Debug("Event loop ready (ApplicationStarted)")
-		case <-time.After(5 * time.Second):
-			slog.Warn("ApplicationStarted event not received within 5s, proceeding anyway")
+		case <-time.After(30 * time.Second):
+			slog.Error("ApplicationStarted event not received within 30s — cannot register hotkeys safely")
+			fmt.Fprintln(os.Stderr, "Error: application event loop did not start within 30s. Exiting.")
+			return fmt.Errorf("event loop did not start within 30s")
 		}
 		<-wizardDone
+
+		// On macOS, verify Accessibility permission before registering hotkeys.
+		// Without it, the Carbon API deadlocks (SIGTRAP) and keyboard simulation
+		// silently fails.
+		if !checkAccessibility() {
+			slog.Error("Accessibility permission not granted — hotkeys and keyboard simulation will not work")
+			fmt.Fprintln(os.Stderr, "Error: GhostType requires Accessibility permission.")
+			fmt.Fprintln(os.Stderr, "Please grant access in System Settings → Privacy & Security → Accessibility.")
+			// Attempt to open the Accessibility pane for the user.
+			openAccessibilitySettings()
+			return fmt.Errorf("accessibility permission not granted")
+		}
 
 		fmt.Println("GhostType is ready. Waiting for hotkey input...")
 		fmt.Println("Press Ctrl+C to exit.")

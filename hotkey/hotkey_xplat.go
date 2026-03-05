@@ -124,7 +124,7 @@ func parseKeyXPlat(key string) ([]hotkey.Modifier, hotkey.Key, error) {
 	for _, p := range parts[:len(parts)-1] {
 		switch strings.ToLower(strings.TrimSpace(p)) {
 		case "ctrl", "cmd":
-			mods = append(mods, hotkey.ModCtrl)
+			mods = append(mods, modCtrlXPlat)
 		case "alt", "option":
 			mods = append(mods, modAltXPlat)
 		case "shift":
