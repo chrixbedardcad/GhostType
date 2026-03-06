@@ -199,10 +199,18 @@ install_linux() {
         echo ""
     fi
 
-    info "To launch:"
-    echo "  ghosttype"
-    echo ""
     info "Config is stored in: ~/.config/GhostType/"
+    echo ""
+
+    if [ ${#missing[@]} -eq 0 ]; then
+        info "Launching GhostType..."
+        nohup ghosttype >/dev/null 2>&1 &
+        ok "GhostType is running in your system tray."
+        echo "  Look for the GhostType icon in your panel (top-right area)."
+    fi
+    echo ""
+    info "To launch manually later:"
+    echo "  ghosttype"
 }
 
 # --- Main -------------------------------------------------------------------

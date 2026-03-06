@@ -67,10 +67,15 @@ Write-Info "Two variants installed:"
 Write-Host "  ghosttype.exe             - with console window (useful for debugging)"
 Write-Host "  ghosttype-windowless.exe  - tray only, no console (recommended)"
 Write-Host ""
-Write-Info "To launch (in a NEW terminal):"
-Write-Host "  ghosttype-windowless"
-Write-Host ""
-Write-Info "Or launch right now from this terminal:"
-Write-Host "  & `"$InstallDir\ghosttype-windowless.exe`""
-Write-Host ""
 Write-Info "Config is stored in: $env:APPDATA\GhostType\"
+Write-Host ""
+
+# --- Auto-launch ------------------------------------------------------------
+
+Write-Info "Launching GhostType..."
+Start-Process -FilePath (Join-Path $InstallDir "ghosttype-windowless.exe")
+Write-Ok "GhostType is running in your system tray (bottom-right, near the clock)."
+Write-Host "  Look for the GhostType icon — click the ^ arrow if it's hidden."
+Write-Host ""
+Write-Info "To launch manually later (in a new terminal):"
+Write-Host "  ghosttype-windowless"
