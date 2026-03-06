@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"sync"
 
+	"github.com/chrixbedardcad/GhostType/assets"
 	"github.com/chrixbedardcad/GhostType/config"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
@@ -154,6 +155,7 @@ func showStandaloneWindow(cfg *config.Config, configPath string, onSaved func())
 	guiLog("[GUI] Creating standalone Wails app for first-launch settings...")
 	app := application.New(application.Options{
 		Name: "GhostType Settings",
+		Icon: assets.TrayIcon64,
 		Services: []application.Service{
 			application.NewService(svc),
 		},

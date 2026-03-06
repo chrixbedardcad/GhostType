@@ -233,6 +233,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	}
 	wailsApp := application.New(application.Options{
 		Name: "GhostType",
+		Icon: assets.TrayIcon64,
 		Services: []application.Service{
 			application.NewService(settingsSvc),
 		},
