@@ -175,8 +175,17 @@
   .hotkey-input input {
     flex: 1; padding: 7px 10px; background: #313244; border: 1px solid #45475a;
     border-radius: 6px; color: #cdd6f4; font-size: 0.85em; outline: none;
+    cursor: pointer; caret-color: transparent;
   }
   .hotkey-input input:focus { border-color: #89b4fa; }
+  .hotkey-input input.recording {
+    border-color: #f9e2af; background: #2a2a3e;
+    animation: pulse-border 1s ease-in-out infinite;
+  }
+  @keyframes pulse-border {
+    0%, 100% { border-color: #f9e2af; }
+    50% { border-color: #89b4fa; }
+  }
   .hotkey-input .clear-btn {
     background: none; border: none; color: #6c7086; cursor: pointer;
     font-size: 1em; padding: 4px;
@@ -410,27 +419,27 @@
       </p>
       <div class="hotkey-input">
         <label>Action (Correct/Translate/Rewrite)</label>
-        <input type="text" id="hk-correct" placeholder="Ctrl+G">
+        <input type="text" id="hk-correct" placeholder="Click, then press keys..." readonly>
         <button class="clear-btn" onclick="clearHotkey('correct')" title="Clear">&times;</button>
       </div>
       <div class="hotkey-input">
         <label>Translate</label>
-        <input type="text" id="hk-translate" placeholder="(optional)">
+        <input type="text" id="hk-translate" placeholder="Click, then press keys..." readonly>
         <button class="clear-btn" onclick="clearHotkey('translate')" title="Clear">&times;</button>
       </div>
       <div class="hotkey-input">
         <label>Toggle Language</label>
-        <input type="text" id="hk-toggle_language" placeholder="(optional)">
+        <input type="text" id="hk-toggle_language" placeholder="Click, then press keys..." readonly>
         <button class="clear-btn" onclick="clearHotkey('toggle_language')" title="Clear">&times;</button>
       </div>
       <div class="hotkey-input">
         <label>Rewrite</label>
-        <input type="text" id="hk-rewrite" placeholder="(optional)">
+        <input type="text" id="hk-rewrite" placeholder="Click, then press keys..." readonly>
         <button class="clear-btn" onclick="clearHotkey('rewrite')" title="Clear">&times;</button>
       </div>
       <div class="hotkey-input">
         <label>Cycle Template</label>
-        <input type="text" id="hk-cycle_template" placeholder="(optional)">
+        <input type="text" id="hk-cycle_template" placeholder="Click, then press keys..." readonly>
         <button class="clear-btn" onclick="clearHotkey('cycle_template')" title="Clear">&times;</button>
       </div>
       <button class="btn btn-primary btn-sm" onclick="saveHotkeys()" style="margin-top:8px">Save Hotkeys</button>
@@ -545,6 +554,7 @@ async function init() {
   const raw = await goCall('getConfig');
   if (raw) configData = JSON.parse(raw);
   renderProviderList();
+  initHotkeyCapture();
 }
 
 // ---- Helpers ----
@@ -1015,6 +1025,39 @@ async function onLogLevelChange(level) { await goCall('setLogLevel', level); }
 
 function clearHotkey(name) {
   document.getElementById('hk-' + name).value = '';
+}
+
+// --- Hotkey capture ---
+// When a hotkey input is focused, capture key combos and format as "Ctrl+Shift+G".
+function initHotkeyCapture() {
+  document.querySelectorAll('.hotkey-input input').forEach(input => {
+    input.addEventListener('focus', () => { input.classList.add('recording'); });
+    input.addEventListener('blur',  () => { input.classList.remove('recording'); });
+    input.addEventListener('keydown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Ignore modifier-only presses.
+      if (['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) return;
+
+      // Escape clears the field and blurs.
+      if (e.key === 'Escape') { input.value = ''; input.blur(); return; }
+
+      const parts = [];
+      if (e.ctrlKey || e.metaKey) parts.push('Ctrl');
+      if (e.shiftKey) parts.push('Shift');
+      if (e.altKey) parts.push('Alt');
+
+      // Normalize key name.
+      let key = e.key;
+      if (key === ' ') key = 'Space';
+      else if (key.length === 1) key = key.toUpperCase();
+      // F-keys, Tab, Enter, etc. are already named correctly.
+
+      parts.push(key);
+      input.value = parts.join('+');
+    });
+  });
 }
 
 async function saveHotkeys() {
