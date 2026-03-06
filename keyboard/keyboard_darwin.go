@@ -53,7 +53,11 @@ CGKeyCode keyCodeForChar(UniChar c) {
 	return UINT16_MAX;
 }
 
-void sendKeyCombo(CGKeyCode modifier, CGKeyCode key) {
+// sendKeyComboWithChar posts a Cmd+key event with an explicit Unicode character.
+// The key code is layout-resolved (correct for Cocoa apps), and the Unicode
+// string is set explicitly (correct for non-Cocoa apps like Firestorm that
+// interpret key codes using QWERTY mapping regardless of layout).
+void sendKeyComboWithChar(CGKeyCode modifier, CGKeyCode key, UniChar ch) {
 	CGEventRef modDown = CGEventCreateKeyboardEvent(NULL, modifier, true);
 	CGEventRef keyDown = CGEventCreateKeyboardEvent(NULL, key, true);
 	CGEventRef keyUp   = CGEventCreateKeyboardEvent(NULL, key, false);
@@ -61,6 +65,11 @@ void sendKeyCombo(CGKeyCode modifier, CGKeyCode key) {
 
 	CGEventSetFlags(keyDown, CGEventGetFlags(modDown));
 	CGEventSetFlags(keyUp, CGEventGetFlags(modDown));
+
+	// Explicitly set the Unicode character so ALL apps (Cocoa and non-Cocoa)
+	// see the correct character regardless of key code interpretation.
+	CGEventKeyboardSetUnicodeString(keyDown, 1, &ch);
+	CGEventKeyboardSetUnicodeString(keyUp, 1, &ch);
 
 	CGEventPost(kCGHIDEventTap, modDown);
 	CGEventPost(kCGHIDEventTap, keyDown);
@@ -159,7 +168,7 @@ func NewDarwinSimulator() *DarwinSimulator {
 func (s *DarwinSimulator) SelectAll() error {
 	resolveKeys()
 	slog.Debug("[keyboard] SelectAll (Cmd+A)", "keyCode", fmt.Sprintf("0x%02X", keyA))
-	C.sendKeyCombo(C.CGKeyCode(kVK_Command), keyA)
+	C.sendKeyComboWithChar(C.CGKeyCode(kVK_Command), keyA, C.UniChar('a'))
 	time.Sleep(10 * time.Millisecond)
 	return nil
 }
@@ -167,7 +176,7 @@ func (s *DarwinSimulator) SelectAll() error {
 func (s *DarwinSimulator) Copy() error {
 	resolveKeys()
 	slog.Debug("[keyboard] Copy (Cmd+C)", "keyCode", fmt.Sprintf("0x%02X", keyC))
-	C.sendKeyCombo(C.CGKeyCode(kVK_Command), keyC)
+	C.sendKeyComboWithChar(C.CGKeyCode(kVK_Command), keyC, C.UniChar('c'))
 	time.Sleep(10 * time.Millisecond)
 	return nil
 }
@@ -175,7 +184,7 @@ func (s *DarwinSimulator) Copy() error {
 func (s *DarwinSimulator) Paste() error {
 	resolveKeys()
 	slog.Debug("[keyboard] Paste (Cmd+V)", "keyCode", fmt.Sprintf("0x%02X", keyV))
-	C.sendKeyCombo(C.CGKeyCode(kVK_Command), keyV)
+	C.sendKeyComboWithChar(C.CGKeyCode(kVK_Command), keyV, C.UniChar('v'))
 	time.Sleep(10 * time.Millisecond)
 	return nil
 }
