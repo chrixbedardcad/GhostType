@@ -52,8 +52,10 @@ $UserPath = [Environment]::GetEnvironmentVariable("PATH", "User")
 if ($UserPath -notlike "*$InstallDir*") {
     Write-Info "Adding $InstallDir to user PATH..."
     [Environment]::SetEnvironmentVariable("PATH", "$UserPath;$InstallDir", "User")
+}
+# Always refresh current session PATH so the command works immediately.
+if ($env:PATH -notlike "*$InstallDir*") {
     $env:PATH = "$env:PATH;$InstallDir"
-    Write-Warn "Restart your terminal for PATH changes to take effect."
 }
 
 # --- Done -------------------------------------------------------------------
@@ -65,7 +67,10 @@ Write-Info "Two variants installed:"
 Write-Host "  ghosttype.exe             - with console window (useful for debugging)"
 Write-Host "  ghosttype-windowless.exe  - tray only, no console (recommended)"
 Write-Host ""
-Write-Info "To launch:"
+Write-Info "To launch (in a NEW terminal):"
 Write-Host "  ghosttype-windowless"
+Write-Host ""
+Write-Info "Or launch right now from this terminal:"
+Write-Host "  & `"$InstallDir\ghosttype-windowless.exe`""
 Write-Host ""
 Write-Info "Config is stored in: $env:APPDATA\GhostType\"
