@@ -26,6 +26,10 @@ Write-Info "Latest version: $Version"
 
 # --- Download binaries ------------------------------------------------------
 
+# Kill any running GhostType before overwriting the binaries.
+Get-Process -Name "ghosttype*" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Start-Sleep -Seconds 1
+
 if (-not (Test-Path $InstallDir)) {
     New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
 }

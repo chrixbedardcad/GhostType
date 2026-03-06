@@ -83,6 +83,11 @@ install_macos() {
         fail "Could not find GhostType.app in DMG (mount: ${mount_point})"
     fi
 
+    # Kill any running GhostType before installing — otherwise macOS will
+    # bring the old process to the front instead of launching the new binary.
+    killall GhostType 2>/dev/null || true
+    sleep 1
+
     info "Installing GhostType.app to /Applications..."
     # Remove old version if present, then copy.
     if [ -w /Applications ] || [ ! -d /Applications/GhostType.app ]; then
