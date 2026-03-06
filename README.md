@@ -213,10 +213,10 @@ xattr -d com.apple.quarantine /Applications/GhostType.app
 
 GhostType needs two macOS permissions — these cannot be bypassed, even by signed apps:
 
-- **Accessibility** (System Settings > Privacy & Security > Accessibility) — required for keyboard simulation (Ctrl+A, Ctrl+C, Ctrl+V)
-- **Input Monitoring** (System Settings > Privacy & Security > Input Monitoring) — required for global hotkeys (Ctrl+G)
+- **Accessibility** (System Settings > Privacy & Security > Accessibility) — required for keyboard simulation (Ctrl+A, Ctrl+C, Ctrl+V). [Apple's guide](https://support.apple.com/guide/mac-help/allow-accessibility-apps-to-access-your-mac-mh43185/mac)
+- **Input Monitoring** (System Settings > Privacy & Security > Input Monitoring) — required for global hotkeys (Ctrl+G). [Apple's guide](https://support.apple.com/guide/mac-help/control-access-to-input-monitoring-on-mac-mchl4cedafb6/mac)
 
-The installer opens both settings panes and prompts you to enable GhostType. After granting, it relaunches the app to pick up the new permissions.
+The installer opens both settings panes automatically. Toggle GhostType **ON** in each, then press Enter in the terminal to relaunch.
 
 > **Note:** An Apple Developer account ($99/year) would eliminate the Gatekeeper warning and allow notarization, but Accessibility and Input Monitoring prompts are always required by macOS for any app that simulates keystrokes or listens to global hotkeys.
 
