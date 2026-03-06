@@ -449,6 +449,19 @@
 
   <!-- ============ GENERAL TAB ============ -->
   <div id="tab-general" class="tab-panel">
+    <div class="section" id="macos-perms-section" style="display:none">
+      <h2>macOS Permissions</h2>
+      <div style="font-size:0.82em;color:#bac2de;line-height:1.5;padding:10px 14px;background:#313244;border-radius:6px;margin-bottom:8px">
+        GhostType requires <strong>Accessibility</strong> and <strong>Input Monitoring</strong> permissions.
+        After each update, macOS invalidates old permission entries &mdash; you must remove and re-add
+        GhostType in both panes.
+        <div style="margin-top:8px">
+          <a href="#" onclick="openPermLink('accessibility')" style="color:#89b4fa;text-decoration:none;margin-right:12px">Accessibility guide</a>
+          <a href="#" onclick="openPermLink('input')" style="color:#89b4fa;text-decoration:none">Input Monitoring guide</a>
+        </div>
+      </div>
+    </div>
+
     <div class="section">
       <h2>Preferences</h2>
       <div class="toggle-row">
@@ -570,6 +583,12 @@ async function init() {
   if (raw) configData = JSON.parse(raw);
   renderProviderList();
   initHotkeyCapture();
+
+  // Show macOS permissions note only on macOS.
+  if (navigator.platform && navigator.platform.toLowerCase().includes('mac')) {
+    const sec = document.getElementById('macos-perms-section');
+    if (sec) sec.style.display = 'block';
+  }
 }
 
 // ---- Helpers ----
@@ -1040,6 +1059,11 @@ async function renderGeneral() {
   document.getElementById('hk-toggle_language').value = hk.toggle_language || '';
   document.getElementById('hk-rewrite').value = hk.rewrite || '';
   document.getElementById('hk-cycle_template').value = hk.cycle_template || '';
+}
+
+function openPermLink(type) {
+  if (type === 'accessibility') wails.Browser.OpenURL('https://support.apple.com/guide/mac-help/mh43185/mac');
+  else wails.Browser.OpenURL('https://support.apple.com/guide/mac-help/mchl4cedafb6/mac');
 }
 
 async function onToggleSound(enabled) { await goCall('setSoundEnabled', enabled); }

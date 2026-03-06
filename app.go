@@ -520,8 +520,14 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		fmt.Printf("Accessibility permission: %v\n", axOK)
 		if !axOK {
 			fmt.Println("Waiting for Accessibility permission...")
-			fmt.Println("Please enable GhostType in System Settings > Privacy & Security > Accessibility")
-			fmt.Println("If you already enabled it, toggle it OFF then ON again (binary changed after update)")
+			fmt.Println("")
+			fmt.Println("  GhostType needs two macOS permissions:")
+			fmt.Println("  1. System Settings > Privacy & Security > Accessibility")
+			fmt.Println("  2. System Settings > Privacy & Security > Input Monitoring")
+			fmt.Println("")
+			fmt.Println("  If you just updated, old entries were cleared automatically.")
+			fmt.Println("  Click '+', add GhostType.app, and toggle ON in both panes.")
+			fmt.Println("")
 			slog.Info("Opening Accessibility settings panes")
 			openAccessibilitySettings()
 
