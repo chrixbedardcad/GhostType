@@ -88,14 +88,6 @@ install_macos() {
     killall GhostType 2>/dev/null || true
     sleep 1
 
-    # Reset Accessibility and Input Monitoring entries for GhostType.
-    # When the binary changes (update), macOS keeps stale TCC entries that
-    # appear enabled but don't actually grant permission to the new binary.
-    # Clearing forces a clean re-grant on next launch.
-    info "Clearing stale macOS permission entries..."
-    tccutil reset Accessibility com.ghosttype.app 2>/dev/null || true
-    tccutil reset ListenEvent com.ghosttype.app 2>/dev/null || true
-
     info "Installing GhostType.app to /Applications..."
     # Remove old version if present, then copy.
     if [ -w /Applications ] || [ ! -d /Applications/GhostType.app ]; then
@@ -124,45 +116,22 @@ install_macos() {
     echo "============================================"
     echo ""
 
-    # Launch GhostType first so macOS registers it in the permission lists.
-    info "Launching GhostType to register permissions..."
+    info "Launching GhostType..."
     open /Applications/GhostType.app
-    sleep 3
 
-    info "Opening macOS permission settings..."
     echo ""
-    echo "  GhostType needs two macOS permissions to work:"
+    echo "  GhostType is running in your menu bar (top right)."
+    echo "  Look for the GhostType icon — there is no app window."
+    echo ""
+    echo "  If this is your first install, GhostType needs two macOS permissions:"
     echo ""
     echo "  1. ACCESSIBILITY     — for keyboard simulation (Cmd+A, Cmd+C, Cmd+V)"
     echo "  2. INPUT MONITORING  — for global hotkeys (Cmd+G)"
     echo ""
-    echo "  Click '+', select GhostType.app from /Applications, and toggle ON."
-    echo ""
-    echo "  NOTE: After updates, old permission entries are automatically cleared."
-    echo "  You must re-grant both permissions each time GhostType is updated."
-    echo "  This is a macOS security requirement — not a GhostType limitation."
-    echo ""
+    echo "  The app will prompt you to grant them if needed."
     echo "  Apple docs:"
     echo "    Accessibility:    https://support.apple.com/guide/mac-help/mh43185/mac"
     echo "    Input Monitoring: https://support.apple.com/guide/mac-help/mchl4cedafb6/mac"
-    echo ""
-    open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
-    sleep 2
-    open "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent"
-    echo ""
-    echo "  Two System Settings windows should be open now."
-    echo "  Enable GhostType in both, then press Enter to relaunch."
-    echo ""
-    read -r -p "  Press Enter when done..." </dev/tty
-
-    # Relaunch so the app picks up the newly granted permission.
-    info "Relaunching GhostType..."
-    killall GhostType 2>/dev/null || true
-    sleep 1
-    open /Applications/GhostType.app
-    echo ""
-    echo "  GhostType is running in your menu bar (top right)."
-    echo "  Look for the GhostType icon — there is no app window."
     echo ""
     info "Config is stored in: ~/Library/Application Support/GhostType/"
 }
