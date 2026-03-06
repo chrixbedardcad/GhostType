@@ -88,12 +88,13 @@ install_macos() {
     killall GhostType 2>/dev/null || true
     sleep 1
 
-    # Reset Accessibility entry for GhostType.
+    # Reset Accessibility and Input Monitoring entries for GhostType.
     # When the binary changes (update), macOS keeps stale TCC entries that
     # appear enabled but don't actually grant permission to the new binary.
     # Clearing forces a clean re-grant on next launch.
-    info "Clearing stale macOS Accessibility entry..."
+    info "Clearing stale macOS permission entries..."
     tccutil reset Accessibility com.ghosttype.app 2>/dev/null || true
+    tccutil reset ListenEvent com.ghosttype.app 2>/dev/null || true
 
     info "Installing GhostType.app to /Applications..."
     # Remove old version if present, then copy.
@@ -123,26 +124,34 @@ install_macos() {
     echo "============================================"
     echo ""
 
-    # Launch GhostType first so macOS registers it in the Accessibility list.
+    # Launch GhostType first so macOS registers it in the permission lists.
     info "Launching GhostType to register permissions..."
     open /Applications/GhostType.app
     sleep 3
 
-    info "Opening macOS Accessibility settings..."
+    info "Opening macOS permission settings..."
     echo ""
-    echo "  GhostType needs Accessibility permission to work."
+    echo "  GhostType needs two macOS permissions to work:"
+    echo ""
+    echo "  1. ACCESSIBILITY     — for keyboard simulation (Cmd+A, Cmd+C, Cmd+V)"
+    echo "  2. INPUT MONITORING  — for global hotkeys (Cmd+G)"
     echo ""
     echo "  Click '+', select GhostType.app from /Applications, and toggle ON."
     echo ""
-    echo "  NOTE: After updates, the old entry is automatically cleared."
-    echo "  You must re-grant Accessibility each time GhostType is updated."
+    echo "  NOTE: After updates, old permission entries are automatically cleared."
+    echo "  You must re-grant both permissions each time GhostType is updated."
     echo "  This is a macOS security requirement — not a GhostType limitation."
     echo ""
-    echo "  Apple docs: https://support.apple.com/guide/mac-help/mh43185/mac"
+    echo "  Apple docs:"
+    echo "    Accessibility:    https://support.apple.com/guide/mac-help/mh43185/mac"
+    echo "    Input Monitoring: https://support.apple.com/guide/mac-help/mchl4cedafb6/mac"
     echo ""
     open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+    sleep 2
+    open "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent"
     echo ""
-    echo "  Enable GhostType in Accessibility, then press Enter to relaunch."
+    echo "  Two System Settings windows should be open now."
+    echo "  Enable GhostType in both, then press Enter to relaunch."
     echo ""
     read -r -p "  Press Enter when done..." </dev/tty
 

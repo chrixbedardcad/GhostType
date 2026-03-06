@@ -511,25 +511,27 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		}
 		<-wizardDone
 
-		// On macOS, verify Accessibility permission before registering hotkeys.
-		// Without it, the Carbon API deadlocks (SIGTRAP) and keyboard simulation
-		// silently fails. Poll until the user grants it — AXIsProcessTrusted()
-		// updates live when the toggle is flipped in System Settings.
-		// Note: Input Monitoring is NOT needed — GhostType uses RegisterEventHotKey
-		// (Carbon) and CGEventPost, both of which only require Accessibility.
+		// On macOS, GhostType needs two permissions:
+		//   1. Accessibility — for CGEventPost (keyboard simulation)
+		//   2. Input Monitoring — for RegisterEventHotKey (global hotkeys)
+		// Only Accessibility can be checked via AXIsProcessTrusted(). There is
+		// no reliable public API for Input Monitoring, so we poll Accessibility
+		// and remind the user to also grant Input Monitoring.
 		axOK := checkAccessibility()
 		slog.Info("Permission check", "accessibility", axOK)
 		fmt.Printf("Accessibility permission: %v\n", axOK)
 
 		if !axOK {
 			fmt.Println("")
-			fmt.Println("  GhostType needs Accessibility permission to work.")
-			fmt.Println("  System Settings > Privacy & Security > Accessibility")
+			fmt.Println("  GhostType needs two macOS permissions to work:")
+			fmt.Println("  1. Accessibility     — for keyboard simulation (Cmd+A, Cmd+C, Cmd+V)")
+			fmt.Println("  2. Input Monitoring  — for global hotkeys (Cmd+G)")
 			fmt.Println("")
-			fmt.Println("  If you just updated, the old entry was cleared automatically.")
-			fmt.Println("  Click '+', add GhostType.app, and toggle ON.")
+			fmt.Println("  System Settings > Privacy & Security > grant BOTH permissions.")
+			fmt.Println("  If you just updated, old entries were cleared automatically.")
+			fmt.Println("  Click '+', add GhostType.app, and toggle ON in both panes.")
 			fmt.Println("")
-			slog.Info("Opening Accessibility settings pane")
+			slog.Info("Opening permission settings panes")
 			openAccessibilitySettings()
 
 			pollCount := 0
@@ -542,6 +544,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				}
 			}
 			fmt.Println("Accessibility permission granted!")
+			fmt.Println("Make sure Input Monitoring is also enabled for GhostType.")
 			slog.Info("Accessibility permission granted after polling", "polls", pollCount)
 		}
 

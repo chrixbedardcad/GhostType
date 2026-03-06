@@ -452,11 +452,12 @@
     <div class="section" id="macos-perms-section" style="display:none">
       <h2>macOS Permissions</h2>
       <div style="font-size:0.82em;color:#bac2de;line-height:1.5;padding:10px 14px;background:#313244;border-radius:6px;margin-bottom:8px">
-        GhostType requires <strong>Accessibility</strong> permission for keyboard simulation and global hotkeys.
-        After each update, macOS invalidates the old permission entry &mdash; you must remove and re-add
-        GhostType in the Accessibility pane.
+        GhostType requires <strong>Accessibility</strong> and <strong>Input Monitoring</strong> permissions.
+        After each update, macOS invalidates old permission entries &mdash; you must remove and re-add
+        GhostType in both panes.
         <div style="margin-top:8px">
-          <a href="#" onclick="openPermLink('accessibility')" style="color:#89b4fa;text-decoration:none">Accessibility guide</a>
+          <a href="#" onclick="openPermLink('accessibility')" style="color:#89b4fa;text-decoration:none;margin-right:12px">Accessibility guide</a>
+          <a href="#" onclick="openPermLink('input')" style="color:#89b4fa;text-decoration:none">Input Monitoring guide</a>
         </div>
       </div>
     </div>

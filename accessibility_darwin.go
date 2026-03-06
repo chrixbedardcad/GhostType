@@ -16,16 +16,19 @@ import "C"
 import "os/exec"
 
 // checkAccessibility returns true if the process has Accessibility permission.
-// On macOS, this is the only permission GhostType needs:
-//   - RegisterEventHotKey (Carbon API) requires Accessibility
-//   - CGEventPost (keyboard simulation) requires Accessibility
-// Input Monitoring is NOT needed — GhostType doesn't use CGEventTap or HID APIs.
+// GhostType needs two macOS permissions:
+//   - Accessibility — for CGEventPost (keyboard simulation)
+//   - Input Monitoring — for RegisterEventHotKey (global hotkeys)
+// Only Accessibility can be checked programmatically (AXIsProcessTrusted).
+// There is no reliable public API for Input Monitoring.
 func checkAccessibility() bool {
 	return C.axIsTrusted() != 0
 }
 
 // openAccessibilitySettings opens the macOS System Settings to the
-// Accessibility privacy pane so the user can grant permission.
+// Accessibility and Input Monitoring privacy panes so the user can grant
+// both permissions GhostType needs.
 func openAccessibilitySettings() {
 	exec.Command("open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility").Start()
+	exec.Command("open", "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent").Start()
 }
