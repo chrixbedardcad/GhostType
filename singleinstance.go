@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"syscall"
 )
 
 const lockFileName = ".ghosttype.lock"
@@ -24,7 +23,7 @@ func acquireSingleInstance(appDir string) func() {
 	if err == nil {
 		// Lock file exists — check if the PID is still alive.
 		pidStr := strings.TrimSpace(string(data))
-		if pid, err := strconv.Atoi(pidStr); err == nil && pid > 0 {
+		if pid, err := strconv.Atoi(pidStr); err == nil && pid > 0 && pid != os.Getpid() {
 			if isProcessRunning(pid) {
 				fmt.Fprintf(os.Stderr, "GhostType is already running (PID %d).\n", pid)
 				fmt.Fprintln(os.Stderr, "Look for the GhostType icon in your system tray.")
@@ -45,16 +44,4 @@ func acquireSingleInstance(appDir string) func() {
 	return func() {
 		os.Remove(lockPath)
 	}
-}
-
-// isProcessRunning checks if a process with the given PID exists.
-func isProcessRunning(pid int) bool {
-	proc, err := os.FindProcess(pid)
-	if err != nil {
-		return false
-	}
-	// On Unix, FindProcess always succeeds. Send signal 0 to check if alive.
-	// On Windows, FindProcess fails if the process doesn't exist.
-	err = proc.Signal(syscall.Signal(0))
-	return err == nil
 }

@@ -69,6 +69,8 @@ jobs:
             go build -tags "$TAGS" -ldflags "-H=windowsgui" -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
             # Window exe shows a console window — useful for debugging.
             go build -tags "$TAGS" -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}-window${{ matrix.ext }}
+          else
+            go build -tags "$TAGS" -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
           fi
       - name: Bundle macOS .app
         if: matrix.goos == 'darwin'
