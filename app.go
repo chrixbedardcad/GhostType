@@ -274,7 +274,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 
 	trayCfg := tray.Config{
 		IconPNG:         assets.TrayIcon64,
-		TemplateIconPNG: assets.TrayIcon64,
+		TemplateIconPNG: assets.TrayIconMacOS,
 		OnModeChange: func(modeName string) {
 			setActiveMode(modeName)
 		},
