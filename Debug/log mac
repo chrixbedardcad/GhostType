@@ -78,3 +78,59 @@ time=2026-03-06T10:45:43.007-05:00 level=INFO msg="[GUI] JS called: GetConfig"
 time=2026-03-06T10:45:48.709-05:00 level=INFO msg="[GUI] JS called: GetConfig"
 time=2026-03-06T10:46:07.270-05:00 level=INFO msg="[GUI] JS called: TailDebugLog"
 time=2026-03-06T10:46:16.092-05:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-06T10:56:18.175-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-06T10:56:19.966-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-06T10:56:19.966-05:00 level=INFO msg="[GUI] ShowSettings: window already open, skipping"
+time=2026-03-06T10:56:24.238-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-06T10:56:25.839-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-06T10:56:25.839-05:00 level=INFO msg="[GUI] ShowSettings: window already open, skipping"
+time=2026-03-06T10:56:33.177-05:00 level=INFO msg="[GUI] JS called: CheckForUpdate"
+time=2026-03-06T10:56:34.489-05:00 level=INFO msg="[GUI] JS called: UpdateNow"
+time=2026-03-06T10:56:34.507-05:00 level=INFO msg="[GUI] UpdateNow: installer launched (PID 99846), exiting app..."
+time=2026-03-06T10:56:43.722-05:00 level=INFO msg="GhostType starting" version=0.1.126 default_llm=gemini llm_providers=1
+time=2026-03-06T10:56:44.107-05:00 level=INFO msg="=== GhostType Debug Session ===" version=0.1.126 os=darwin os_version=13.7.8 arch=arm64 locale=en_CA keyboard=Canadian hotkey=Ctrl+Shift+G default_llm=gemini providers=1
+time=2026-03-06T10:56:44.107-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=gemini
+time=2026-03-06T10:56:44.110-05:00 level=INFO msg="GhostType launching" version=0.1.126 needs_setup=false
+time=2026-03-06T10:56:44.114-05:00 level=INFO msg="[tray] Start() called" os=darwin icon_bytes=6041 target_labels=1 template_names=5
+time=2026-03-06T10:56:44.114-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-06T10:56:44.114-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-06T10:56:44.114-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-06T10:56:44.114-05:00 level=INFO msg="[tray] macOS template icon set" bytes=1743
+time=2026-03-06T10:56:44.114-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-06T10:56:44.114-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-06T10:56:44.114-05:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-06T10:56:44.114-05:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-06T10:56:44.170-05:00 level=DEBUG msg="Event loop ready (ApplicationStarted)"
+time=2026-03-06T10:56:44.172-05:00 level=INFO msg="Accessibility check" granted=false
+time=2026-03-06T10:56:44.172-05:00 level=INFO msg="Opening Accessibility settings panes"
+time=2026-03-06T10:56:54.181-05:00 level=INFO msg="Still waiting for Accessibility permission" polls=5
+time=2026-03-06T10:57:04.186-05:00 level=INFO msg="Still waiting for Accessibility permission" polls=10
+time=2026-03-06T10:57:14.192-05:00 level=INFO msg="Still waiting for Accessibility permission" polls=15
+time=2026-03-06T10:57:24.211-05:00 level=INFO msg="Still waiting for Accessibility permission" polls=20
+time=2026-03-06T10:57:28.373-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-06T10:57:30.170-05:00 level=INFO msg="Exit requested via tray menu"
+time=2026-03-06T10:57:55.416-05:00 level=INFO msg="GhostType starting" version=0.1.126 default_llm=gemini llm_providers=1
+time=2026-03-06T10:57:55.520-05:00 level=INFO msg="=== GhostType Debug Session ===" version=0.1.126 os=darwin os_version=13.7.8 arch=arm64 locale=en_CA keyboard=Canadian hotkey=Ctrl+Shift+G default_llm=gemini providers=1
+time=2026-03-06T10:57:55.520-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=gemini
+time=2026-03-06T10:57:55.521-05:00 level=INFO msg="GhostType launching" version=0.1.126 needs_setup=false
+time=2026-03-06T10:57:55.524-05:00 level=INFO msg="[tray] Start() called" os=darwin icon_bytes=6041 target_labels=1 template_names=5
+time=2026-03-06T10:57:55.524-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-06T10:57:55.524-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-06T10:57:55.524-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-06T10:57:55.524-05:00 level=INFO msg="[tray] macOS template icon set" bytes=1743
+time=2026-03-06T10:57:55.524-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-06T10:57:55.524-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-06T10:57:55.524-05:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-06T10:57:55.524-05:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-06T10:57:55.558-05:00 level=DEBUG msg="Event loop ready (ApplicationStarted)"
+time=2026-03-06T10:57:55.559-05:00 level=INFO msg="Accessibility check" granted=true
+time=2026-03-06T10:57:55.559-05:00 level=INFO msg="Registering hotkeys" action=Ctrl+Shift+G
+time=2026-03-06T10:57:55.580-05:00 level=DEBUG msg="Hotkey registered" name=action key=Ctrl+Shift+G
+time=2026-03-06T10:57:55.580-05:00 level=DEBUG msg="Starting hotkey listener" registered=1
+time=2026-03-06T10:58:19.325-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-06T10:58:21.259-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-06T10:58:21.259-05:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-06T10:58:21.352-05:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-06T10:58:21.461-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-06T10:58:21.463-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-06T10:58:25.488-05:00 level=INFO msg="[GUI] JS called: GetConfig"
