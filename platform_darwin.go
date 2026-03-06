@@ -16,6 +16,11 @@ func newClipboard() *clipboard.Clipboard  { return clipboard.NewDarwinClipboard(
 func newKeyboard() keyboard.Simulator     { return keyboard.NewDarwinSimulator() }
 func newHotkeyManager() hotkey.Manager    { return hotkey.NewXPlatManager() }
 
+// initKeyboard resolves keyboard layout key codes on the main thread.
+// TIS (Text Input Source) API is not thread-safe and crashes/hangs if called
+// from a background goroutine. This MUST run before startMainLoop().
+func initKeyboard() { keyboard.ResolveLayout() }
+
 // startMainLoop runs the Cocoa event loop on the main thread (required by
 // macOS). Hotkey registration is deferred to a background goroutine — the
 // registerHotkeys function waits on the appReady channel (closed when

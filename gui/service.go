@@ -694,6 +694,19 @@ func (s *SettingsService) OpenLogFile() string {
 	return "ok"
 }
 
+// ClearDebugLog truncates the log file.
+func (s *SettingsService) ClearDebugLog() string {
+	guiLog("[GUI] JS called: ClearDebugLog")
+	path := s.GetDebugLogPath()
+	if path == "" {
+		return "error: no log path"
+	}
+	if err := os.Truncate(path, 0); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
 // TailDebugLog returns the last ~200 lines of the log file.
 func (s *SettingsService) TailDebugLog() string {
 	guiLog("[GUI] JS called: TailDebugLog")

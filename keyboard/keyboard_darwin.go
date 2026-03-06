@@ -94,18 +94,39 @@ var (
 	keyV       C.CGKeyCode
 )
 
+// ResolveLayout resolves key codes for a/c/v from the current keyboard layout.
+// MUST be called from the main thread before any hotkey callbacks fire — the
+// TIS (Text Input Source) API is not thread-safe and can hang or crash if
+// called from a background goroutine. Falls back to ANSI key codes on failure.
+func ResolveLayout() {
+	resolveKeys()
+}
+
 // resolveKeys looks up the correct key codes for a/c/v on the current layout.
-// Called once (lazy). Falls back to ANSI codes if lookup fails.
+// Called once (lazy). Falls back to ANSI codes if lookup fails or times out.
 func resolveKeys() {
 	layoutOnce.Do(func() {
-		keyA = resolveChar('a', kVK_ANSI_A)
-		keyC = resolveChar('c', kVK_ANSI_C)
-		keyV = resolveChar('v', kVK_ANSI_V)
-		slog.Debug("[keyboard] Resolved layout key codes",
-			"a", fmt.Sprintf("0x%02X", keyA),
-			"c", fmt.Sprintf("0x%02X", keyC),
-			"v", fmt.Sprintf("0x%02X", keyV),
-		)
+		slog.Debug("[keyboard] Resolving layout key codes...")
+		done := make(chan struct{})
+		go func() {
+			keyA = resolveChar('a', kVK_ANSI_A)
+			keyC = resolveChar('c', kVK_ANSI_C)
+			keyV = resolveChar('v', kVK_ANSI_V)
+			close(done)
+		}()
+		select {
+		case <-done:
+			slog.Debug("[keyboard] Resolved layout key codes",
+				"a", fmt.Sprintf("0x%02X", keyA),
+				"c", fmt.Sprintf("0x%02X", keyC),
+				"v", fmt.Sprintf("0x%02X", keyV),
+			)
+		case <-time.After(3 * time.Second):
+			slog.Warn("[keyboard] TIS layout resolution timed out, using ANSI fallbacks")
+			keyA = C.CGKeyCode(kVK_ANSI_A)
+			keyC = C.CGKeyCode(kVK_ANSI_C)
+			keyV = C.CGKeyCode(kVK_ANSI_V)
+		}
 	})
 }
 

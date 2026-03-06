@@ -16,6 +16,7 @@ import (
 func newClipboard() *clipboard.Clipboard  { return clipboard.NewLinuxClipboard() }
 func newKeyboard() keyboard.Simulator     { return keyboard.NewLinuxSimulator() }
 func newHotkeyManager() hotkey.Manager    { return hotkey.NewXPlatManager() }
+func initKeyboard()                       {} // no-op on Linux
 
 // startMainLoop starts the GTK event loop in a background goroutine first (so
 // the wizard window can render if needed), then registers hotkeys (which may

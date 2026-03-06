@@ -621,6 +621,11 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		}()
 	}()
 
+	// Resolve keyboard layout key codes on the main thread BEFORE the event
+	// loop starts. On macOS the TIS API (TISCopyCurrentKeyboardInputSource)
+	// is not thread-safe and crashes/hangs when called from a goroutine.
+	initKeyboard()
+
 	// Platform-specific main loop: controls which thread runs the Cocoa/GTK
 	// event loop vs the hotkey listener. On macOS this runs app.Run() on the
 	// main thread so the Carbon hotkey API doesn't deadlock.

@@ -16,6 +16,7 @@ import (
 func newClipboard() *clipboard.Clipboard  { return clipboard.NewWindowsClipboard() }
 func newKeyboard() keyboard.Simulator     { return keyboard.NewWindowsSimulator() }
 func newHotkeyManager() hotkey.Manager    { return hotkey.NewWindowsManager() }
+func initKeyboard()                       {} // no-op on Windows
 
 // startMainLoop runs the Wails event loop on the main thread (required because
 // COM/CoInitializeEx was called on the main thread during init — WebView2 needs

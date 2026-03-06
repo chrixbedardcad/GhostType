@@ -502,6 +502,7 @@
         <button class="btn btn-secondary btn-sm" onclick="onOpenConfigFile()">Open config.json</button>
         <button class="btn btn-secondary btn-sm" onclick="onOpenLogFile()">Open Log File</button>
         <button class="btn btn-secondary btn-sm" onclick="onCopyLog()">Copy Log to Clipboard</button>
+        <button class="btn btn-secondary btn-sm" onclick="onClearLog()">Clear Log</button>
       </div>
       <div class="status" id="debug-status"></div>
     </div>
@@ -1069,6 +1070,13 @@ async function onOpenLogFile() {
   if (result && result.startsWith('error')) setStatus('debug-status', 'error', result);
 }
 
+async function onClearLog() {
+  clearStatus('debug-status');
+  const result = await goCall('clearDebugLog');
+  if (result && result.startsWith('ok')) setStatus('debug-status', 'success', 'Log cleared');
+  else setStatus('debug-status', 'error', result || 'Failed to clear log');
+}
+
 async function onCopyLog() {
   clearStatus('debug-status');
   const tail = await goCall('tailDebugLog');
@@ -1154,8 +1162,8 @@ async function checkForUpdate() {
     setStatus('update-status', 'info', 'Update available: v' + data.latest + ' (you have v' + data.current + ')');
     const statusEl = document.getElementById('update-status');
     statusEl.innerHTML += '<div style="margin-top:10px;display:flex;gap:8px;justify-content:center">'
-      + '<button class="btn btn-primary btn-sm" onclick="doUpdate()">Update Now</button>'
-      + '<button class="btn btn-secondary btn-sm" onclick="wails.Browser.OpenURL(\'' + escJS(data.url) + '\')">View Release</button>'
+      + '<button class="btn btn-primary" onclick="doUpdate()">Update Now</button>'
+      + '<button class="btn btn-secondary" onclick="wails.Browser.OpenURL(\'' + escJS(data.url) + '\')">View Release</button>'
       + '</div>';
   } else {
     setStatus('update-status', 'success', 'You are up to date (v' + data.current + ')');
