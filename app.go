@@ -509,14 +509,21 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		if !axOK {
 			fmt.Println("Waiting for Accessibility permission...")
 			fmt.Println("Please enable GhostType in System Settings > Privacy & Security > Accessibility")
+			fmt.Println("If you already enabled it, toggle it OFF then ON again (binary changed after update)")
 			slog.Info("Opening Accessibility settings panes")
 			openAccessibilitySettings()
 
+			pollCount := 0
 			for !checkAccessibility() {
 				time.Sleep(2 * time.Second)
+				pollCount++
+				if pollCount%5 == 0 {
+					slog.Info("Still waiting for Accessibility permission", "polls", pollCount)
+					fmt.Printf("Still waiting for Accessibility permission... (poll #%d)\n", pollCount)
+				}
 			}
 			fmt.Println("Accessibility permission granted!")
-			slog.Info("Accessibility permission granted after polling")
+			slog.Info("Accessibility permission granted after polling", "polls", pollCount)
 		}
 
 		fmt.Println("GhostType is ready. Waiting for hotkey input...")
