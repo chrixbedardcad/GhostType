@@ -58,6 +58,21 @@ if ($env:PATH -notlike "*$InstallDir*") {
     $env:PATH = "$env:PATH;$InstallDir"
 }
 
+# --- Start Menu shortcut ----------------------------------------------------
+
+$StartMenu = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs"
+$ShortcutPath = Join-Path $StartMenu "GhostType.lnk"
+$ExePath = Join-Path $InstallDir "ghosttype.exe"
+
+Write-Info "Creating Start Menu shortcut..."
+$WshShell = New-Object -ComObject WScript.Shell
+$Shortcut = $WshShell.CreateShortcut($ShortcutPath)
+$Shortcut.TargetPath = $ExePath
+$Shortcut.WorkingDirectory = $InstallDir
+$Shortcut.IconLocation = "$ExePath,0"
+$Shortcut.Description = "GhostType - AI-powered text correction"
+$Shortcut.Save()
+
 # --- Done -------------------------------------------------------------------
 
 Write-Ok ""
@@ -73,9 +88,9 @@ Write-Host ""
 # --- Auto-launch ------------------------------------------------------------
 
 Write-Info "Launching GhostType..."
-Start-Process -FilePath (Join-Path $InstallDir "ghosttype.exe")
+Start-Process -FilePath $ExePath
 Write-Ok "GhostType is running in your system tray (bottom-right, near the clock)."
 Write-Host "  Look for the GhostType icon — click the ^ arrow if it's hidden."
 Write-Host ""
-Write-Info "To launch manually later (in a new terminal):"
-Write-Host "  ghosttype"
+Write-Info "To launch manually later:"
+Write-Host "  Search 'GhostType' in the Start menu, or type 'ghosttype' in a terminal."

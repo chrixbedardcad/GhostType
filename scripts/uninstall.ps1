@@ -37,6 +37,14 @@ if (Test-Path $DataDir) {
     Remove-Item -Recurse -Force $DataDir
 }
 
+# --- Remove Start Menu shortcut ---------------------------------------------
+
+$ShortcutPath = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\GhostType.lnk"
+if (Test-Path $ShortcutPath) {
+    Write-Info "Removing Start Menu shortcut..."
+    Remove-Item -Force $ShortcutPath
+}
+
 # --- Remove from PATH -------------------------------------------------------
 
 $UserPath = [Environment]::GetEnvironmentVariable("PATH", "User")
