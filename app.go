@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"sync"
 	"syscall"
@@ -16,6 +18,7 @@ import (
 	"github.com/chrixbedardcad/GhostType/clipboard"
 	"github.com/chrixbedardcad/GhostType/config"
 	"github.com/chrixbedardcad/GhostType/gui"
+	"github.com/chrixbedardcad/GhostType/internal/sysinfo"
 	"github.com/chrixbedardcad/GhostType/keyboard"
 	"github.com/chrixbedardcad/GhostType/llm"
 	"github.com/chrixbedardcad/GhostType/mode"
@@ -344,6 +347,58 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				fn()
 			}
 		},
+		OnDebugToggle: func(enabled bool) {
+			if debugState == nil {
+				return
+			}
+			if enabled {
+				logPath, err := debugState.Enable()
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Failed to enable debug logging: %v\n", err)
+					return
+				}
+				logSysInfo(cfg)
+				fmt.Printf("Debug logging enabled: %s\n", logPath)
+			} else {
+				debugState.Disable()
+				fmt.Println("Debug logging disabled")
+			}
+		},
+		OnOpenLogFile: func() {
+			if debugState == nil {
+				return
+			}
+			logPath := debugState.LogPath()
+			if _, err := os.Stat(logPath); os.IsNotExist(err) {
+				fmt.Println("No log file yet — enable debug logging first")
+				return
+			}
+			var cmd *exec.Cmd
+			switch runtime.GOOS {
+			case "darwin":
+				cmd = exec.Command("open", logPath)
+			case "windows":
+				cmd = exec.Command("cmd", "/c", "start", "", logPath)
+			default:
+				cmd = exec.Command("xdg-open", logPath)
+			}
+			cmd.Start()
+		},
+		OnCopyLog: func() {
+			if debugState == nil {
+				return
+			}
+			tail, err := debugState.Tail()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Failed to read log: %v\n", err)
+				return
+			}
+			info := sysinfo.Collect()
+			header := fmt.Sprintf("GhostType v%s | %s %s (%s) | Locale: %s | Keyboard: %s\n---\n",
+				Version, info.OS, info.OSVersion, info.Arch, info.Locale, info.KeyboardLayout)
+			cb.Write(header + tail)
+			fmt.Println("Log copied to clipboard (last 200 lines)")
+		},
 		OnExit: func() {
 			slog.Info("Exit requested via tray menu")
 			fmt.Println("\nGhostType exiting (tray menu).")
@@ -381,6 +436,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 			sort.Slice(labels, func(i, j int) bool { return labels[i].Label < labels[j].Label })
 			return labels
 		},
+		GetDebugEnabled: func() bool {
+			return debugState != nil && debugState.Enabled()
+		},
 		GetTargetIdx: func() int {
 			if router == nil {
 				return 0
@@ -398,6 +456,13 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	}
 
 	trayRun, stopTrayFn = tray.Start(trayCfg, wailsApp)
+
+	// When debug auto-disables after 30min, log it.
+	if debugState != nil {
+		debugState.SetOnAutoStop(func() {
+			fmt.Println("Debug logging auto-disabled after 30 minutes")
+		})
+	}
 
 	// If first launch, show the wizard on this same Wails app (no separate app).
 	// The wizard window appears alongside the tray icon. When the user saves a
@@ -421,7 +486,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				mu.Unlock()
 
 				// Re-init logging in case the reload changed settings.
-				setupLogging(cfg, filepath.Dir(configPath))
+				if debugState != nil {
+					debugState.InitFromConfig(cfg.LogLevel)
+				}
 
 				if err := config.Validate(cfg); err != nil {
 					slog.Error("Config validation failed after wizard", "error", err)

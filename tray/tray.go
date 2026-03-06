@@ -26,22 +26,26 @@ type Config struct {
 	TemplateIconPNG []byte
 
 	// Callbacks — called on the tray thread.
-	OnModeChange   func(modeName string) // "correct", "translate", "rewrite"
-	OnTargetSelect func(idx int)
-	OnTemplSelect  func(idx int)
-	OnSoundToggle  func(enabled bool)
-	OnCancel       func()
-	OnSettings     func()
-	OnModelSelect  func(label string)
-	OnExit         func()
+	OnModeChange    func(modeName string) // "correct", "translate", "rewrite"
+	OnTargetSelect  func(idx int)
+	OnTemplSelect   func(idx int)
+	OnSoundToggle   func(enabled bool)
+	OnCancel        func()
+	OnSettings      func()
+	OnModelSelect   func(label string)
+	OnDebugToggle   func(enabled bool) // toggle debug logging
+	OnOpenLogFile   func()             // open log file in editor
+	OnCopyLog       func()             // copy last 200 log lines to clipboard
+	OnExit          func()
 
 	// State readers — called to build the menu.
-	GetActiveMode   func() string // returns "correct", "translate", or "rewrite"
-	GetTargetIdx    func() int
-	GetTemplateIdx  func() int
-	GetSoundEnabled func() bool
-	GetIsProcessing func() bool
-	GetModelLabels  func() []ModelLabel
+	GetActiveMode    func() string // returns "correct", "translate", or "rewrite"
+	GetTargetIdx     func() int
+	GetTemplateIdx   func() int
+	GetSoundEnabled  func() bool
+	GetIsProcessing  func() bool
+	GetModelLabels   func() []ModelLabel
+	GetDebugEnabled  func() bool
 
 	// Static data for building menu items.
 	TargetLabels  []string // translate target display labels
@@ -272,6 +276,40 @@ func (ts *trayState) refreshMenu() {
 	cancelItem.OnClick(func(ctx *application.Context) {
 		if ts.cfg.OnCancel != nil {
 			ts.cfg.OnCancel()
+		}
+	})
+
+	// Debug section.
+	menu.AddSeparator()
+	menu.Add("Debug:").SetEnabled(false)
+
+	debugEnabled := false
+	if ts.cfg.GetDebugEnabled != nil {
+		debugEnabled = ts.cfg.GetDebugEnabled()
+	}
+	debugLabel := "  Enable Debug Logging"
+	if debugEnabled {
+		debugLabel = "  Debug Logging (active)"
+	}
+	debugItem := menu.AddCheckbox(debugLabel, debugEnabled)
+	debugItem.OnClick(func(ctx *application.Context) {
+		if ts.cfg.OnDebugToggle != nil {
+			ts.cfg.OnDebugToggle(ctx.IsChecked())
+		}
+		ts.refreshMenu()
+	})
+
+	openLogItem := menu.Add("  Open Log File...")
+	openLogItem.OnClick(func(ctx *application.Context) {
+		if ts.cfg.OnOpenLogFile != nil {
+			ts.cfg.OnOpenLogFile()
+		}
+	})
+
+	copyLogItem := menu.Add("  Copy Log to Clipboard")
+	copyLogItem.OnClick(func(ctx *application.Context) {
+		if ts.cfg.OnCopyLog != nil {
+			ts.cfg.OnCopyLog()
 		}
 	})
 

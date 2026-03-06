@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
-	"strings"
+	"runtime/debug"
 	"time"
 
 	"github.com/chrixbedardcad/GhostType/config"
 	"github.com/chrixbedardcad/GhostType/gui"
+	"github.com/chrixbedardcad/GhostType/internal/debuglog"
+	"github.com/chrixbedardcad/GhostType/internal/sysinfo"
 	"github.com/chrixbedardcad/GhostType/llm"
 	"github.com/chrixbedardcad/GhostType/mode"
 	"github.com/chrixbedardcad/GhostType/sound"
@@ -78,53 +79,38 @@ func logStartupError(dir, msg string, err error) {
 	slog.Error(msg, "error", err)
 }
 
-// setupLogging initialises the slog default logger from the loaded config.
-// It creates the log file immediately so a version stamp is recorded as early
-// as possible. Safe to call more than once (e.g. after settings change).
-func setupLogging(cfg *config.Config, configDir string) {
-	// Normalize to lowercase so "Debug", "DEBUG", etc. all work.
-	cfg.LogLevel = strings.ToLower(strings.TrimSpace(cfg.LogLevel))
+// debugState is the global debug log state, initialised in main().
+var debugState *debuglog.State
 
-	if cfg.LogLevel != "" {
-		logLevel := slog.LevelInfo
-		switch cfg.LogLevel {
-		case "debug":
-			logLevel = slog.LevelDebug
-		case "info":
-			logLevel = slog.LevelInfo
-		case "warn":
-			logLevel = slog.LevelWarn
-		case "error":
-			logLevel = slog.LevelError
-		}
+// logSysInfo writes a system information block to the log.
+func logSysInfo(cfg *config.Config) {
+	info := sysinfo.Collect()
+	slog.Info("=== GhostType Debug Session ===",
+		"version", Version,
+		"os", info.OS,
+		"os_version", info.OSVersion,
+		"arch", info.Arch,
+		"locale", info.Locale,
+		"keyboard", info.KeyboardLayout,
+		"hotkey", cfg.Hotkeys.Correct,
+		"default_llm", cfg.DefaultLLM,
+		"providers", len(cfg.LLMProviders),
+	)
+}
 
-		// Resolve log file path relative to the config file directory.
-		logPath := cfg.LogFile
-		if !filepath.IsAbs(logPath) {
-			logPath = filepath.Join(configDir, logPath)
-		}
-
-		// Ensure the parent directory exists.
-		if dir := filepath.Dir(logPath); dir != "." {
-			if err := os.MkdirAll(dir, 0755); err != nil {
-				fmt.Fprintf(os.Stderr, "Warning: could not create log directory %s: %v\n", dir, err)
-			}
-		}
-
-		logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+// recoverPanic writes a crash log if a panic occurs.
+func recoverPanic(configDir string) {
+	if r := recover(); r != nil {
+		crashPath := filepath.Join(configDir, "ghosttype_crash.log")
+		f, err := os.OpenFile(crashPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "ERROR: could not open log file %s: %v\n", logPath, err)
-			fmt.Fprintf(os.Stderr, "Logs will be written to stderr instead.\n")
-			logFile = os.Stderr
+			fmt.Fprintf(os.Stderr, "PANIC: %v\n%s\n", r, debug.Stack())
+			return
 		}
-
-		logger := slog.New(slog.NewTextHandler(logFile, &slog.HandlerOptions{Level: logLevel}))
-		slog.SetDefault(logger)
-		fmt.Printf("Logging enabled: level=%s file=%s\n", cfg.LogLevel, logPath)
-	} else {
-		// Disabled: set a no-op logger that discards everything.
-		slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelError + 1})))
-		fmt.Println("Logging disabled (set log_level in config.json to enable)")
+		defer f.Close()
+		fmt.Fprintf(f, "=== CRASH %s (v%s) ===\n%v\n%s\n\n",
+			time.Now().Format(time.RFC3339), Version, r, debug.Stack())
+		fmt.Fprintf(os.Stderr, "GhostType crashed. Details written to: %s\n", crashPath)
 	}
 }
 
@@ -146,6 +132,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Panic recovery — writes stack trace to crash log.
+	defer recoverPanic(appDir)
+
 	configPath := filepath.Join(appDir, "config.json")
 
 	// Migration: if a config exists next to the executable (old behavior) but
@@ -166,15 +155,16 @@ func main() {
 	// Derive the base directory from the config file for resolving relative paths.
 	configDir := filepath.Dir(configPath)
 
-	// Set up logging early so the log file is created and the version is
-	// stamped before anything else (including the settings GUI).
-	setupLogging(cfg, configDir)
+	// Initialise the debug log system. Honours config's log_level on startup.
+	debugState = debuglog.New(configDir)
+	debugState.InitFromConfig(cfg.LogLevel)
 
 	slog.Info("GhostType starting",
 		"version", Version,
 		"default_llm", cfg.DefaultLLM,
 		"llm_providers", len(cfg.LLMProviders),
 	)
+	logSysInfo(cfg)
 
 	// First-launch check: if no provider is configured, the wizard will
 	// run on the tray Wails app (no separate app to avoid goroutine leaks).
