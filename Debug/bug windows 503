@@ -1,0 +1,14 @@
+time=2026-03-06T11:51:49.289-05:00 level=INFO msg="Correction triggered"
+time=2026-03-06T11:51:49.628-05:00 level=INFO msg="Captured text" mode=Correction len=88 selection=false text="oui je pense que ils sont bien, tu commence a avoir vrament la bonne facone de les faire"
+time=2026-03-06T11:51:49.833-05:00 level=ERROR msg="LLM processing failed" mode=Correction error="LLM request failed: API returned status 503: [{\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n]"
+time=2026-03-06T11:51:57.887-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-06T11:51:59.200-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-06T11:51:59.200-05:00 level=INFO msg="[GUI] ShowSettings: window already open, skipping"
+time=2026-03-06T11:52:03.888-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-06T11:52:05.143-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-06T11:52:05.143-05:00 level=INFO msg="[GUI] ShowSettings: window already open, skipping"
+time=2026-03-06T11:52:10.008-05:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-06T11:52:11.718-05:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-06T11:52:13.165-05:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-06T11:52:14.260-05:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-06T11:52:15.887-05:00 level=INFO msg="[GUI] JS called: TailDebugLog"
