@@ -109,7 +109,7 @@ func DefaultConfig() Config {
 		DefaultTranslateTarget: "en",
 		ActiveMode:             "correct",
 		Hotkeys: Hotkeys{
-			Correct:        "Ctrl+G",
+			Correct:        defaultCorrectHotkey,
 			Translate:      "",
 			ToggleLanguage: "",
 			Rewrite:        "",
