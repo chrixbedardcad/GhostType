@@ -103,8 +103,8 @@ func ShowSettings(svc *SettingsService, cfg *config.Config, configPath string, o
 	guiLog("[GUI] Creating settings window on running tray app...")
 	win := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:  "GhostType Settings",
-		Width:  720,
-		Height: 580,
+		Width:  760,
+		Height: 620,
 		URL:    "/index.html",
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,

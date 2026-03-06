@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os/exec"
 	"runtime"
 	"time"
@@ -282,7 +283,7 @@ func (s *SettingsService) TestProvider(label string) string {
 // OpenConfigFile opens the config file in the OS default editor.
 func (s *SettingsService) OpenConfigFile() string {
 	guiLog("[GUI] JS called: OpenConfigFile")
-	openFileInOS(s.configPath)
+	OpenFile(s.configPath)
 	return "ok"
 }
 
@@ -358,8 +359,252 @@ func (s *SettingsService) OllamaDownloadInstaller() string {
 	return "ok"
 }
 
-// openFileInOS opens a file using the platform's default handler.
-func openFileInOS(path string) {
+// --- Template management ---------------------------------------------------
+
+// SaveTemplate updates an existing template at the given index, or appends if index == -1.
+func (s *SettingsService) SaveTemplate(index int, name, prompt, llmLabel string) string {
+	guiLog("[GUI] JS called: SaveTemplate(idx=%d, name=%s)", index, name)
+	if name == "" || prompt == "" {
+		return "error: name and prompt are required"
+	}
+	t := config.RewriteTemplate{Name: name, Prompt: prompt, LLM: llmLabel}
+	if index < 0 || index >= len(s.cfgCopy.Prompts.RewriteTemplates) {
+		s.cfgCopy.Prompts.RewriteTemplates = append(s.cfgCopy.Prompts.RewriteTemplates, t)
+	} else {
+		s.cfgCopy.Prompts.RewriteTemplates[index] = t
+	}
+	if err := s.clearLegacyAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// DeleteTemplate removes the template at the given index.
+func (s *SettingsService) DeleteTemplate(index int) string {
+	guiLog("[GUI] JS called: DeleteTemplate(%d)", index)
+	ts := s.cfgCopy.Prompts.RewriteTemplates
+	if index < 0 || index >= len(ts) {
+		return "error: invalid index"
+	}
+	s.cfgCopy.Prompts.RewriteTemplates = append(ts[:index], ts[index+1:]...)
+	if err := s.clearLegacyAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// MoveTemplate moves a template from one index to another.
+func (s *SettingsService) MoveTemplate(fromIdx, toIdx int) string {
+	guiLog("[GUI] JS called: MoveTemplate(%d -> %d)", fromIdx, toIdx)
+	ts := s.cfgCopy.Prompts.RewriteTemplates
+	if fromIdx < 0 || fromIdx >= len(ts) || toIdx < 0 || toIdx >= len(ts) {
+		return "error: invalid index"
+	}
+	item := ts[fromIdx]
+	ts = append(ts[:fromIdx], ts[fromIdx+1:]...)
+	newTS := make([]config.RewriteTemplate, 0, len(ts)+1)
+	newTS = append(newTS, ts[:toIdx]...)
+	newTS = append(newTS, item)
+	newTS = append(newTS, ts[toIdx:]...)
+	s.cfgCopy.Prompts.RewriteTemplates = newTS
+	if err := s.clearLegacyAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// --- Language management ---------------------------------------------------
+
+// AddLanguage adds a language code and display name.
+func (s *SettingsService) AddLanguage(code, name string) string {
+	guiLog("[GUI] JS called: AddLanguage(%s, %s)", code, name)
+	if code == "" || name == "" {
+		return "error: code and name are required"
+	}
+	// Check for duplicates.
+	for _, c := range s.cfgCopy.Languages {
+		if c == code {
+			return "error: language already exists"
+		}
+	}
+	s.cfgCopy.Languages = append(s.cfgCopy.Languages, code)
+	if s.cfgCopy.LanguageNames == nil {
+		s.cfgCopy.LanguageNames = make(map[string]string)
+	}
+	s.cfgCopy.LanguageNames[code] = name
+	if err := s.clearLegacyAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// RemoveLanguage removes a language by code.
+func (s *SettingsService) RemoveLanguage(code string) string {
+	guiLog("[GUI] JS called: RemoveLanguage(%s)", code)
+	newLangs := make([]string, 0, len(s.cfgCopy.Languages))
+	for _, c := range s.cfgCopy.Languages {
+		if c != code {
+			newLangs = append(newLangs, c)
+		}
+	}
+	s.cfgCopy.Languages = newLangs
+	delete(s.cfgCopy.LanguageNames, code)
+	// Clean up translate targets that reference removed language.
+	var newTargets []string
+	for _, t := range s.cfgCopy.TranslateTargets {
+		parts := splitTarget(t)
+		if parts[0] != code && (len(parts) < 2 || parts[1] != code) {
+			newTargets = append(newTargets, t)
+		}
+	}
+	s.cfgCopy.TranslateTargets = newTargets
+	if err := s.clearLegacyAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// AddTranslateTarget adds a translate target (e.g. "en|fr" or "es").
+func (s *SettingsService) AddTranslateTarget(target string) string {
+	guiLog("[GUI] JS called: AddTranslateTarget(%s)", target)
+	if target == "" {
+		return "error: target is required"
+	}
+	s.cfgCopy.TranslateTargets = append(s.cfgCopy.TranslateTargets, target)
+	if err := s.clearLegacyAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// RemoveTranslateTarget removes the target at the given index.
+func (s *SettingsService) RemoveTranslateTarget(index int) string {
+	guiLog("[GUI] JS called: RemoveTranslateTarget(%d)", index)
+	ts := s.cfgCopy.TranslateTargets
+	if index < 0 || index >= len(ts) {
+		return "error: invalid index"
+	}
+	s.cfgCopy.TranslateTargets = append(ts[:index], ts[index+1:]...)
+	if err := s.clearLegacyAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// --- General settings ------------------------------------------------------
+
+// SetSoundEnabled toggles sound.
+func (s *SettingsService) SetSoundEnabled(enabled bool) string {
+	guiLog("[GUI] JS called: SetSoundEnabled(%v)", enabled)
+	s.cfgCopy.SoundEnabled = &enabled
+	if err := s.clearLegacyAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// SetPreserveClipboard toggles clipboard preservation.
+func (s *SettingsService) SetPreserveClipboard(enabled bool) string {
+	guiLog("[GUI] JS called: SetPreserveClipboard(%v)", enabled)
+	s.cfgCopy.PreserveClipboard = enabled
+	if err := s.clearLegacyAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// SetHotkey updates a named hotkey binding.
+func (s *SettingsService) SetHotkey(name, binding string) string {
+	guiLog("[GUI] JS called: SetHotkey(%s, %s)", name, binding)
+	switch name {
+	case "correct":
+		s.cfgCopy.Hotkeys.Correct = binding
+	case "translate":
+		s.cfgCopy.Hotkeys.Translate = binding
+	case "toggle_language":
+		s.cfgCopy.Hotkeys.ToggleLanguage = binding
+	case "rewrite":
+		s.cfgCopy.Hotkeys.Rewrite = binding
+	case "cycle_template":
+		s.cfgCopy.Hotkeys.CycleTemplate = binding
+	default:
+		return "error: unknown hotkey name"
+	}
+	if err := s.clearLegacyAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// SetLogLevel updates the log level.
+func (s *SettingsService) SetLogLevel(level string) string {
+	guiLog("[GUI] JS called: SetLogLevel(%s)", level)
+	s.cfgCopy.LogLevel = level
+	if err := s.clearLegacyAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// CheckForUpdate checks GitHub for a newer version and returns JSON.
+func (s *SettingsService) CheckForUpdate() string {
+	guiLog("[GUI] JS called: CheckForUpdate")
+	current := version.Version
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	type ghRelease struct {
+		TagName string `json:"tag_name"`
+		HTMLURL string `json:"html_url"`
+	}
+
+	apiURL := "https://api.github.com/repos/chrixbedardcad/GhostType/releases/latest"
+	req, err := http.NewRequestWithContext(ctx, "GET", apiURL, nil)
+	if err != nil {
+		return fmt.Sprintf(`{"current":"%s","error":"%v"}`, current, err)
+	}
+	req.Header.Set("Accept", "application/vnd.github+json")
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Sprintf(`{"current":"%s","error":"%v"}`, current, err)
+	}
+	defer resp.Body.Close()
+
+	var rel ghRelease
+	if err := json.NewDecoder(resp.Body).Decode(&rel); err != nil {
+		return fmt.Sprintf(`{"current":"%s","error":"%v"}`, current, err)
+	}
+
+	latest := rel.TagName
+	if len(latest) > 0 && latest[0] == 'v' {
+		latest = latest[1:]
+	}
+	hasUpdate := latest != current
+
+	result := map[string]interface{}{
+		"current":    current,
+		"latest":     latest,
+		"has_update": hasUpdate,
+		"url":        rel.HTMLURL,
+	}
+	data, _ := json.Marshal(result)
+	return string(data)
+}
+
+// splitTarget splits "en|fr" into ["en", "fr"] or "es" into ["es"].
+func splitTarget(t string) []string {
+	for i := range t {
+		if t[i] == '|' {
+			return []string{t[:i], t[i+1:]}
+		}
+	}
+	return []string{t}
+}
+
+// OpenFile opens a file using the platform's default handler.
+func OpenFile(path string) {
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "windows":

@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"os/exec"
 	"os/signal"
-	"runtime"
 	"sort"
 	"sync"
 	"syscall"
@@ -369,19 +367,15 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 			}
 			logPath := debugState.LogPath()
 			if _, err := os.Stat(logPath); os.IsNotExist(err) {
-				fmt.Println("No log file yet — enable debug logging first")
-				return
+				// No log file yet — enable debug logging first so there's something to open.
+				fmt.Println("No log file yet — enabling debug logging first")
+				if _, enableErr := debugState.Enable(); enableErr != nil {
+					fmt.Fprintf(os.Stderr, "Failed to enable debug logging: %v\n", enableErr)
+					return
+				}
+				logSysInfo(cfg)
 			}
-			var cmd *exec.Cmd
-			switch runtime.GOOS {
-			case "darwin":
-				cmd = exec.Command("open", logPath)
-			case "windows":
-				cmd = exec.Command("cmd", "/c", "start", "", logPath)
-			default:
-				cmd = exec.Command("xdg-open", logPath)
-			}
-			cmd.Start()
+			gui.OpenFile(logPath)
 		},
 		OnCopyLog: func() {
 			if debugState == nil {

@@ -35,8 +35,8 @@ if (-not (Test-Path $InstallDir)) {
 }
 
 $Assets = @(
-    @{ Name = "ghosttype.exe";            File = "ghosttype-windows-amd64.exe" },
-    @{ Name = "ghosttype-windowless.exe"; File = "ghosttype-windows-amd64-windowless.exe" }
+    @{ Name = "ghosttype.exe";        File = "ghosttype-windows-amd64.exe" },
+    @{ Name = "ghosttype-window.exe"; File = "ghosttype-windows-amd64-window.exe" }
 )
 
 foreach ($Asset in $Assets) {
@@ -64,8 +64,8 @@ Write-Ok ""
 Write-Ok "GhostType $Version installed to $InstallDir"
 Write-Ok ""
 Write-Info "Two variants installed:"
-Write-Host "  ghosttype.exe             - with console window (useful for debugging)"
-Write-Host "  ghosttype-windowless.exe  - tray only, no console (recommended)"
+Write-Host "  ghosttype.exe        - tray only, no console (recommended)"
+Write-Host "  ghosttype-window.exe - with console window (useful for debugging)"
 Write-Host ""
 Write-Info "Config is stored in: $env:APPDATA\GhostType\"
 Write-Host ""
@@ -73,9 +73,9 @@ Write-Host ""
 # --- Auto-launch ------------------------------------------------------------
 
 Write-Info "Launching GhostType..."
-Start-Process -FilePath (Join-Path $InstallDir "ghosttype-windowless.exe")
+Start-Process -FilePath (Join-Path $InstallDir "ghosttype.exe")
 Write-Ok "GhostType is running in your system tray (bottom-right, near the clock)."
 Write-Host "  Look for the GhostType icon — click the ^ arrow if it's hidden."
 Write-Host ""
 Write-Info "To launch manually later (in a new terminal):"
-Write-Host "  ghosttype-windowless"
+Write-Host "  ghosttype"

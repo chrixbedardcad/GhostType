@@ -64,11 +64,11 @@ jobs:
           if [ "${{ matrix.goos }}" = "linux" ]; then
             TAGS="webkit2_41 production"
           fi
-          # Main binary
-          go build -tags "$TAGS" -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
-          # Windowless build (Windows only)
           if [ "${{ matrix.goos }}" = "windows" ]; then
-            go build -tags "$TAGS" -ldflags "-H=windowsgui" -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}-windowless${{ matrix.ext }}
+            # Default exe is windowless (tray only, no console) — recommended for daily use.
+            go build -tags "$TAGS" -ldflags "-H=windowsgui" -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
+            # Window exe shows a console window — useful for debugging.
+            go build -tags "$TAGS" -o ghosttype-${{ matrix.goos }}-${{ matrix.goarch }}-window${{ matrix.ext }}
           fi
       - name: Bundle macOS .app
         if: matrix.goos == 'darwin'

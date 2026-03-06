@@ -11,39 +11,88 @@
     background: #1e1e2e;
     color: #cdd6f4;
     min-height: 100vh;
-    overflow-y: auto;
+    display: flex; flex-direction: column;
+    overflow: hidden;
   }
-  h1 { font-size: 1.4em; font-weight: 600; color: #cdd6f4; }
-  h2 { font-size: 1.1em; font-weight: 600; color: #bac2de; margin-bottom: 12px; }
 
-  .container { max-width: 640px; margin: 0 auto; padding: 24px; }
+  /* --- Layout --- */
   .header {
     display: flex; align-items: center; gap: 12px;
-    margin-bottom: 24px; padding-bottom: 16px;
-    border-bottom: 1px solid #313244;
+    padding: 16px 24px; border-bottom: 1px solid #313244;
+    flex-shrink: 0;
   }
-  .header .logo { font-size: 1.8em; }
+  .header .logo { font-size: 1.6em; }
+  .header h1 { font-size: 1.2em; font-weight: 600; }
+  .header .ver { font-size: 0.75em; color: #6c7086; }
+
+  .tab-bar {
+    display: flex; gap: 0; border-bottom: 1px solid #313244;
+    padding: 0 24px; flex-shrink: 0; background: #181825;
+  }
+  .tab-bar button {
+    background: none; border: none; border-bottom: 2px solid transparent;
+    color: #6c7086; padding: 10px 18px; font-size: 0.85em;
+    cursor: pointer; transition: color 0.15s, border-color 0.15s;
+    font-weight: 500;
+  }
+  .tab-bar button:hover { color: #bac2de; }
+  .tab-bar button.active { color: #89b4fa; border-bottom-color: #89b4fa; }
+
+  .tab-content {
+    flex: 1; overflow-y: auto; padding: 20px 24px;
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  h2 { font-size: 1.05em; font-weight: 600; color: #bac2de; margin-bottom: 12px; }
+  h3 { font-size: 0.9em; font-weight: 600; color: #a6adc8; margin-bottom: 8px; }
 
   /* --- Form elements --- */
-  .form-group { margin-bottom: 16px; }
+  .form-group { margin-bottom: 14px; }
   .form-group label {
-    display: block; font-size: 0.85em; color: #bac2de;
+    display: block; font-size: 0.82em; color: #bac2de;
     margin-bottom: 4px; font-weight: 500;
   }
-  input[type="text"], input[type="password"], select {
-    width: 100%; padding: 10px 12px;
+  input[type="text"], input[type="password"], select, textarea {
+    width: 100%; padding: 8px 10px;
     background: #313244; border: 1px solid #45475a;
-    border-radius: 6px; color: #cdd6f4; font-size: 0.9em;
+    border-radius: 6px; color: #cdd6f4; font-size: 0.85em;
     outline: none; transition: border-color 0.15s;
+    font-family: inherit;
   }
-  input:focus, select:focus { border-color: #89b4fa; }
+  textarea { resize: vertical; min-height: 60px; }
+  input:focus, select:focus, textarea:focus { border-color: #89b4fa; }
   select { cursor: pointer; }
+
+  /* --- Toggle switch --- */
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; background: #313244; border-radius: 6px;
+    margin-bottom: 8px;
+  }
+  .toggle-row .label { font-size: 0.88em; }
+  .toggle-row .sublabel { font-size: 0.75em; color: #6c7086; margin-top: 2px; }
+  .toggle {
+    position: relative; width: 40px; height: 22px; flex-shrink: 0;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle .slider {
+    position: absolute; inset: 0; background: #45475a;
+    border-radius: 22px; cursor: pointer; transition: background 0.2s;
+  }
+  .toggle .slider:before {
+    content: ""; position: absolute; width: 16px; height: 16px;
+    left: 3px; bottom: 3px; background: #cdd6f4;
+    border-radius: 50%; transition: transform 0.2s;
+  }
+  .toggle input:checked + .slider { background: #89b4fa; }
+  .toggle input:checked + .slider:before { transform: translateX(18px); }
 
   /* --- Buttons --- */
   .btn {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 10px 20px; border: none; border-radius: 6px;
-    font-size: 0.9em; font-weight: 500; cursor: pointer;
+    padding: 8px 16px; border: none; border-radius: 6px;
+    font-size: 0.85em; font-weight: 500; cursor: pointer;
     transition: background 0.15s, opacity 0.15s;
   }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -53,66 +102,58 @@
   .btn-secondary:hover:not(:disabled) { background: #585b70; }
   .btn-danger { background: #f38ba8; color: #1e1e2e; }
   .btn-danger:hover:not(:disabled) { background: #eba0ac; }
-  .btn-sm { padding: 6px 12px; font-size: 0.8em; }
-  .btn-row { display: flex; gap: 8px; margin-top: 16px; }
+  .btn-sm { padding: 5px 10px; font-size: 0.78em; }
+  .btn-row { display: flex; gap: 8px; margin-top: 14px; }
 
   /* --- Status messages --- */
   .status {
-    padding: 8px 12px; border-radius: 6px; font-size: 0.85em;
-    margin-top: 12px; display: none;
+    padding: 8px 12px; border-radius: 6px; font-size: 0.82em;
+    margin-top: 10px; display: none;
   }
   .status.success { display: block; background: #1e3a2e; color: #a6e3a1; border: 1px solid #a6e3a1; }
   .status.error { display: block; background: #3a1e1e; color: #f38ba8; border: 1px solid #f38ba8; }
   .status.info { display: block; background: #1e2e3a; color: #89b4fa; border: 1px solid #89b4fa; }
 
-  /* --- Settings provider list --- */
-  .provider-list-item {
+  /* --- Cards / list items --- */
+  .card {
     background: #313244; border: 1px solid #45475a;
-    border-radius: 8px; padding: 14px; margin-bottom: 8px;
+    border-radius: 8px; padding: 12px; margin-bottom: 8px;
   }
-  .provider-list-item .top-row {
+  .card .top-row {
     display: flex; justify-content: space-between; align-items: center;
   }
-  .provider-list-item .info .label { font-weight: 600; font-size: 0.95em; }
-  .provider-list-item .info .meta { font-size: 0.8em; color: #a6adc8; margin-top: 2px; }
-  .provider-list-item .default-badge {
-    background: #a6e3a1; color: #1e1e2e; font-size: 0.7em;
+  .card .info .label { font-weight: 600; font-size: 0.9em; }
+  .card .info .meta { font-size: 0.78em; color: #a6adc8; margin-top: 2px; }
+  .card .default-badge {
+    background: #a6e3a1; color: #1e1e2e; font-size: 0.68em;
     padding: 2px 8px; border-radius: 4px; font-weight: 600; margin-left: 8px;
   }
-  .provider-list-item .actions { display: flex; gap: 6px; }
-  .provider-list-item .test-result {
-    font-size: 0.8em; margin-top: 8px; padding: 4px 8px;
+  .card .actions { display: flex; gap: 4px; }
+  .card .test-result {
+    font-size: 0.78em; margin-top: 6px; padding: 4px 8px;
     border-radius: 4px; display: none;
   }
-  .provider-list-item .test-result.pass {
-    display: block; background: #1e3a2e; color: #a6e3a1;
-  }
-  .provider-list-item .test-result.fail {
-    display: block; background: #3a1e1e; color: #f38ba8;
-  }
+  .card .test-result.pass { display: block; background: #1e3a2e; color: #a6e3a1; }
+  .card .test-result.fail { display: block; background: #3a1e1e; color: #f38ba8; }
 
   .empty-state {
-    text-align: center; padding: 40px; color: #6c7086;
-    font-size: 0.9em;
+    text-align: center; padding: 30px; color: #6c7086; font-size: 0.88em;
   }
 
-  /* Toolbar */
   .toolbar {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
   /* --- Ollama panel --- */
   .ollama-panel {
     background: #1e1e2e; border: 1px solid #45475a; border-radius: 8px;
-    padding: 14px; margin: 12px 0;
+    padding: 12px; margin: 10px 0;
   }
-  .ollama-panel h3 {
-    font-size: 0.95em; font-weight: 600; color: #cdd6f4; margin-bottom: 10px;
-  }
+  .ollama-panel h3 { margin-bottom: 8px; }
   .ollama-status-bar {
-    display: flex; align-items: center; gap: 8px; padding: 8px 12px;
-    border-radius: 6px; font-size: 0.85em; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+    border-radius: 6px; font-size: 0.82em; margin-bottom: 8px;
   }
   .ollama-status-bar.running { background: #1e3a2e; color: #a6e3a1; }
   .ollama-status-bar.installed { background: #1e2e3a; color: #89b4fa; }
@@ -126,46 +167,112 @@
   .ollama-status-bar.not-installed .ollama-status-dot { background: #f38ba8; }
   .ollama-status-bar.checking .ollama-status-dot { background: #a6adc8; }
 
-  .ollama-spinner {
-    display: inline-block; width: 16px; height: 16px;
-    border: 2px solid #45475a; border-top-color: #89b4fa;
-    border-radius: 50%; animation: ollama-spin 0.6s linear infinite;
+  /* --- Hotkey input --- */
+  .hotkey-input {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
   }
-  @keyframes ollama-spin { to { transform: rotate(360deg); } }
+  .hotkey-input label { font-size: 0.82em; color: #bac2de; min-width: 130px; }
+  .hotkey-input input {
+    flex: 1; padding: 7px 10px; background: #313244; border: 1px solid #45475a;
+    border-radius: 6px; color: #cdd6f4; font-size: 0.85em; outline: none;
+  }
+  .hotkey-input input:focus { border-color: #89b4fa; }
+  .hotkey-input .clear-btn {
+    background: none; border: none; color: #6c7086; cursor: pointer;
+    font-size: 1em; padding: 4px;
+  }
+  .hotkey-input .clear-btn:hover { color: #f38ba8; }
 
-  .ollama-instructions {
-    font-size: 0.88em; color: #bac2de; line-height: 1.5;
-    padding: 8px 0;
+  /* --- Section separator --- */
+  .section { margin-bottom: 24px; }
+  .section-divider { border: none; border-top: 1px solid #313244; margin: 20px 0; }
+
+  /* --- Template card --- */
+  .template-card {
+    background: #313244; border: 1px solid #45475a;
+    border-radius: 8px; padding: 10px 12px; margin-bottom: 6px;
+    cursor: grab;
   }
-  .ollama-instructions code {
-    background: #313244; padding: 2px 6px; border-radius: 4px;
-    font-size: 0.9em; color: #f9e2af;
+  .template-card:active { cursor: grabbing; }
+  .template-card.dragging { opacity: 0.5; }
+  .template-card .top-row {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .template-card .name { font-weight: 600; font-size: 0.88em; }
+  .template-card .llm-badge {
+    font-size: 0.7em; color: #89b4fa; margin-left: 6px;
+  }
+  .template-card .preview {
+    font-size: 0.76em; color: #6c7086; margin-top: 4px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* --- Language tag --- */
+  .lang-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .lang-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #313244; border: 1px solid #45475a;
+    border-radius: 16px; padding: 4px 10px; font-size: 0.82em;
+  }
+  .lang-tag .remove {
+    background: none; border: none; color: #6c7086; cursor: pointer;
+    font-size: 0.9em; padding: 0 2px;
+  }
+  .lang-tag .remove:hover { color: #f38ba8; }
+
+  /* --- Translate target row --- */
+  .target-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #313244; border: 1px solid #45475a;
+    border-radius: 6px; padding: 8px 12px; margin-bottom: 6px;
+    font-size: 0.88em;
+  }
+
+  /* --- About --- */
+  .about-block { text-align: center; padding: 30px 0; }
+  .about-block .logo-big { font-size: 3em; margin-bottom: 8px; }
+  .about-block .app-name { font-size: 1.3em; font-weight: 700; }
+  .about-block .app-ver { font-size: 0.9em; color: #6c7086; margin-top: 4px; }
+  .about-block .desc { font-size: 0.85em; color: #a6adc8; margin-top: 12px; }
+  .update-box {
+    background: #313244; border: 1px solid #45475a;
+    border-radius: 8px; padding: 16px; margin-top: 20px; text-align: center;
   }
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <span class="logo">&#128123;</span>
-    <div>
-      <h1>GhostType Settings</h1>
-      <div style="font-size:0.8em;color:#6c7086">Manage your providers <span id="app-version"></span></div>
-    </div>
-  </div>
 
-  <!-- ============ SETTINGS VIEW ============ -->
-  <div id="settings">
+<div class="header">
+  <span class="logo">&#128123;</span>
+  <div>
+    <h1>GhostType Settings</h1>
+    <span class="ver" id="app-version"></span>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button class="active" onclick="switchTab('models')">Models</button>
+  <button onclick="switchTab('templates')">Templates</button>
+  <button onclick="switchTab('languages')">Languages</button>
+  <button onclick="switchTab('general')">General</button>
+  <button onclick="switchTab('about')">About</button>
+</div>
+
+<div class="tab-content">
+
+  <!-- ============ MODELS TAB ============ -->
+  <div id="tab-models" class="tab-panel active">
     <div class="toolbar">
       <h2 style="margin-bottom:0">Providers</h2>
-      <div style="display:flex;gap:8px">
+      <div style="display:flex;gap:6px">
         <button class="btn btn-secondary btn-sm" onclick="onOpenConfigFile()">Open config.json</button>
         <button class="btn btn-primary btn-sm" onclick="showAddProvider()">+ Add Provider</button>
       </div>
     </div>
     <div id="provider-list"></div>
 
-    <!-- Add/Edit provider form (hidden by default) -->
-    <div id="provider-form" style="display:none;margin-top:16px;padding:16px;background:#313244;border-radius:8px">
+    <!-- Add/Edit provider form -->
+    <div id="provider-form" style="display:none;margin-top:14px;padding:14px;background:#313244;border-radius:8px">
       <h2 id="form-title">Add Provider</h2>
       <input type="hidden" id="edit-original-label" value="">
       <div class="form-group">
@@ -185,14 +292,14 @@
       <div class="form-group" id="form-apikey-group">
         <label for="form-apikey">API Key</label>
         <input type="password" id="form-apikey" placeholder="sk-...">
-        <a href="#" id="form-apikey-link" onclick="openApiKeyPage(); return false;" style="font-size:0.8em;color:#89b4fa;margin-top:4px;display:inline-block">Get API Key &rarr;</a>
+        <a href="#" id="form-apikey-link" onclick="openApiKeyPage(); return false;" style="font-size:0.78em;color:#89b4fa;margin-top:4px;display:inline-block">Get API Key &rarr;</a>
       </div>
 
-      <!-- Ollama inline panel (shown when provider = ollama) -->
+      <!-- Ollama panel -->
       <div id="ollama-panel" class="ollama-panel" style="display:none">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <h3 style="margin:0">Local AI (Ollama)</h3>
-          <button class="btn btn-secondary btn-sm" onclick="onOllamaRefresh()" style="padding:4px 10px;font-size:0.75em">Refresh</button>
+          <button class="btn btn-secondary btn-sm" onclick="onOllamaRefresh()" style="padding:3px 8px;font-size:0.72em">Refresh</button>
         </div>
         <div id="ollama-status-bar" class="ollama-status-bar checking">
           <span class="ollama-status-dot"></span>
@@ -218,21 +325,190 @@
       <div class="status" id="form-status"></div>
     </div>
   </div>
-</div>
 
-<!-- Load the Wails v3 runtime (provides wails.Call, wails.Browser, etc.) -->
+  <!-- ============ TEMPLATES TAB ============ -->
+  <div id="tab-templates" class="tab-panel">
+    <div class="toolbar">
+      <h2 style="margin-bottom:0">Rewrite Templates</h2>
+      <button class="btn btn-primary btn-sm" onclick="showAddTemplate()">+ Add Template</button>
+    </div>
+    <div id="template-list"></div>
+
+    <div id="template-form" style="display:none;margin-top:14px;padding:14px;background:#313244;border-radius:8px">
+      <h2 id="tmpl-form-title">Add Template</h2>
+      <input type="hidden" id="tmpl-edit-index" value="-1">
+      <div class="form-group">
+        <label for="tmpl-name">Name</label>
+        <input type="text" id="tmpl-name" placeholder="e.g. casual">
+      </div>
+      <div class="form-group">
+        <label for="tmpl-prompt">Prompt</label>
+        <textarea id="tmpl-prompt" rows="3" placeholder="Rewrite this in a casual tone. Return ONLY the rewritten text."></textarea>
+      </div>
+      <div class="form-group">
+        <label for="tmpl-llm">LLM Override (optional)</label>
+        <select id="tmpl-llm"><option value="">Use default</option></select>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="cancelTemplateForm()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveTemplate()">Save</button>
+      </div>
+      <div class="status" id="tmpl-status"></div>
+    </div>
+  </div>
+
+  <!-- ============ LANGUAGES TAB ============ -->
+  <div id="tab-languages" class="tab-panel">
+    <div class="section">
+      <h2>Languages</h2>
+      <p style="font-size:0.82em;color:#6c7086;margin-bottom:12px">Languages used for correction and translation.</p>
+      <div id="lang-tags" class="lang-tags"></div>
+      <div style="display:flex;gap:6px;align-items:flex-end">
+        <div class="form-group" style="margin-bottom:0;flex:1">
+          <label for="lang-code">Code</label>
+          <input type="text" id="lang-code" placeholder="es" style="width:80px">
+        </div>
+        <div class="form-group" style="margin-bottom:0;flex:2">
+          <label for="lang-name">Display Name</label>
+          <input type="text" id="lang-name" placeholder="Spanish">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="addLanguage()" style="margin-bottom:0;height:34px">Add</button>
+      </div>
+      <div class="status" id="lang-status"></div>
+    </div>
+
+    <hr class="section-divider">
+
+    <div class="section">
+      <h2>Translation Targets</h2>
+      <p style="font-size:0.82em;color:#6c7086;margin-bottom:12px">Pairs auto-detect direction. Single targets always translate to that language.</p>
+      <div id="target-list"></div>
+      <div style="display:flex;gap:6px;align-items:flex-end;margin-top:10px">
+        <div class="form-group" style="margin-bottom:0;flex:1">
+          <label for="target-a">Language A</label>
+          <select id="target-a"></select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;flex:1">
+          <label for="target-b">Language B (optional)</label>
+          <select id="target-b"><option value="">Single target</option></select>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="addTarget()" style="margin-bottom:0;height:34px">Add</button>
+      </div>
+      <div class="status" id="target-status"></div>
+    </div>
+  </div>
+
+  <!-- ============ GENERAL TAB ============ -->
+  <div id="tab-general" class="tab-panel">
+    <div class="section">
+      <h2>Preferences</h2>
+      <div class="toggle-row">
+        <div>
+          <div class="label">Sound Effects</div>
+          <div class="sublabel">Play sounds on success, error, and mode changes</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="pref-sound" onchange="onToggleSound(this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div class="label">Preserve Clipboard</div>
+          <div class="sublabel">Restore clipboard contents after processing</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="pref-clipboard" onchange="onToggleClipboard(this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <div class="section">
+      <h2>Hotkeys</h2>
+      <p style="font-size:0.82em;color:#6c7086;margin-bottom:12px">
+        Format: <code style="background:#313244;padding:1px 5px;border-radius:3px;font-size:0.9em;color:#f9e2af">Ctrl+G</code>,
+        <code style="background:#313244;padding:1px 5px;border-radius:3px;font-size:0.9em;color:#f9e2af">Ctrl+Shift+T</code>.
+        Leave blank to disable. Restart required for hotkey changes.
+      </p>
+      <div class="hotkey-input">
+        <label>Action (Correct/Translate/Rewrite)</label>
+        <input type="text" id="hk-correct" placeholder="Ctrl+G">
+        <button class="clear-btn" onclick="clearHotkey('correct')" title="Clear">&times;</button>
+      </div>
+      <div class="hotkey-input">
+        <label>Translate</label>
+        <input type="text" id="hk-translate" placeholder="(optional)">
+        <button class="clear-btn" onclick="clearHotkey('translate')" title="Clear">&times;</button>
+      </div>
+      <div class="hotkey-input">
+        <label>Toggle Language</label>
+        <input type="text" id="hk-toggle_language" placeholder="(optional)">
+        <button class="clear-btn" onclick="clearHotkey('toggle_language')" title="Clear">&times;</button>
+      </div>
+      <div class="hotkey-input">
+        <label>Rewrite</label>
+        <input type="text" id="hk-rewrite" placeholder="(optional)">
+        <button class="clear-btn" onclick="clearHotkey('rewrite')" title="Clear">&times;</button>
+      </div>
+      <div class="hotkey-input">
+        <label>Cycle Template</label>
+        <input type="text" id="hk-cycle_template" placeholder="(optional)">
+        <button class="clear-btn" onclick="clearHotkey('cycle_template')" title="Clear">&times;</button>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="saveHotkeys()">Save Hotkeys</button>
+      <div class="status" id="hk-status"></div>
+    </div>
+
+    <hr class="section-divider">
+
+    <div class="section">
+      <h2>Logging</h2>
+      <div class="form-group">
+        <label for="pref-loglevel">Log Level</label>
+        <select id="pref-loglevel" onchange="onLogLevelChange(this.value)">
+          <option value="">Disabled</option>
+          <option value="error">Error</option>
+          <option value="warn">Warn</option>
+          <option value="info">Info</option>
+          <option value="debug">Debug</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-secondary btn-sm" onclick="onOpenConfigFile()">Open config.json</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ABOUT TAB ============ -->
+  <div id="tab-about" class="tab-panel">
+    <div class="about-block">
+      <div class="logo-big">&#128123;</div>
+      <div class="app-name">GhostType</div>
+      <div class="app-ver" id="about-version"></div>
+      <div class="desc">AI-powered multilingual text correction, translation, and rewriting.</div>
+    </div>
+    <div class="update-box">
+      <button class="btn btn-primary" onclick="checkForUpdate()" id="update-btn">Check for Updates</button>
+      <div class="status" id="update-status"></div>
+    </div>
+  </div>
+
+</div><!-- /tab-content -->
+
+<!-- Wails v3 runtime -->
 <script type="module" src="/wails/runtime.js"></script>
 
 <script>
 // ---- State ----
 let configData = null;
 
-// ---- Go bridge helpers (Wails v3) ----
-// Wails v3 bindings use fully-qualified names: "importpath.Struct.Method"
+// ---- Go bridge ----
 const _bindingPkg = 'github.com/chrixbedardcad/GhostType/gui';
 async function goCall(fn, ...args) {
   try {
-    // Capitalize first letter to match Go public method names.
     const method = _bindingPkg + '.SettingsService.' + fn.charAt(0).toUpperCase() + fn.slice(1);
     return await wails.Call.ByName(method, ...args);
   } catch (e) {
@@ -241,20 +517,65 @@ async function goCall(fn, ...args) {
   }
 }
 
+// ---- Tabs ----
+function switchTab(name) {
+  document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  // Find the tab button by matching text
+  document.querySelectorAll('.tab-bar button').forEach(b => {
+    if (b.textContent.toLowerCase() === name) b.classList.add('active');
+  });
+  // Refresh tab data
+  if (name === 'templates') renderTemplates();
+  if (name === 'languages') renderLanguages();
+  if (name === 'general') renderGeneral();
+}
+
 // ---- Init ----
 async function init() {
   const ver = await goCall('getVersion');
-  if (ver) document.getElementById('app-version').textContent = 'v' + ver;
+  if (ver) {
+    document.getElementById('app-version').textContent = 'v' + ver;
+    document.getElementById('about-version').textContent = 'v' + ver;
+  }
   const raw = await goCall('getConfig');
   if (raw) configData = JSON.parse(raw);
   renderProviderList();
 }
 
-// ---- Settings ----
-async function renderProviderList() {
+// ---- Helpers ----
+function setStatus(id, type, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'status ' + type;
+  el.textContent = msg;
+}
+function clearStatus(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'status';
+  el.textContent = '';
+}
+function esc(s) {
+  const el = document.createElement('span');
+  el.textContent = s;
+  return el.innerHTML;
+}
+function escJS(s) {
+  return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+}
+async function reloadConfig() {
   const raw = await goCall('getConfig');
   if (raw) configData = JSON.parse(raw);
+}
 
+// ===========================================================================
+// MODELS TAB
+// ===========================================================================
+
+async function renderProviderList() {
+  await reloadConfig();
   const container = document.getElementById('provider-list');
   const providers = configData.llm_providers || {};
   const defaultLLM = configData.default_llm || '';
@@ -269,7 +590,7 @@ async function renderProviderList() {
     const isDefault = label === defaultLLM;
     const maskedKey = def.api_key ? '****' + def.api_key.slice(-4) : (def.provider === 'ollama' ? 'local' : 'none');
     html += `
-      <div class="provider-list-item" id="card-${esc(label)}">
+      <div class="card" id="card-${esc(label)}">
         <div class="top-row">
           <div class="info">
             <div class="label">${esc(label)}${isDefault ? '<span class="default-badge">DEFAULT</span>' : ''}</div>
@@ -277,7 +598,7 @@ async function renderProviderList() {
           </div>
           <div class="actions">
             <button class="btn btn-secondary btn-sm" onclick="onTestProvider('${escJS(label)}')" id="test-btn-${esc(label)}">Test</button>
-            ${!isDefault ? `<button class="btn btn-secondary btn-sm" onclick="onSetDefault('${escJS(label)}')">Set Default</button>` : ''}
+            ${!isDefault ? `<button class="btn btn-secondary btn-sm" onclick="onSetDefault('${escJS(label)}')">Default</button>` : ''}
             <button class="btn btn-secondary btn-sm" onclick="onEditProvider('${escJS(label)}')">Edit</button>
             <button class="btn btn-danger btn-sm" onclick="onDeleteProvider('${escJS(label)}')">Delete</button>
           </div>
@@ -290,25 +611,16 @@ async function renderProviderList() {
 
 async function onTestProvider(label) {
   const btn = document.getElementById('test-btn-' + label);
-  const result_el = document.getElementById('test-result-' + label);
+  const rel = document.getElementById('test-result-' + label);
   if (btn) { btn.disabled = true; btn.textContent = 'Testing...'; }
-  if (result_el) {
-    result_el.className = 'test-result';
-    result_el.style.display = 'none';
-  }
-
+  if (rel) { rel.className = 'test-result'; rel.style.display = 'none'; }
   const result = await goCall('testProvider', label);
-
   if (btn) { btn.disabled = false; btn.textContent = 'Test'; }
-  if (!result_el) return;
+  if (!rel) return;
   if (result && result.startsWith('ok')) {
-    result_el.className = 'test-result pass';
-    result_el.textContent = '\u2714 Connection successful';
-    result_el.style.display = 'block';
+    rel.className = 'test-result pass'; rel.textContent = '\u2714 Connection successful'; rel.style.display = 'block';
   } else {
-    result_el.className = 'test-result fail';
-    result_el.textContent = '\u2718 ' + (result || 'Connection failed');
-    result_el.style.display = 'block';
+    rel.className = 'test-result fail'; rel.textContent = '\u2718 ' + (result || 'Failed'); rel.style.display = 'block';
   }
 }
 
@@ -327,7 +639,6 @@ function showAddProvider() {
 function onEditProvider(label) {
   const def = configData.llm_providers[label];
   if (!def) return;
-
   document.getElementById('provider-form').style.display = 'block';
   document.getElementById('form-title').textContent = 'Edit Provider';
   document.getElementById('edit-original-label').value = label;
@@ -341,60 +652,30 @@ function onEditProvider(label) {
 }
 
 function onDeleteProvider(label) {
-  // Two-click delete: first click swaps button to "Confirm?", second click deletes.
   const card = document.getElementById('card-' + label);
   if (!card) return;
   const btn = card.querySelector('.btn-danger');
   if (!btn) return;
-
   if (btn.dataset.confirming === 'true') {
-    // Second click — do the delete.
-    doDelete(label);
+    doDeleteProvider(label);
   } else {
-    // First click — show confirmation.
     btn.dataset.confirming = 'true';
     btn.textContent = 'Confirm?';
-    setTimeout(() => {
-      // Reset after 3 seconds if not confirmed.
-      if (btn.dataset.confirming === 'true') {
-        btn.dataset.confirming = '';
-        btn.textContent = 'Delete';
-      }
-    }, 3000);
+    setTimeout(() => { if (btn.dataset.confirming === 'true') { btn.dataset.confirming = ''; btn.textContent = 'Delete'; } }, 3000);
   }
 }
 
-async function doDelete(label) {
+async function doDeleteProvider(label) {
   const result = await goCall('deleteProvider', label);
-  if (result && result.startsWith('ok')) {
-    renderProviderList();
-  } else {
-    const el = document.getElementById('test-result-' + label);
-    if (el) {
-      el.className = 'test-result fail';
-      el.textContent = '\u2718 Delete failed: ' + (result || 'unknown error');
-      el.style.display = 'block';
-    }
-  }
+  if (result && result.startsWith('ok')) renderProviderList();
 }
 
 async function onSetDefault(label) {
   const result = await goCall('setDefault', label);
-  if (result && result.startsWith('ok')) {
-    renderProviderList();
-  } else {
-    const el = document.getElementById('test-result-' + label);
-    if (el) {
-      el.className = 'test-result fail';
-      el.textContent = '\u2718 Set default failed: ' + (result || 'unknown error');
-      el.style.display = 'block';
-    }
-  }
+  if (result && result.startsWith('ok')) renderProviderList();
 }
 
-function cancelForm() {
-  document.getElementById('provider-form').style.display = 'none';
-}
+function cancelForm() { document.getElementById('provider-form').style.display = 'none'; }
 
 function onFormProviderChange() {
   const provider = document.getElementById('form-provider').value;
@@ -403,17 +684,10 @@ function onFormProviderChange() {
   document.getElementById('form-endpoint-group').style.display = isOllama ? 'block' : 'none';
   document.getElementById('ollama-panel').style.display = isOllama ? 'block' : 'none';
   document.getElementById('form-model-group').style.display = isOllama ? 'none' : 'block';
-  // Update "Get API Key" link text for the selected provider.
   const keyLink = document.getElementById('form-apikey-link');
-  if (keyLink) {
-    const url = PROVIDER_KEY_URLS[provider];
-    keyLink.style.display = url ? 'inline-block' : 'none';
-  }
-  if (!isOllama) {
-    loadModels('form-model', provider);
-  } else {
-    onOllamaRefresh();
-  }
+  if (keyLink) { keyLink.style.display = PROVIDER_KEY_URLS[provider] ? 'inline-block' : 'none'; }
+  if (!isOllama) loadModels('form-model', provider);
+  else onOllamaRefresh();
 }
 
 async function testForm() {
@@ -422,15 +696,10 @@ async function testForm() {
   const apiKey = document.getElementById('form-apikey').value.trim();
   const model = document.getElementById('form-model').value;
   const endpoint = document.getElementById('form-endpoint').value.trim();
-
   setStatus('form-status', 'info', 'Testing...');
   const result = await goCall('testConnection', provider, apiKey, model, endpoint);
-
-  if (result && result.startsWith('ok')) {
-    setStatus('form-status', 'success', 'Connection successful!');
-  } else {
-    setStatus('form-status', 'error', result || 'Connection failed');
-  }
+  if (result && result.startsWith('ok')) setStatus('form-status', 'success', 'Connection successful!');
+  else setStatus('form-status', 'error', result || 'Connection failed');
 }
 
 async function saveForm() {
@@ -440,11 +709,9 @@ async function saveForm() {
   const model = document.getElementById('form-model').value;
   const endpoint = document.getElementById('form-endpoint').value.trim();
   const originalLabel = document.getElementById('edit-original-label').value;
-
   if (!label) { setStatus('form-status','error','Label is required'); return; }
   if (provider !== 'ollama' && !apiKey) { setStatus('form-status','error','API key is required'); return; }
   if (!model) { setStatus('form-status','error','Model is required'); return; }
-
   const result = await goCall('saveProvider', label, provider, apiKey, model, endpoint, originalLabel);
   if (result && result.startsWith('ok')) {
     document.getElementById('provider-form').style.display = 'none';
@@ -454,245 +721,334 @@ async function saveForm() {
   }
 }
 
-async function onOpenConfigFile() {
-  await goCall('openConfigFile');
-}
+async function onOpenConfigFile() { await goCall('openConfigFile'); }
 
-// ---- Model dropdown ----
 async function loadModels(selectId, provider) {
   const sel = document.getElementById(selectId);
   sel.innerHTML = '';
-
   const raw = await goCall('getKnownModels', provider);
   let models = [];
-  if (raw) {
-    try { models = JSON.parse(raw); } catch(e) {}
-  }
-
+  if (raw) { try { models = JSON.parse(raw); } catch(e) {} }
   for (const m of models) {
-    const opt = document.createElement('option');
-    opt.value = m;
-    opt.textContent = m;
-    sel.appendChild(opt);
+    const opt = document.createElement('option'); opt.value = m; opt.textContent = m; sel.appendChild(opt);
   }
-
-  // Add custom option
-  const opt = document.createElement('option');
-  opt.value = '__custom__';
-  opt.textContent = '(custom model...)';
-  sel.appendChild(opt);
-
+  const opt = document.createElement('option'); opt.value = '__custom__'; opt.textContent = '(custom model...)'; sel.appendChild(opt);
   sel.onchange = function() {
     if (this.value === '__custom__') {
       const custom = prompt('Enter model name:');
       if (custom && custom.trim()) {
-        const newOpt = document.createElement('option');
-        newOpt.value = custom.trim();
-        newOpt.textContent = custom.trim();
-        this.insertBefore(newOpt, this.lastChild);
-        this.value = custom.trim();
-      } else {
-        this.selectedIndex = 0;
-      }
+        const newOpt = document.createElement('option'); newOpt.value = custom.trim(); newOpt.textContent = custom.trim();
+        this.insertBefore(newOpt, this.lastChild); this.value = custom.trim();
+      } else { this.selectedIndex = 0; }
     }
   };
 }
 
-// ---- API Key URLs ----
 const PROVIDER_KEY_URLS = {
   anthropic: 'https://console.anthropic.com/settings/keys',
-  openai:    'https://platform.openai.com/api-keys',
-  gemini:    'https://aistudio.google.com/apikey',
-  xai:       'https://console.x.ai/',
+  openai: 'https://platform.openai.com/api-keys',
+  gemini: 'https://aistudio.google.com/apikey',
+  xai: 'https://console.x.ai/',
 };
-
 function openApiKeyPage() {
   const provider = document.getElementById('form-provider').value;
   const url = PROVIDER_KEY_URLS[provider];
   if (url) wails.Browser.OpenURL(url);
 }
 
-// ---- Helpers ----
-function setStatus(id, type, msg) {
-  const el = document.getElementById(id);
-  el.className = 'status ' + type;
-  el.textContent = msg;
-}
-
-function clearStatus(id) {
-  const el = document.getElementById(id);
-  el.className = 'status';
-  el.textContent = '';
-}
-
-function esc(s) {
-  const el = document.createElement('span');
-  el.textContent = s;
-  return el.innerHTML;
-}
-
-// escJS escapes a string for safe use inside JS single-quoted string literals
-// (inline onclick handlers). Handles backslashes, single quotes, and newlines.
-function escJS(s) {
-  return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
-}
-
-// ---- Ollama panel functions ----
-
-// Refresh: single call to OllamaStatus, then render the right state.
+// ---- Ollama panel ----
 async function onOllamaRefresh() {
   const bar = document.getElementById('ollama-status-bar');
   const text = document.getElementById('ollama-status-text');
   const body = document.getElementById('ollama-body');
-  const statusEl = document.getElementById('ollama-action-status');
-  bar.className = 'ollama-status-bar checking';
-  text.textContent = 'Checking...';
-  body.innerHTML = '';
-  statusEl.className = 'status';
-  statusEl.textContent = '';
-
+  bar.className = 'ollama-status-bar checking'; text.textContent = 'Checking...'; body.innerHTML = '';
   const endpoint = document.getElementById('form-endpoint').value.trim();
   const raw = await goCall('ollamaStatus', endpoint);
-  if (!raw) {
-    bar.className = 'ollama-status-bar not-installed';
-    text.textContent = 'Could not check status';
-    onOllamaRenderNotInstalled(body);
-    return;
-  }
-
-  let st;
-  try { st = JSON.parse(raw); } catch(e) {
-    bar.className = 'ollama-status-bar not-installed';
-    text.textContent = 'Status check failed';
-    onOllamaRenderNotInstalled(body);
-    return;
-  }
-
+  if (!raw) { bar.className = 'ollama-status-bar not-installed'; text.textContent = 'Could not check'; onOllamaNotInstalled(body); return; }
+  let st; try { st = JSON.parse(raw); } catch(e) { bar.className = 'ollama-status-bar not-installed'; text.textContent = 'Check failed'; onOllamaNotInstalled(body); return; }
   const status = st.status || 'not_installed';
-
   if (status === 'running') {
-    bar.className = 'ollama-status-bar running';
-    text.textContent = 'Running' + (st.version ? ' \u2014 ' + st.version : '');
+    bar.className = 'ollama-status-bar running'; text.textContent = 'Running' + (st.version ? ' \u2014 ' + st.version : '');
     const models = st.models || [];
-    if (models.length > 0) {
-      onOllamaRenderDropdown(body, models);     // State 1
-    } else {
-      onOllamaRenderRecommend(body);            // State 2
-    }
+    if (models.length > 0) onOllamaDropdown(body, models); else onOllamaRecommend(body);
   } else if (status === 'installed') {
-    bar.className = 'ollama-status-bar installed';
-    text.textContent = 'Installed but not running';
-    onOllamaRenderServeHint(body);               // State 3
-  } else {
-    bar.className = 'ollama-status-bar not-installed';
-    text.textContent = 'Not installed';
-    onOllamaRenderNotInstalled(body);             // State 4
-  }
+    bar.className = 'ollama-status-bar installed'; text.textContent = 'Installed but not running';
+    body.innerHTML = '<div style="font-size:0.85em;color:#bac2de;padding:6px 0">Run <code style="background:#313244;padding:1px 5px;border-radius:3px;color:#f9e2af">ollama serve</code> then click Refresh.</div>';
+  } else { bar.className = 'ollama-status-bar not-installed'; text.textContent = 'Not installed'; onOllamaNotInstalled(body); }
 }
-
-// State 1: running + models — dropdown to pick a model.
-function onOllamaRenderDropdown(container, models) {
+function onOllamaDropdown(container, models) {
   const formModel = document.getElementById('form-model').value;
-  let html = '<div class="form-group" style="margin-bottom:8px">';
-  html += '<label>Model</label><select id="ollama-model-select">';
+  let html = '<div class="form-group" style="margin-bottom:6px"><label>Model</label><select id="ollama-model-select">';
   for (const m of models) {
     const meta = [m.parameter_size, m.quantization_level, m.size_human].filter(Boolean).join(' \u00b7 ');
     const sel = m.name === formModel ? ' selected' : '';
     html += '<option value="' + esc(m.name) + '"' + sel + '>' + esc(m.name) + ' (' + esc(meta) + ')</option>';
   }
-  html += '</select></div>';
-  container.innerHTML = html;
-
-  // Auto-select first model into form if nothing set.
+  html += '</select></div>'; container.innerHTML = html;
   const sel = document.getElementById('ollama-model-select');
-  onOllamaSetFormModel(sel.value);
-  sel.addEventListener('change', function() { onOllamaSetFormModel(this.value); });
+  ollamaSetFormModel(sel.value);
+  sel.addEventListener('change', function() { ollamaSetFormModel(this.value); });
 }
-
-// State 2: running + no models — prompt user to pull a model.
-function onOllamaRenderRecommend(container) {
-  container.innerHTML = `
-    <div style="font-size:0.88em;color:#bac2de;margin-bottom:8px">
-      No models installed yet. Open a terminal and pull one:
-    </div>
-    <div style="font-size:0.85em;margin-bottom:8px">
-      <code style="display:block;padding:6px 10px;background:#313244;border-radius:4px;color:#cdd6f4">ollama pull qwen2.5:1.5b</code>
-    </div>
-    <div style="font-size:0.78em;color:#6c7086;line-height:1.4">
-      For text correction, small models work great and download fast.<br>
-      Good choices: <strong>qwen2.5:1.5b</strong> (~1 GB), <strong>gemma2:2b</strong> (~1.6 GB), <strong>phi3:mini</strong> (~2.3 GB).<br>
-      Browse all models at <span style="color:#89b4fa">ollama.com/library</span> &mdash; then click <strong>Refresh</strong>.
-    </div>`;
+function onOllamaRecommend(container) {
+  container.innerHTML = '<div style="font-size:0.85em;color:#bac2de">No models installed. Run <code style="background:#313244;padding:1px 5px;border-radius:3px;color:#f9e2af">ollama pull qwen2.5:1.5b</code> then click Refresh.</div>';
 }
-
-// State 3: installed, not running — show instructions.
-function onOllamaRenderServeHint(container) {
-  container.innerHTML = `
-    <div class="ollama-instructions">
-      Ollama is installed but the server isn't running.<br>
-      Open a terminal and run: <code>ollama serve</code><br>
-      Then click <strong>Refresh</strong> above.
-    </div>`;
+function onOllamaNotInstalled(container) {
+  container.innerHTML = '<div style="text-align:center;padding:10px 0"><div style="font-size:0.85em;color:#bac2de;margin-bottom:8px">Run AI locally &mdash; free, private, no API key.</div><button class="btn btn-primary btn-sm" onclick="wails.Browser.OpenURL(\'https://ollama.com/download\')">Install Ollama</button></div>';
 }
-
-// State 4: not installed — show install button.
-function onOllamaRenderNotInstalled(container) {
-  container.innerHTML = `
-    <div style="text-align:center;padding:12px 0">
-      <div style="font-size:0.88em;color:#bac2de;margin-bottom:10px">
-        Run AI locally &mdash; free, private, no API key needed.
-      </div>
-      <button class="btn btn-primary" onclick="onOllamaInstall()" id="ollama-install-btn">
-        Install Ollama
-      </button>
-    </div>`;
-}
-
-// Install Ollama (State 4 button click).
-async function onOllamaInstall() {
-  const btn = document.getElementById('ollama-install-btn');
-  const statusEl = document.getElementById('ollama-action-status');
-  if (btn) btn.disabled = true;
-  statusEl.className = 'status info';
-  statusEl.textContent = 'Opening download page...';
-
-  try {
-    // Use Wails runtime browser API (preferred — platform-native).
-    await wails.Browser.OpenURL('https://ollama.com/download');
-    statusEl.className = 'status success';
-    statusEl.textContent = 'Download page opened! Install Ollama, then click Refresh.';
-  } catch (e) {
-    // Fallback: Go binding (xdg-open / open / start).
-    const result = await goCall('ollamaDownloadInstaller');
-    if (result && String(result).startsWith('ok')) {
-      statusEl.className = 'status success';
-      statusEl.textContent = 'Download page opened! Install Ollama, then click Refresh.';
-    } else {
-      statusEl.className = 'status error';
-      statusEl.textContent = 'Could not open automatically. Visit: https://ollama.com/download';
-    }
-  }
-  if (btn) btn.disabled = false;
-}
-
-// Set the hidden form-model value + auto-fill label for Ollama.
-function onOllamaSetFormModel(name) {
+function ollamaSetFormModel(name) {
   const sel = document.getElementById('form-model');
   let found = false;
-  for (const opt of sel.options) {
-    if (opt.value === name) { found = true; break; }
+  for (const opt of sel.options) { if (opt.value === name) { found = true; break; } }
+  if (!found) { const opt = document.createElement('option'); opt.value = name; opt.textContent = name; sel.appendChild(opt); }
+  sel.value = name;
+  const labelEl = document.getElementById('form-label');
+  if (!labelEl.value.trim()) labelEl.value = 'ollama-' + name.replace(/[:/]/g, '-');
+}
+
+// ===========================================================================
+// TEMPLATES TAB
+// ===========================================================================
+
+async function renderTemplates() {
+  await reloadConfig();
+  const container = document.getElementById('template-list');
+  const templates = (configData.prompts && configData.prompts.rewrite_templates) || [];
+  if (templates.length === 0) {
+    container.innerHTML = '<div class="empty-state">No rewrite templates configured.</div>';
+    return;
   }
-  if (!found) {
-    const opt = document.createElement('option');
-    opt.value = name;
-    opt.textContent = name;
+  let html = '';
+  templates.forEach((t, i) => {
+    const preview = t.prompt.length > 80 ? t.prompt.slice(0, 80) + '...' : t.prompt;
+    html += `
+      <div class="template-card" draggable="true" data-idx="${i}"
+           ondragstart="tmplDragStart(event, ${i})" ondragover="tmplDragOver(event)" ondrop="tmplDrop(event, ${i})">
+        <div class="top-row">
+          <div>
+            <span class="name">${esc(t.name)}</span>
+            ${t.llm ? '<span class="llm-badge">' + esc(t.llm) + '</span>' : ''}
+          </div>
+          <div class="actions">
+            <button class="btn btn-secondary btn-sm" onclick="editTemplate(${i})">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${i})">Delete</button>
+          </div>
+        </div>
+        <div class="preview">${esc(preview)}</div>
+      </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function showAddTemplate() {
+  document.getElementById('template-form').style.display = 'block';
+  document.getElementById('tmpl-form-title').textContent = 'Add Template';
+  document.getElementById('tmpl-edit-index').value = '-1';
+  document.getElementById('tmpl-name').value = '';
+  document.getElementById('tmpl-prompt').value = '';
+  populateTmplLLM('');
+  clearStatus('tmpl-status');
+}
+
+function editTemplate(idx) {
+  const t = configData.prompts.rewrite_templates[idx];
+  if (!t) return;
+  document.getElementById('template-form').style.display = 'block';
+  document.getElementById('tmpl-form-title').textContent = 'Edit Template';
+  document.getElementById('tmpl-edit-index').value = idx;
+  document.getElementById('tmpl-name').value = t.name;
+  document.getElementById('tmpl-prompt').value = t.prompt;
+  populateTmplLLM(t.llm || '');
+  clearStatus('tmpl-status');
+}
+
+function populateTmplLLM(selected) {
+  const sel = document.getElementById('tmpl-llm');
+  sel.innerHTML = '<option value="">Use default</option>';
+  const providers = configData.llm_providers || {};
+  for (const label of Object.keys(providers)) {
+    const opt = document.createElement('option'); opt.value = label; opt.textContent = label;
+    if (label === selected) opt.selected = true;
     sel.appendChild(opt);
   }
-  sel.value = name;
+}
 
-  const labelEl = document.getElementById('form-label');
-  if (!labelEl.value.trim()) {
-    labelEl.value = 'ollama-' + name.replace(/[:/]/g, '-');
+async function saveTemplate() {
+  const idx = parseInt(document.getElementById('tmpl-edit-index').value);
+  const name = document.getElementById('tmpl-name').value.trim();
+  const prompt = document.getElementById('tmpl-prompt').value.trim();
+  const llm = document.getElementById('tmpl-llm').value;
+  if (!name) { setStatus('tmpl-status', 'error', 'Name is required'); return; }
+  if (!prompt) { setStatus('tmpl-status', 'error', 'Prompt is required'); return; }
+  const result = await goCall('saveTemplate', idx, name, prompt, llm);
+  if (result && result.startsWith('ok')) {
+    document.getElementById('template-form').style.display = 'none';
+    renderTemplates();
+  } else {
+    setStatus('tmpl-status', 'error', result || 'Save failed');
+  }
+}
+
+async function deleteTemplate(idx) {
+  const result = await goCall('deleteTemplate', idx);
+  if (result && result.startsWith('ok')) renderTemplates();
+}
+
+function cancelTemplateForm() { document.getElementById('template-form').style.display = 'none'; }
+
+// Drag and drop reorder
+let tmplDragIdx = -1;
+function tmplDragStart(e, idx) { tmplDragIdx = idx; e.dataTransfer.effectAllowed = 'move'; }
+function tmplDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+async function tmplDrop(e, toIdx) {
+  e.preventDefault();
+  if (tmplDragIdx === toIdx || tmplDragIdx < 0) return;
+  await goCall('moveTemplate', tmplDragIdx, toIdx);
+  tmplDragIdx = -1;
+  renderTemplates();
+}
+
+// ===========================================================================
+// LANGUAGES TAB
+// ===========================================================================
+
+async function renderLanguages() {
+  await reloadConfig();
+  // Language tags
+  const tagsEl = document.getElementById('lang-tags');
+  const langs = configData.languages || [];
+  const names = configData.language_names || {};
+  let html = '';
+  for (const code of langs) {
+    const name = names[code] || code;
+    html += `<span class="lang-tag">${esc(name)} (${esc(code)}) <button class="remove" onclick="removeLanguage('${escJS(code)}')">&times;</button></span>`;
+  }
+  tagsEl.innerHTML = html;
+
+  // Populate target dropdowns
+  const selA = document.getElementById('target-a');
+  const selB = document.getElementById('target-b');
+  selA.innerHTML = '';
+  selB.innerHTML = '<option value="">Single target</option>';
+  for (const code of langs) {
+    const name = names[code] || code;
+    const optA = document.createElement('option'); optA.value = code; optA.textContent = name; selA.appendChild(optA);
+    const optB = document.createElement('option'); optB.value = code; optB.textContent = name; selB.appendChild(optB);
+  }
+
+  // Translate targets list
+  const targetList = document.getElementById('target-list');
+  const targets = configData.translate_targets || [];
+  let thtml = '';
+  targets.forEach((t, i) => {
+    const parts = t.split('|');
+    let label;
+    if (parts.length === 2) {
+      label = (names[parts[0]] || parts[0]) + ' \u2194 ' + (names[parts[1]] || parts[1]);
+    } else {
+      label = names[parts[0]] || parts[0];
+    }
+    thtml += `<div class="target-row"><span>${esc(label)}</span><button class="btn btn-danger btn-sm" onclick="removeTarget(${i})">Remove</button></div>`;
+  });
+  targetList.innerHTML = thtml || '<div class="empty-state" style="padding:12px">No translation targets configured.</div>';
+}
+
+async function addLanguage() {
+  const code = document.getElementById('lang-code').value.trim().toLowerCase();
+  const name = document.getElementById('lang-name').value.trim();
+  if (!code || !name) { setStatus('lang-status', 'error', 'Code and name are required'); return; }
+  const result = await goCall('addLanguage', code, name);
+  if (result && result.startsWith('ok')) {
+    document.getElementById('lang-code').value = '';
+    document.getElementById('lang-name').value = '';
+    clearStatus('lang-status');
+    renderLanguages();
+  } else {
+    setStatus('lang-status', 'error', result || 'Failed');
+  }
+}
+
+async function removeLanguage(code) {
+  const result = await goCall('removeLanguage', code);
+  if (result && result.startsWith('ok')) renderLanguages();
+}
+
+async function addTarget() {
+  const a = document.getElementById('target-a').value;
+  const b = document.getElementById('target-b').value;
+  if (!a) { setStatus('target-status', 'error', 'Select at least Language A'); return; }
+  const target = b ? a + '|' + b : a;
+  const result = await goCall('addTranslateTarget', target);
+  if (result && result.startsWith('ok')) { clearStatus('target-status'); renderLanguages(); }
+  else setStatus('target-status', 'error', result || 'Failed');
+}
+
+async function removeTarget(idx) {
+  const result = await goCall('removeTranslateTarget', idx);
+  if (result && result.startsWith('ok')) renderLanguages();
+}
+
+// ===========================================================================
+// GENERAL TAB
+// ===========================================================================
+
+async function renderGeneral() {
+  await reloadConfig();
+  document.getElementById('pref-sound').checked = configData.sound_enabled !== false && configData.sound_enabled !== null;
+  document.getElementById('pref-clipboard').checked = configData.preserve_clipboard !== false;
+  document.getElementById('pref-loglevel').value = configData.log_level || '';
+
+  // Hotkeys
+  const hk = configData.hotkeys || {};
+  document.getElementById('hk-correct').value = hk.correct || '';
+  document.getElementById('hk-translate').value = hk.translate || '';
+  document.getElementById('hk-toggle_language').value = hk.toggle_language || '';
+  document.getElementById('hk-rewrite').value = hk.rewrite || '';
+  document.getElementById('hk-cycle_template').value = hk.cycle_template || '';
+}
+
+async function onToggleSound(enabled) { await goCall('setSoundEnabled', enabled); }
+async function onToggleClipboard(enabled) { await goCall('setPreserveClipboard', enabled); }
+async function onLogLevelChange(level) { await goCall('setLogLevel', level); }
+
+function clearHotkey(name) {
+  document.getElementById('hk-' + name).value = '';
+}
+
+async function saveHotkeys() {
+  const keys = ['correct', 'translate', 'toggle_language', 'rewrite', 'cycle_template'];
+  let allOk = true;
+  for (const name of keys) {
+    const val = document.getElementById('hk-' + name).value.trim();
+    const result = await goCall('setHotkey', name, val);
+    if (!result || !result.startsWith('ok')) { allOk = false; setStatus('hk-status', 'error', 'Failed to save ' + name + ': ' + result); return; }
+  }
+  if (allOk) setStatus('hk-status', 'success', 'Hotkeys saved. Restart GhostType for changes to take effect.');
+}
+
+// ===========================================================================
+// ABOUT TAB
+// ===========================================================================
+
+async function checkForUpdate() {
+  const btn = document.getElementById('update-btn');
+  btn.disabled = true; btn.textContent = 'Checking...';
+  clearStatus('update-status');
+
+  const raw = await goCall('checkForUpdate');
+  btn.disabled = false; btn.textContent = 'Check for Updates';
+  if (!raw) { setStatus('update-status', 'error', 'Check failed'); return; }
+
+  let data;
+  try { data = JSON.parse(raw); } catch(e) { setStatus('update-status', 'error', 'Parse error'); return; }
+
+  if (data.error) { setStatus('update-status', 'error', 'Error: ' + data.error); return; }
+
+  if (data.has_update) {
+    setStatus('update-status', 'info', 'Update available: v' + data.latest + ' (you have v' + data.current + ')');
+    const statusEl = document.getElementById('update-status');
+    statusEl.innerHTML += '<br><a href="#" onclick="wails.Browser.OpenURL(\'' + escJS(data.url) + '\'); return false;" style="color:#89b4fa">View release &rarr;</a>';
+  } else {
+    setStatus('update-status', 'success', 'You are up to date (v' + data.current + ')');
   }
 }
 
