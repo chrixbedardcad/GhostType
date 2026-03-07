@@ -1,0 +1,77 @@
+time=2026-03-07T18:14:26.581-05:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-07T18:14:34.254-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=2 templates=5
+time=2026-03-07T18:14:34.892-05:00 level=INFO msg="Exit requested via tray menu"
+time=2026-03-07T18:14:34.892-05:00 level=DEBUG msg="GetMessage returned 0 (WM_QUIT) — exiting message loop"
+time=2026-03-07T18:14:40.648-05:00 level=INFO msg="GhostType starting" version=0.1.172 default_llm=gemini llm_providers=1
+time=2026-03-07T18:14:40.955-05:00 level=INFO msg="=== GhostType Debug Session ===" version=0.1.172 os=windows os_version="Microsoft Windows [Version 10.0.26200.7840]" arch=amd64 locale=unknown keyboard=unknown hotkey=Ctrl+G default_llm=gemini providers=1
+time=2026-03-07T18:14:40.955-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=gemini
+time=2026-03-07T18:14:40.959-05:00 level=INFO msg="GhostType launching" version=0.1.172 needs_setup=false
+time=2026-03-07T18:14:40.960-05:00 level=INFO msg="[tray] Start() called" os=windows icon_bytes=6041
+time=2026-03-07T18:14:40.960-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-07T18:14:40.960-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-07T18:14:40.960-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-07T18:14:40.960-05:00 level=INFO msg="[tray] Icon set" bytes=6041
+time=2026-03-07T18:14:40.960-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-07T18:14:40.960-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=2 templates=5
+time=2026-03-07T18:14:40.960-05:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-07T18:14:40.960-05:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-07T18:14:40.965-05:00 level=DEBUG msg="Event loop ready (ApplicationStarted)"
+time=2026-03-07T18:14:40.965-05:00 level=INFO msg="Permission check" accessibility=true postEventAccess=true
+time=2026-03-07T18:14:40.965-05:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-07T18:14:40.965-05:00 level=DEBUG msg="Hotkey registered" name=action key=Ctrl+G id=1 mod=0x2 vk=0x47
+time=2026-03-07T18:14:40.965-05:00 level=DEBUG msg="Entering message loop" registered_hotkeys=1 threadID=26516
+time=2026-03-07T18:14:43.568-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=2 templates=5
+time=2026-03-07T18:15:20.552-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=2 templates=5
+time=2026-03-07T18:15:22.209-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-07T18:15:22.209-05:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-07T18:15:22.213-05:00 level=INFO msg="[WebView2] Environment created successfully"
+time=2026-03-07T18:15:22.375-05:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-07T18:15:22.432-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T18:15:22.434-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T18:15:22.434-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T18:15:22.435-05:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-07T18:15:27.617-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T18:15:29.791-05:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-07T18:17:27.804-05:00 level=DEBUG msg=GetMessage msg=0x0312 wParam=0x1 lParam=0x470002
+time=2026-03-07T18:17:27.804-05:00 level=DEBUG msg="WM_HOTKEY received" id=1
+time=2026-03-07T18:17:27.804-05:00 level=DEBUG msg="Dispatching hotkey handler" name=action id=1
+time=2026-03-07T18:17:27.804-05:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-07T18:17:27.804-05:00 level=INFO msg="Correction triggered"
+time=2026-03-07T18:17:27.804-05:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-07T18:17:27.805-05:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-07T18:17:27.805-05:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-07T18:17:27.805-05:00 level=DEBUG msg="Capturing text..."
+time=2026-03-07T18:17:27.805-05:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-07T18:17:27.805-05:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-07T18:17:27.856-05:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-07T18:17:27.972-05:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-07T18:17:27.972-05:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-07T18:17:27.972-05:00 level=DEBUG msg="No selection detected, falling back to select-all" mode=Correction
+time=2026-03-07T18:17:28.036-05:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-07T18:17:28.150-05:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-07T18:17:28.151-05:00 level=DEBUG msg="captureText: final clipboard read" len=84
+time=2026-03-07T18:17:28.151-05:00 level=INFO msg="Captured text" mode=Correction len=84 selection=false method=1 text="bon je pense que on va continuer ca demain, je dos partir j'ai un diner che des amis"
+time=2026-03-07T18:17:28.151-05:00 level=DEBUG msg="Sending to LLM..." mode=Correction text_len=84
+time=2026-03-07T18:17:28.151-05:00 level=DEBUG msg="processing text" mode=correct llm=gemini prompt="Detect the language of the following text (English or French). Fix all spelling ..." input_len=84
+time=2026-03-07T18:17:28.151-05:00 level=DEBUG msg="gemini: sending request" model=gemini-2.5-flash-lite endpoint=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions body_len=383
+time=2026-03-07T18:17:28.626-05:00 level=DEBUG msg="gemini: response received" status=200
+time=2026-03-07T18:17:28.629-05:00 level=DEBUG msg="gemini: raw response body" body="{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Bon, je pense qu'on va continuer ça demain. Je dois partir, j'ai un dîner chez des amis.\",\"role\":\"assistant\"}}],\"created\":1772925448,\"id\":\"CLKsafvYLr2j_PUP9cXLiAQ\",\"model\":\"gemini-2.5-flash-lite\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":26,\"prompt_tokens\":58,\"total_tokens\":84}}"
+time=2026-03-07T18:17:28.629-05:00 level=DEBUG msg="gemini: parsed response" text_len=90 choices=1
+time=2026-03-07T18:17:28.629-05:00 level=DEBUG msg="LLM response received" provider=gemini model=gemini-2.5-flash-lite llm=gemini response_len=90
+time=2026-03-07T18:17:28.629-05:00 level=DEBUG msg="Result written to clipboard" mode=Correction result_len=90
+time=2026-03-07T18:17:29.058-05:00 level=INFO msg="Correction complete" result="Bon, je pense qu'on va continuer ça demain. Je dois partir, j'ai un dîner chez des amis."
+time=2026-03-07T18:17:53.800-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=2 templates=5
+time=2026-03-07T18:17:54.859-05:00 level=INFO msg="Active mode changed" mode=translate
+time=2026-03-07T18:17:55.060-05:00 level=DEBUG msg="Force re-registering hotkeys (post-menu recovery)"
+time=2026-03-07T18:17:55.060-05:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-07T18:17:55.060-05:00 level=DEBUG msg="GetMessage returned 0 (WM_QUIT) — exiting message loop"
+time=2026-03-07T18:17:55.060-05:00 level=ERROR msg="RegisterHotKey failed" name=action key=Ctrl+G id=1 mod=0x2 vk=0x47 error="Hot key is already registered."
+time=2026-03-07T18:17:55.060-05:00 level=ERROR msg="Failed to register action hotkey" key=Ctrl+G error="failed to register hotkey 'Ctrl+G' (id=1)"
+time=2026-03-07T18:17:55.060-05:00 level=ERROR msg="Failed to re-register hotkeys" error="failed to register hotkey 'Ctrl+G' (id=1)"
+time=2026-03-07T18:18:23.644-05:00 level=INFO msg="[tray] Menu built and set" active_mode=translate models=1 targets=2 templates=5
+time=2026-03-07T18:18:24.828-05:00 level=INFO msg="Active mode changed" mode=correct
+time=2026-03-07T18:18:25.029-05:00 level=DEBUG msg="Force re-registering hotkeys (post-menu recovery)"
+time=2026-03-07T18:18:25.029-05:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-07T18:18:25.029-05:00 level=DEBUG msg="Hotkey registered" name=action key=Ctrl+G id=1 mod=0x2 vk=0x47
+time=2026-03-07T18:18:25.029-05:00 level=DEBUG msg="Entering message loop" registered_hotkeys=1 threadID=26152
+time=2026-03-07T18:18:32.035-05:00 level=INFO msg="[GUI] JS called: TailDebugLog"
