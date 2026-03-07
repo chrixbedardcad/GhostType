@@ -149,7 +149,7 @@ func processMode(
 		// directly in their text. They can Ctrl+Z to undo.
 		cb.Write("\U0001F47B\u274C") // 👻❌
 		kb.Paste()
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(300 * time.Millisecond)
 		cb.Restore()
 		sound.PlayError()
 		return
@@ -161,6 +161,9 @@ func processMode(
 		cb.Restore()
 		return
 	}
+	slog.Debug("Result written to clipboard", "mode", modeName, "result_len", len(result))
+	// Give the pasteboard time to settle before sending keystrokes.
+	time.Sleep(50 * time.Millisecond)
 
 	// Paste-prep: only select-all before paste when we used select-all to capture.
 	// If the user had a selection, it's still active after Ctrl+C — Ctrl+V replaces it.
@@ -179,7 +182,12 @@ func processMode(
 		cb.Restore()
 		return
 	}
-	time.Sleep(50 * time.Millisecond)
+	// Wait long enough for the target app to process the Cmd+V event and
+	// read the clipboard before we restore the original clipboard content.
+	// CGEventPost is asynchronous — the event sits in the target app's
+	// run-loop queue. 50ms was too short; apps on macOS routinely need
+	// 200-300ms to handle a paste.
+	time.Sleep(300 * time.Millisecond)
 
 	// Restore original clipboard.
 	cb.Restore()
