@@ -482,9 +482,11 @@ func (s *DarwinSimulator) FrontAppName() string {
 }
 
 func (s *DarwinSimulator) SelectAllAX() error {
-	resolveKeys()
-	slog.Debug("[keyboard] SelectAllAX (AXUIElementPostKeyboardEvent)", "keyCode", fmt.Sprintf("0x%02X", keyA))
-	if ret := C.sendCmdKeyViaAX(keyA, C.CGCharCode('a')); ret != 0 {
+	// Use ANSI key code 0x00, NOT layout-resolved keyA.
+	// Same reason as SelectAll(): SDL apps (Firestorm) interpret key codes as
+	// QWERTY — on AZERTY keyA=0x0C maps to 'q', sending Cmd+Q (Quit!).
+	slog.Debug("[keyboard] SelectAllAX (AXUIElementPostKeyboardEvent)", "keyCode", fmt.Sprintf("0x%02X", kVK_ANSI_A))
+	if ret := C.sendCmdKeyViaAX(C.CGKeyCode(kVK_ANSI_A), C.CGCharCode('a')); ret != 0 {
 		return fmt.Errorf("AXUIElementPostKeyboardEvent failed for SelectAll")
 	}
 	time.Sleep(10 * time.Millisecond)
