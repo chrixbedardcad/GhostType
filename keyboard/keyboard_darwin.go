@@ -88,8 +88,15 @@ int sendKeyComboWithChar(CGKeyCode modifier, CGKeyCode key, UniChar ch) {
 		return -1;
 	}
 
-	CGEventSetFlags(keyDown, CGEventGetFlags(modDown));
-	CGEventSetFlags(keyUp, CGEventGetFlags(modDown));
+	// Explicitly set ONLY the Command flag. Do NOT inherit flags from the
+	// modifier event via CGEventGetFlags(modDown) — with CombinedSessionState
+	// that would include hardware state (e.g. Ctrl still held from the hotkey
+	// trigger), turning Cmd+C into Ctrl+Cmd+C which apps silently ignore.
+	CGEventFlags cmdOnly = kCGEventFlagMaskCommand;
+	CGEventSetFlags(modDown, cmdOnly);
+	CGEventSetFlags(keyDown, cmdOnly);
+	CGEventSetFlags(keyUp, cmdOnly);
+	CGEventSetFlags(modUp, (CGEventFlags)0);
 
 	// Explicitly set the Unicode character so ALL apps (Cocoa and non-Cocoa)
 	// see the correct character regardless of key code interpretation.
