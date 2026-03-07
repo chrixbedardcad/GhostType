@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"runtime"
 	"sort"
 	"sync"
 	"syscall"
@@ -479,9 +480,15 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	wizardDone := make(chan struct{})
 
 	// scheduleHotkeyRecovery re-registers hotkeys after a tray menu interaction.
-	// On macOS, the Cocoa modal event loop (NSMenu popup) can break the Carbon
-	// hotkey event handler. The delay lets the modal loop finish first.
+	// Only needed on macOS where the Cocoa modal event loop (NSMenu popup) can
+	// break the Carbon hotkey event handler. On Windows/Linux, tray menus don't
+	// interfere with hotkey listeners, so re-registering is unnecessary and
+	// harmful (Windows RegisterHotKey fails if the old registration hasn't been
+	// cleaned up by the exiting thread yet).
 	scheduleHotkeyRecovery := func() {
+		if runtime.GOOS != "darwin" {
+			return
+		}
 		go func() {
 			time.Sleep(200 * time.Millisecond)
 			reRegisterHotkeys()

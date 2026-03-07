@@ -158,6 +158,19 @@ func (m *WindowsManager) Listen() error {
 	tid, _, _ := procGetCurrentThreadID.Call()
 	m.threadID = uint32(tid)
 	slog.Debug("Entering message loop", "registered_hotkeys", len(m.hotkeys), "threadID", m.threadID)
+
+	// Unregister all hotkeys when Listen exits, regardless of exit path.
+	// UnregisterHotKey must be called from the same OS thread that called
+	// RegisterHotKey (hwnd=0). The caller locks this goroutine to its thread.
+	defer func() {
+		m.mu.Lock()
+		for name, reg := range m.hotkeys {
+			procUnregisterHotKey.Call(0, uintptr(reg.id))
+			slog.Debug("Hotkey unregistered on listen exit", "name", name, "id", reg.id)
+		}
+		m.mu.Unlock()
+	}()
+
 	var message msg
 	for {
 		select {
@@ -170,7 +183,7 @@ func (m *WindowsManager) Listen() error {
 		ret, _, _ := procGetMessage.Call(uintptr(unsafe.Pointer(&message)), 0, 0, 0)
 		if ret == 0 {
 			slog.Debug("GetMessage returned 0 (WM_QUIT) — exiting message loop")
-			break
+			return nil
 		}
 
 		slog.Debug("GetMessage", "msg", fmt.Sprintf("0x%04X", message.message), "wParam", fmt.Sprintf("0x%X", message.wParam), "lParam", fmt.Sprintf("0x%X", message.lParam))
@@ -194,7 +207,6 @@ func (m *WindowsManager) Listen() error {
 			m.mu.Unlock()
 		}
 	}
-	return nil
 }
 
 func (m *WindowsManager) Stop() {

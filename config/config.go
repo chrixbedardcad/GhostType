@@ -116,7 +116,7 @@ func DefaultConfig() Config {
 			CycleTemplate:  "",
 		},
 		Prompts: Prompts{
-			Correct:         "Detect the language of the following text ({languages}). Fix all spelling and grammar errors while preserving the original meaning and language. Return ONLY the corrected text with no explanation.",
+			Correct:         "The following text is written in one of these languages: {languages}. Fix all spelling and grammar errors. IMPORTANT: Keep the text in its ORIGINAL language — do NOT translate it. Return ONLY the corrected text with no explanation.",
 			Translate:       "The two configured languages are {language_a} and {language_b}. Detect the language of the following text and translate it to the OTHER language. If it is {language_a}, translate to {language_b}. If it is {language_b}, translate to {language_a}. Preserve the tone and intent. Return ONLY the translation with no explanation.",
 			TranslateSingle: "Translate the following text to {target_language}. Preserve the tone and intent. Return ONLY the translation with no explanation.",
 			RewriteTemplates: []RewriteTemplate{
