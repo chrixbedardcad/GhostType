@@ -64,9 +64,17 @@ if ($env:PATH -notlike "*$InstallDir*") {
 
 Write-Info "Refreshing Windows icon cache..."
 try {
-    # ie4uinit -show refreshes the shell icon cache without restarting Explorer.
-    Start-Process -FilePath "ie4uinit.exe" -ArgumentList "-show" -NoNewWindow -Wait -ErrorAction SilentlyContinue
-} catch { }
+    # Delete icon cache files and restart Explorer for a full refresh.
+    $cacheDir = Join-Path $env:LOCALAPPDATA "Microsoft\Windows\Explorer"
+    Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 1
+    Get-ChildItem "$cacheDir\iconcache*" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    Start-Process explorer.exe
+    Start-Sleep -Seconds 2
+} catch {
+    # Fallback: light refresh without Explorer restart.
+    try { Start-Process -FilePath "ie4uinit.exe" -ArgumentList "-show" -NoNewWindow -Wait -ErrorAction SilentlyContinue } catch { }
+}
 
 # --- Start Menu shortcut ----------------------------------------------------
 

@@ -54,6 +54,26 @@ if ($UserPath -like "*$InstallDir*") {
     [Environment]::SetEnvironmentVariable("PATH", $NewPath, "User")
 }
 
+# --- Flush Windows icon cache -----------------------------------------------
+# Windows caches exe icons aggressively. Without flushing, the old GhostType
+# icon may linger in the Start Menu and taskbar even after uninstall.
+
+Write-Info "Flushing Windows icon cache..."
+try {
+    $cacheDir = Join-Path $env:LOCALAPPDATA "Microsoft\Windows\Explorer"
+    # Stop Explorer so it releases the cache files.
+    Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 1
+    Get-ChildItem "$cacheDir\iconcache*" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    Get-ChildItem "$cacheDir\thumbcache*" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    # Restart Explorer.
+    Start-Process explorer.exe
+    Start-Sleep -Seconds 2
+} catch {
+    Write-Host "  Icon cache flush failed (non-critical): $_" -ForegroundColor Yellow
+    Write-Host "  Reboot to clear stale icons." -ForegroundColor Yellow
+}
+
 # --- Done -------------------------------------------------------------------
 
 Write-Ok ""
