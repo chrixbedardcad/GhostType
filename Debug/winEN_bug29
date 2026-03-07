@@ -1,0 +1,199 @@
+time=2026-03-07T18:21:11.316-05:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-07T18:21:11.316-05:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-07T18:21:11.316-05:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-07T18:21:11.316-05:00 level=DEBUG msg="Capturing text..."
+time=2026-03-07T18:21:11.316-05:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-07T18:21:11.316-05:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-07T18:21:11.368-05:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-07T18:21:11.482-05:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-07T18:21:11.482-05:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-07T18:21:11.482-05:00 level=DEBUG msg="No selection detected, falling back to select-all" mode=Correction
+time=2026-03-07T18:21:11.547-05:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-07T18:21:11.661-05:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-07T18:21:11.661-05:00 level=DEBUG msg="captureText: final clipboard read" len=32
+time=2026-03-07T18:21:11.661-05:00 level=INFO msg="Captured text" mode=Correction len=32 selection=false method=1 text="bon ca va etre ca pour aujour'h "
+time=2026-03-07T18:21:11.661-05:00 level=DEBUG msg="Sending to LLM..." mode=Correction text_len=32
+time=2026-03-07T18:21:11.661-05:00 level=DEBUG msg="processing text" mode=correct llm=gemini prompt="Detect the language of the following text (English or French). Fix all spelling ..." input_len=32
+time=2026-03-07T18:21:11.661-05:00 level=DEBUG msg="gemini: sending request" model=gemini-2.5-flash-lite endpoint=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions body_len=331
+time=2026-03-07T18:21:12.157-05:00 level=DEBUG msg="gemini: response received" status=200
+time=2026-03-07T18:21:12.161-05:00 level=DEBUG msg="gemini: raw response body" body="{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Bon, ça va être ça pour aujourd'hui.\",\"role\":\"assistant\"}}],\"created\":1772925672,\"id\":\"6LKsaYeTEuWusOIP9qemwAc\",\"model\":\"gemini-2.5-flash-lite\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":11,\"prompt_tokens\":48,\"total_tokens\":59}}"
+time=2026-03-07T18:21:12.161-05:00 level=DEBUG msg="gemini: parsed response" text_len=39 choices=1
+time=2026-03-07T18:21:12.161-05:00 level=DEBUG msg="LLM response received" provider=gemini model=gemini-2.5-flash-lite llm=gemini response_len=39
+time=2026-03-07T18:21:12.161-05:00 level=DEBUG msg="Result written to clipboard" mode=Correction result_len=39
+time=2026-03-07T18:21:12.590-05:00 level=INFO msg="Correction complete" result="Bon, ça va être ça pour aujourd'hui."
+time=2026-03-07T18:21:18.731-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=2 templates=5
+time=2026-03-07T18:22:06.620-05:00 level=DEBUG msg=GetMessage msg=0x0312 wParam=0x1 lParam=0x470002
+time=2026-03-07T18:22:06.621-05:00 level=DEBUG msg="WM_HOTKEY received" id=1
+time=2026-03-07T18:22:06.621-05:00 level=DEBUG msg="Dispatching hotkey handler" name=action id=1
+time=2026-03-07T18:22:06.621-05:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-07T18:22:06.621-05:00 level=INFO msg="Correction triggered"
+time=2026-03-07T18:22:06.621-05:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-07T18:22:06.621-05:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-07T18:22:06.621-05:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-07T18:22:06.621-05:00 level=DEBUG msg="Capturing text..."
+time=2026-03-07T18:22:06.621-05:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-07T18:22:06.621-05:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-07T18:22:06.672-05:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-07T18:22:06.786-05:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-07T18:22:06.786-05:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-07T18:22:06.786-05:00 level=DEBUG msg="No selection detected, falling back to select-all" mode=Correction
+time=2026-03-07T18:22:06.850-05:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-07T18:22:06.964-05:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-07T18:22:06.964-05:00 level=DEBUG msg="captureText: final clipboard read" len=60
+time=2026-03-07T18:22:06.964-05:00 level=INFO msg="Captured text" mode=Correction len=60 selection=false method=1 text="tu essayera de corriger pour vori dans d'autre fentere u app"
+time=2026-03-07T18:22:06.964-05:00 level=DEBUG msg="Sending to LLM..." mode=Correction text_len=60
+time=2026-03-07T18:22:06.964-05:00 level=DEBUG msg="processing text" mode=correct llm=gemini prompt="Detect the language of the following text (English or French). Fix all spelling ..." input_len=60
+time=2026-03-07T18:22:06.964-05:00 level=DEBUG msg="gemini: sending request" model=gemini-2.5-flash-lite endpoint=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions body_len=359
+time=2026-03-07T18:22:07.349-05:00 level=DEBUG msg="gemini: response received" status=200
+time=2026-03-07T18:22:07.351-05:00 level=DEBUG msg="gemini: raw response body" body="{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Tu essaieras de corriger pour voir dans d'autres fenêtres ou applications.\",\"role\":\"assistant\"}}],\"created\":1772925727,\"id\":\"H7OsabiVHYinsOIPyaOw0Ak\",\"model\":\"gemini-2.5-flash-lite\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":17,\"prompt_tokens\":54,\"total_tokens\":71}}"
+time=2026-03-07T18:22:07.351-05:00 level=DEBUG msg="gemini: parsed response" text_len=75 choices=1
+time=2026-03-07T18:22:07.351-05:00 level=DEBUG msg="LLM response received" provider=gemini model=gemini-2.5-flash-lite llm=gemini response_len=75
+time=2026-03-07T18:22:07.352-05:00 level=DEBUG msg="Result written to clipboard" mode=Correction result_len=75
+time=2026-03-07T18:22:07.780-05:00 level=INFO msg="Correction complete" result="Tu essaieras de corriger pour voir dans d'autres fenêtres ou applications."
+time=2026-03-07T18:24:20.907-05:00 level=DEBUG msg=GetMessage msg=0x0312 wParam=0x1 lParam=0x470002
+time=2026-03-07T18:24:20.908-05:00 level=DEBUG msg="WM_HOTKEY received" id=1
+time=2026-03-07T18:24:20.908-05:00 level=DEBUG msg="Dispatching hotkey handler" name=action id=1
+time=2026-03-07T18:24:20.908-05:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-07T18:24:20.908-05:00 level=INFO msg="Correction triggered"
+time=2026-03-07T18:24:20.908-05:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-07T18:24:20.908-05:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-07T18:24:20.908-05:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-07T18:24:20.908-05:00 level=DEBUG msg="Capturing text..."
+time=2026-03-07T18:24:20.908-05:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-07T18:24:20.908-05:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-07T18:24:20.959-05:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-07T18:24:21.073-05:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-07T18:24:21.073-05:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-07T18:24:21.073-05:00 level=DEBUG msg="No selection detected, falling back to select-all" mode=Correction
+time=2026-03-07T18:24:21.138-05:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-07T18:24:21.250-05:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-07T18:24:21.250-05:00 level=DEBUG msg="captureText: final clipboard read" len=59
+time=2026-03-07T18:24:21.250-05:00 level=INFO msg="Captured text" mode=Correction len=59 selection=false method=1 text="tu as réussi a corriger tes feuille de choux avec totu ca "
+time=2026-03-07T18:24:21.250-05:00 level=DEBUG msg="Sending to LLM..." mode=Correction text_len=59
+time=2026-03-07T18:24:21.250-05:00 level=DEBUG msg="processing text" mode=correct llm=gemini prompt="Detect the language of the following text (English or French). Fix all spelling ..." input_len=59
+time=2026-03-07T18:24:21.250-05:00 level=DEBUG msg="gemini: sending request" model=gemini-2.5-flash-lite endpoint=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions body_len=358
+time=2026-03-07T18:24:21.702-05:00 level=DEBUG msg="gemini: response received" status=200
+time=2026-03-07T18:24:21.705-05:00 level=DEBUG msg="gemini: raw response body" body="{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Tu as réussi à corriger tes feuilles de choux avec tout ça.\",\"role\":\"assistant\"}}],\"created\":1772925861,\"id\":\"pbOsaYvBM72p_uMPi4fq8QQ\",\"model\":\"gemini-2.5-flash-lite\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":15,\"prompt_tokens\":53,\"total_tokens\":68}}"
+time=2026-03-07T18:24:21.705-05:00 level=DEBUG msg="gemini: parsed response" text_len=62 choices=1
+time=2026-03-07T18:24:21.705-05:00 level=DEBUG msg="LLM response received" provider=gemini model=gemini-2.5-flash-lite llm=gemini response_len=62
+time=2026-03-07T18:24:21.705-05:00 level=DEBUG msg="Result written to clipboard" mode=Correction result_len=62
+time=2026-03-07T18:24:22.134-05:00 level=INFO msg="Correction complete" result="Tu as réussi à corriger tes feuilles de choux avec tout ça."
+time=2026-03-07T18:25:35.873-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=2 templates=5
+time=2026-03-07T18:25:36.886-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-07T18:25:36.886-05:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-07T18:25:36.887-05:00 level=INFO msg="[WebView2] Environment created successfully"
+time=2026-03-07T18:25:37.041-05:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-07T18:25:37.102-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T18:25:37.105-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T18:25:37.105-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T18:25:37.105-05:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-07T18:25:39.203-05:00 level=INFO msg="[GUI] JS called: CheckForUpdate"
+time=2026-03-07T18:25:40.200-05:00 level=INFO msg="[GUI] JS called: UpdateNow"
+time=2026-03-07T18:25:40.211-05:00 level=INFO msg="[GUI] UpdateNow: installer launched (PID 26456), exiting app..."
+time=2026-03-07T18:26:04.034-05:00 level=INFO msg="GhostType starting" version=0.1.173 default_llm=gemini llm_providers=1
+time=2026-03-07T18:26:04.349-05:00 level=INFO msg="=== GhostType Debug Session ===" version=0.1.173 os=windows os_version="Microsoft Windows [Version 10.0.26200.7840]" arch=amd64 locale=unknown keyboard=unknown hotkey=Ctrl+G default_llm=gemini providers=1
+time=2026-03-07T18:26:04.349-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=gemini
+time=2026-03-07T18:26:04.358-05:00 level=INFO msg="GhostType launching" version=0.1.173 needs_setup=false
+time=2026-03-07T18:26:04.359-05:00 level=INFO msg="[tray] Start() called" os=windows icon_bytes=6041
+time=2026-03-07T18:26:04.359-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-07T18:26:04.359-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-07T18:26:04.359-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-07T18:26:04.359-05:00 level=INFO msg="[tray] Icon set" bytes=6041
+time=2026-03-07T18:26:04.359-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-07T18:26:04.359-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=2 templates=5
+time=2026-03-07T18:26:04.359-05:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-07T18:26:04.359-05:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-07T18:26:04.367-05:00 level=DEBUG msg="Event loop ready (ApplicationStarted)"
+time=2026-03-07T18:26:04.367-05:00 level=INFO msg="Permission check" accessibility=true postEventAccess=true
+time=2026-03-07T18:26:04.367-05:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-07T18:26:04.367-05:00 level=DEBUG msg="Hotkey registered" name=action key=Ctrl+G id=1 mod=0x2 vk=0x47
+time=2026-03-07T18:26:04.367-05:00 level=DEBUG msg="Entering message loop" registered_hotkeys=1 threadID=9892
+time=2026-03-07T18:26:20.052-05:00 level=DEBUG msg=GetMessage msg=0x0312 wParam=0x1 lParam=0x470002
+time=2026-03-07T18:26:20.052-05:00 level=DEBUG msg="WM_HOTKEY received" id=1
+time=2026-03-07T18:26:20.052-05:00 level=DEBUG msg="Dispatching hotkey handler" name=action id=1
+time=2026-03-07T18:26:20.052-05:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-07T18:26:20.052-05:00 level=INFO msg="Correction triggered"
+time=2026-03-07T18:26:20.052-05:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-07T18:26:20.052-05:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-07T18:26:20.052-05:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-07T18:26:20.052-05:00 level=DEBUG msg="Capturing text..."
+time=2026-03-07T18:26:20.052-05:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-07T18:26:20.052-05:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-07T18:26:20.102-05:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-07T18:26:20.216-05:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-07T18:26:20.216-05:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-07T18:26:20.216-05:00 level=DEBUG msg="No selection detected, falling back to select-all" mode=Correction
+time=2026-03-07T18:26:20.280-05:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-07T18:26:20.395-05:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-07T18:26:20.395-05:00 level=DEBUG msg="captureText: final clipboard read" len=81
+time=2026-03-07T18:26:20.395-05:00 level=INFO msg="Captured text" mode=Correction len=81 selection=false method=1 text="j'Arrive pas a faire fonctionner un petit fantome por corriger du text sur un mac"
+time=2026-03-07T18:26:20.395-05:00 level=DEBUG msg="Sending to LLM..." mode=Correction text_len=81
+time=2026-03-07T18:26:20.395-05:00 level=DEBUG msg="processing text" mode=correct llm=gemini prompt="Detect the language of the following text (English or French). Fix all spelling ..." input_len=81
+time=2026-03-07T18:26:20.395-05:00 level=DEBUG msg="gemini: sending request" model=gemini-2.5-flash-lite endpoint=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions body_len=380
+time=2026-03-07T18:26:20.859-05:00 level=DEBUG msg="gemini: response received" status=200
+time=2026-03-07T18:26:20.862-05:00 level=DEBUG msg="gemini: raw response body" body="{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Je n'arrive pas à faire fonctionner un petit fantôme pour corriger du texte sur un Mac.\",\"role\":\"assistant\"}}],\"created\":1772925981,\"id\":\"HLSsaajFPMOM_uMP-7KCgAs\",\"model\":\"gemini-2.5-flash-lite\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":21,\"prompt_tokens\":57,\"total_tokens\":78}}"
+time=2026-03-07T18:26:20.862-05:00 level=DEBUG msg="gemini: parsed response" text_len=89 choices=1
+time=2026-03-07T18:26:20.862-05:00 level=DEBUG msg="LLM response received" provider=gemini model=gemini-2.5-flash-lite llm=gemini response_len=89
+time=2026-03-07T18:26:20.862-05:00 level=DEBUG msg="Result written to clipboard" mode=Correction result_len=89
+time=2026-03-07T18:26:21.291-05:00 level=INFO msg="Correction complete" result="Je n'arrive pas à faire fonctionner un petit fantôme pour corriger du texte sur un Mac."
+time=2026-03-07T18:27:03.122-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=2 templates=5
+time=2026-03-07T18:27:04.539-05:00 level=INFO msg="Active mode changed" mode=translate
+time=2026-03-07T18:27:04.740-05:00 level=DEBUG msg="Force re-registering hotkeys (post-menu recovery)"
+time=2026-03-07T18:27:04.740-05:00 level=DEBUG msg="GetMessage returned 0 (WM_QUIT) — exiting message loop"
+time=2026-03-07T18:27:04.740-05:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-07T18:27:04.740-05:00 level=ERROR msg="RegisterHotKey failed" name=action key=Ctrl+G id=1 mod=0x2 vk=0x47 error="Hot key is already registered."
+time=2026-03-07T18:27:04.740-05:00 level=ERROR msg="Failed to register action hotkey" key=Ctrl+G error="failed to register hotkey 'Ctrl+G' (id=1)"
+time=2026-03-07T18:27:04.740-05:00 level=ERROR msg="Failed to re-register hotkeys" error="failed to register hotkey 'Ctrl+G' (id=1)"
+time=2026-03-07T18:27:19.637-05:00 level=INFO msg="[tray] Menu built and set" active_mode=translate models=1 targets=2 templates=5
+time=2026-03-07T18:27:21.018-05:00 level=INFO msg="Active mode changed" mode=correct
+time=2026-03-07T18:27:21.219-05:00 level=DEBUG msg="Force re-registering hotkeys (post-menu recovery)"
+time=2026-03-07T18:27:21.219-05:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-07T18:27:21.219-05:00 level=DEBUG msg="Hotkey registered" name=action key=Ctrl+G id=1 mod=0x2 vk=0x47
+time=2026-03-07T18:27:21.219-05:00 level=DEBUG msg="Entering message loop" registered_hotkeys=1 threadID=26600
+time=2026-03-07T18:27:22.932-05:00 level=DEBUG msg=GetMessage msg=0x0312 wParam=0x1 lParam=0x470002
+time=2026-03-07T18:27:22.932-05:00 level=DEBUG msg="WM_HOTKEY received" id=1
+time=2026-03-07T18:27:22.932-05:00 level=DEBUG msg="Dispatching hotkey handler" name=action id=1
+time=2026-03-07T18:27:22.932-05:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-07T18:27:22.932-05:00 level=INFO msg="Correction triggered"
+time=2026-03-07T18:27:22.932-05:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-07T18:27:22.932-05:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-07T18:27:22.932-05:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-07T18:27:22.932-05:00 level=DEBUG msg="Capturing text..."
+time=2026-03-07T18:27:22.932-05:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-07T18:27:22.932-05:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-07T18:27:22.983-05:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-07T18:27:23.098-05:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-07T18:27:23.098-05:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-07T18:27:23.098-05:00 level=DEBUG msg="No selection detected, falling back to select-all" mode=Correction
+time=2026-03-07T18:27:23.162-05:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-07T18:27:23.275-05:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-07T18:27:23.275-05:00 level=DEBUG msg="captureText: final clipboard read" len=20
+time=2026-03-07T18:27:23.275-05:00 level=INFO msg="Captured text" mode=Correction len=20 selection=false method=1 text="what i will become ?"
+time=2026-03-07T18:27:23.275-05:00 level=DEBUG msg="Sending to LLM..." mode=Correction text_len=20
+time=2026-03-07T18:27:23.275-05:00 level=DEBUG msg="processing text" mode=correct llm=gemini prompt="Detect the language of the following text (English or French). Fix all spelling ..." input_len=20
+time=2026-03-07T18:27:23.275-05:00 level=DEBUG msg="gemini: sending request" model=gemini-2.5-flash-lite endpoint=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions body_len=319
+time=2026-03-07T18:27:23.695-05:00 level=DEBUG msg="gemini: response received" status=200
+time=2026-03-07T18:27:23.698-05:00 level=DEBUG msg="gemini: raw response body" body="{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"What will I become?\",\"role\":\"assistant\"}}],\"created\":1772926043,\"id\":\"W7SsabHyMoHwjrEPxN2koA8\",\"model\":\"gemini-2.5-flash-lite\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":5,\"prompt_tokens\":42,\"total_tokens\":47}}"
+time=2026-03-07T18:27:23.698-05:00 level=DEBUG msg="gemini: parsed response" text_len=19 choices=1
+time=2026-03-07T18:27:23.698-05:00 level=DEBUG msg="LLM response received" provider=gemini model=gemini-2.5-flash-lite llm=gemini response_len=19
+time=2026-03-07T18:27:23.698-05:00 level=DEBUG msg="Result written to clipboard" mode=Correction result_len=19
+time=2026-03-07T18:27:24.127-05:00 level=INFO msg="Correction complete" result="What will I become?"
+time=2026-03-07T18:27:28.727-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=2 templates=5
+time=2026-03-07T18:27:29.980-05:00 level=INFO msg="Active mode changed" mode=rewrite
+time=2026-03-07T18:27:30.181-05:00 level=DEBUG msg="Force re-registering hotkeys (post-menu recovery)"
+time=2026-03-07T18:27:30.181-05:00 level=DEBUG msg="GetMessage returned 0 (WM_QUIT) — exiting message loop"
+time=2026-03-07T18:27:30.181-05:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-07T18:27:30.181-05:00 level=ERROR msg="RegisterHotKey failed" name=action key=Ctrl+G id=1 mod=0x2 vk=0x47 error="Hot key is already registered."
+time=2026-03-07T18:27:30.181-05:00 level=ERROR msg="Failed to register action hotkey" key=Ctrl+G error="failed to register hotkey 'Ctrl+G' (id=1)"
+time=2026-03-07T18:27:30.181-05:00 level=ERROR msg="Failed to re-register hotkeys" error="failed to register hotkey 'Ctrl+G' (id=1)"
+time=2026-03-07T18:27:47.320-05:00 level=INFO msg="[tray] Menu built and set" active_mode=rewrite models=1 targets=2 templates=5
+time=2026-03-07T18:27:50.163-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-07T18:27:50.163-05:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-07T18:27:50.165-05:00 level=INFO msg="[WebView2] Environment created successfully"
+time=2026-03-07T18:27:50.321-05:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-07T18:27:50.384-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T18:27:50.388-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T18:27:50.388-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T18:27:50.388-05:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-07T18:27:52.922-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T18:27:54.685-05:00 level=INFO msg="[GUI] JS called: TailDebugLog"
