@@ -61,6 +61,7 @@
   .badge-free { background: #a6e3a1; color: #1e1e2e; }
   .badge-rec { background: #89b4fa; color: #1e1e2e; }
   .badge-paid { background: #f9e2af; color: #1e1e2e; }
+  .badge-fast { background: #f5c2e7; color: #1e1e2e; }
 
   /* --- Form elements --- */
   .form-group { margin-bottom: 14px; }
@@ -166,6 +167,30 @@
     text-decoration: underline; margin-top: 4px; display: inline-block;
   }
   .api-key-link:hover { color: #74c7ec; }
+
+  /* --- Model picker (custom dropdown) --- */
+  .model-picker {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; padding: 10px 12px;
+    background: #313244; border: 1px solid #45475a;
+    border-radius: 6px; color: #cdd6f4; font-size: 0.9em;
+    cursor: pointer; transition: border-color 0.15s;
+  }
+  .model-picker:hover { border-color: #89b4fa; }
+  .model-dropdown {
+    position: absolute; left: 0; right: 0; top: 100%;
+    max-height: 220px; overflow-y: auto;
+    background: #313244; border: 1px solid #45475a;
+    border-radius: 0 0 6px 6px; z-index: 10;
+  }
+  .model-dropdown .model-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 12px; cursor: pointer; font-size: 0.9em;
+    transition: background 0.1s;
+  }
+  .model-dropdown .model-item:hover,
+  .model-dropdown .model-item.selected { background: #45475a; }
+  .model-dropdown .model-item .badge { font-size: 0.6em; vertical-align: middle; }
 
   /* Hide scrollbar but keep scrollable */
   .container::-webkit-scrollbar { width: 6px; }
@@ -287,9 +312,14 @@
       <span class="api-key-link" id="cfg-apikey-link" onclick="openKeyPage()">How to get an API key</span>
     </div>
 
-    <div class="form-group">
-      <label for="cfg-model">Model</label>
-      <select id="cfg-model"></select>
+    <div class="form-group" style="position:relative">
+      <label>Model</label>
+      <div id="cfg-model-picker" class="model-picker" onclick="toggleModelDropdown()">
+        <span id="cfg-model-label">Select a model</span>
+        <span style="color:#6c7086">&#9662;</span>
+      </div>
+      <input type="hidden" id="cfg-model" value="">
+      <div id="cfg-model-dropdown" class="model-dropdown" style="display:none"></div>
     </div>
 
     <div class="btn-row">
@@ -414,22 +444,59 @@ function setupCloudForm() {
   loadCloudModels();
 }
 
-const TAG_LABELS = {recommended:' \u2605 Recommended',best:' \u2605 Best quality',free:' \u2605 Free',fast:' \u26A1 Fast'};
+const TAG_BADGES = {
+  recommended: {label:'RECOMMENDED', cls:'badge-rec'},
+  best:        {label:'BEST',        cls:'badge-paid'},
+  free:        {label:'FREE',        cls:'badge-free'},
+  fast:        {label:'FAST',        cls:'badge-fast'},
+};
+
+let modelList = [];
 
 async function loadCloudModels() {
-  const sel = document.getElementById('cfg-model');
-  sel.innerHTML = '';
   const raw = await goCall('getKnownModels', cloudProvider);
-  let models = [];
-  if (raw) { try { models = JSON.parse(raw); } catch(e) {} }
-  for (const m of models) {
-    const name = typeof m === 'string' ? m : m.name;
-    const tag = (typeof m === 'object' && m.tag) ? (TAG_LABELS[m.tag] || '') : '';
-    const opt = document.createElement('option');
-    opt.value = name; opt.textContent = name + tag;
-    sel.appendChild(opt);
+  modelList = [];
+  if (raw) { try { modelList = JSON.parse(raw); } catch(e) {} }
+  // Select first model by default.
+  if (modelList.length > 0) {
+    const first = typeof modelList[0] === 'string' ? modelList[0] : modelList[0].name;
+    document.getElementById('cfg-model').value = first;
+    document.getElementById('cfg-model-label').textContent = first;
   }
+  renderModelDropdown();
 }
+
+function renderModelDropdown() {
+  const dd = document.getElementById('cfg-model-dropdown');
+  const selected = document.getElementById('cfg-model').value;
+  let html = '';
+  for (const m of modelList) {
+    const name = typeof m === 'string' ? m : m.name;
+    const tag = (typeof m === 'object' && m.tag && TAG_BADGES[m.tag])
+      ? ' <span class="badge ' + TAG_BADGES[m.tag].cls + '">' + TAG_BADGES[m.tag].label + '</span>' : '';
+    const selCls = name === selected ? ' selected' : '';
+    html += '<div class="model-item' + selCls + '" onmousedown="selectModel(\'' + escJS(name) + '\')">' + esc(name) + tag + '</div>';
+  }
+  dd.innerHTML = html;
+}
+
+function toggleModelDropdown() {
+  const dd = document.getElementById('cfg-model-dropdown');
+  if (dd.style.display === 'none') { renderModelDropdown(); dd.style.display = 'block'; }
+  else { dd.style.display = 'none'; }
+}
+
+function selectModel(name) {
+  document.getElementById('cfg-model').value = name;
+  document.getElementById('cfg-model-label').textContent = name;
+  document.getElementById('cfg-model-dropdown').style.display = 'none';
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#cfg-model-picker') && !e.target.closest('#cfg-model-dropdown')) {
+    document.getElementById('cfg-model-dropdown').style.display = 'none';
+  }
+});
 
 function openKeyPage() {
   const p = PROVIDERS[cloudProvider];

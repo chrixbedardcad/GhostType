@@ -237,6 +237,34 @@
     font-size: 0.88em;
   }
 
+  /* --- Model picker (custom dropdown with badges) --- */
+  .model-picker {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; padding: 10px 12px;
+    background: #313244; border: 1px solid #45475a;
+    border-radius: 6px; color: #cdd6f4; font-size: 0.9em;
+    cursor: pointer; transition: border-color 0.15s;
+  }
+  .model-picker:hover { border-color: #89b4fa; }
+  .model-dropdown {
+    position: absolute; left: 0; right: 0; top: 100%;
+    max-height: 220px; overflow-y: auto;
+    background: #313244; border: 1px solid #45475a;
+    border-radius: 0 0 6px 6px; z-index: 10;
+  }
+  .model-dropdown .model-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 12px; cursor: pointer; font-size: 0.9em;
+    transition: background 0.1s;
+  }
+  .model-dropdown .model-item:hover,
+  .model-dropdown .model-item.selected { background: #45475a; }
+  .badge { display: inline-block; font-size: 0.65em; font-weight: 700; padding: 2px 7px; border-radius: 4px; vertical-align: middle; margin-left: 4px; }
+  .badge-rec { background: #89b4fa; color: #1e1e2e; }
+  .badge-free { background: #a6e3a1; color: #1e1e2e; }
+  .badge-paid { background: #f9e2af; color: #1e1e2e; }
+  .badge-fast { background: #f5c2e7; color: #1e1e2e; }
+
   /* --- About --- */
   .about-block { text-align: center; padding: 30px 0; }
   .about-block .logo-big { font-size: 3em; margin-bottom: 8px; }
@@ -319,9 +347,14 @@
         <div id="ollama-action-status" class="status" style="margin-top:6px"></div>
       </div>
 
-      <div class="form-group" id="form-model-group">
-        <label for="form-model">Model</label>
-        <select id="form-model"></select>
+      <div class="form-group" id="form-model-group" style="position:relative">
+        <label>Model</label>
+        <div id="form-model-picker" class="model-picker" onclick="toggleFormModelDD()">
+          <span id="form-model-label">Select a model</span>
+          <span style="color:#6c7086">&#9662;</span>
+        </div>
+        <input type="hidden" id="form-model" value="">
+        <div id="form-model-dropdown" class="model-dropdown" style="display:none"></div>
       </div>
       <div class="form-group" id="form-endpoint-group" style="display:none">
         <label for="form-endpoint">API Endpoint (optional)</label>
@@ -728,6 +761,7 @@ function onEditProvider(label) {
   document.getElementById('form-endpoint').value = def.api_endpoint || '';
   onFormProviderChange();
   document.getElementById('form-model').value = def.model;
+  document.getElementById('form-model-label').textContent = def.model;
   clearStatus('form-status');
 }
 
@@ -803,30 +837,68 @@ async function saveForm() {
 
 async function onOpenConfigFile() { await goCall('openConfigFile'); }
 
-const TAG_LABELS = {recommended:' \u2605 Recommended',best:' \u2605 Best quality',free:' \u2605 Free',fast:' \u26A1 Fast'};
+const TAG_BADGES = {
+  recommended: {label:'RECOMMENDED', cls:'badge-rec'},
+  best:        {label:'BEST',        cls:'badge-paid'},
+  free:        {label:'FREE',        cls:'badge-free'},
+  fast:        {label:'FAST',        cls:'badge-fast'},
+};
+
+let formModelList = [];
 
 async function loadModels(selectId, provider) {
-  const sel = document.getElementById(selectId);
-  sel.innerHTML = '';
   const raw = await goCall('getKnownModels', provider);
-  let models = [];
-  if (raw) { try { models = JSON.parse(raw); } catch(e) {} }
-  for (const m of models) {
-    const name = typeof m === 'string' ? m : m.name;
-    const tag = (typeof m === 'object' && m.tag) ? (TAG_LABELS[m.tag] || '') : '';
-    const opt = document.createElement('option'); opt.value = name; opt.textContent = name + tag; sel.appendChild(opt);
+  formModelList = [];
+  if (raw) { try { formModelList = JSON.parse(raw); } catch(e) {} }
+  // Select first model by default.
+  if (formModelList.length > 0) {
+    const first = typeof formModelList[0] === 'string' ? formModelList[0] : formModelList[0].name;
+    document.getElementById('form-model').value = first;
+    document.getElementById('form-model-label').textContent = first;
   }
-  const opt = document.createElement('option'); opt.value = '__custom__'; opt.textContent = '(custom model...)'; sel.appendChild(opt);
-  sel.onchange = function() {
-    if (this.value === '__custom__') {
-      const custom = prompt('Enter model name:');
-      if (custom && custom.trim()) {
-        const newOpt = document.createElement('option'); newOpt.value = custom.trim(); newOpt.textContent = custom.trim();
-        this.insertBefore(newOpt, this.lastChild); this.value = custom.trim();
-      } else { this.selectedIndex = 0; }
-    }
-  };
+  renderFormModelDD();
 }
+
+function renderFormModelDD() {
+  const dd = document.getElementById('form-model-dropdown');
+  const selected = document.getElementById('form-model').value;
+  let html = '';
+  for (const m of formModelList) {
+    const name = typeof m === 'string' ? m : m.name;
+    const tag = (typeof m === 'object' && m.tag && TAG_BADGES[m.tag])
+      ? ' <span class="badge ' + TAG_BADGES[m.tag].cls + '">' + TAG_BADGES[m.tag].label + '</span>' : '';
+    const selCls = name === selected ? ' selected' : '';
+    html += '<div class="model-item' + selCls + '" onmousedown="selectFormModel(\'' + escJS(name) + '\')">' + esc(name) + tag + '</div>';
+  }
+  html += '<div class="model-item" onmousedown="customFormModel()" style="color:#89b4fa;font-style:italic">(custom model...)</div>';
+  dd.innerHTML = html;
+}
+
+function toggleFormModelDD() {
+  const dd = document.getElementById('form-model-dropdown');
+  if (dd.style.display === 'none') { renderFormModelDD(); dd.style.display = 'block'; }
+  else { dd.style.display = 'none'; }
+}
+
+function selectFormModel(name) {
+  document.getElementById('form-model').value = name;
+  document.getElementById('form-model-label').textContent = name;
+  document.getElementById('form-model-dropdown').style.display = 'none';
+}
+
+function customFormModel() {
+  const custom = prompt('Enter model name:');
+  if (custom && custom.trim()) {
+    selectFormModel(custom.trim());
+  }
+  document.getElementById('form-model-dropdown').style.display = 'none';
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#form-model-picker') && !e.target.closest('#form-model-dropdown')) {
+    document.getElementById('form-model-dropdown').style.display = 'none';
+  }
+});
 
 const PROVIDER_KEY_URLS = {
   anthropic: 'https://console.anthropic.com/settings/keys',
