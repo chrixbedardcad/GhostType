@@ -6,6 +6,7 @@ package keyboard
 #cgo LDFLAGS: -framework CoreGraphics -framework CoreFoundation -framework Carbon
 #include <CoreGraphics/CoreGraphics.h>
 #include <Carbon/Carbon.h>
+#include <unistd.h>
 
 // keyCodeForChar finds the key code that produces the given character
 // on the current keyboard layout. Returns UINT16_MAX if not found.
@@ -59,10 +60,22 @@ CGKeyCode keyCodeForChar(UniChar c) {
 // interpret key codes using QWERTY mapping regardless of layout).
 // Returns 0 on success, -1 if event creation failed (permission denied).
 int sendKeyComboWithChar(CGKeyCode modifier, CGKeyCode key, UniChar ch) {
-	CGEventRef modDown = CGEventCreateKeyboardEvent(NULL, modifier, true);
-	CGEventRef keyDown = CGEventCreateKeyboardEvent(NULL, key, true);
-	CGEventRef keyUp   = CGEventCreateKeyboardEvent(NULL, key, false);
-	CGEventRef modUp   = CGEventCreateKeyboardEvent(NULL, modifier, false);
+	// Use an explicit event source with CombinedSessionState. Passing NULL
+	// uses a default source that may be silently blocked by macOS TCC even
+	// when AXIsProcessTrusted() and CGPreflightPostEventAccess() return true.
+	CGEventSourceRef source = CGEventSourceCreate(kCGEventSourceStateCombinedSessionState);
+	if (!source) {
+		// Fallback to HID system state if combined fails.
+		source = CGEventSourceCreate(kCGEventSourceStateHIDSystemState);
+	}
+	// source may still be NULL — CGEventCreateKeyboardEvent accepts NULL.
+
+	CGEventRef modDown = CGEventCreateKeyboardEvent(source, modifier, true);
+	CGEventRef keyDown = CGEventCreateKeyboardEvent(source, key, true);
+	CGEventRef keyUp   = CGEventCreateKeyboardEvent(source, key, false);
+	CGEventRef modUp   = CGEventCreateKeyboardEvent(source, modifier, false);
+
+	if (source) CFRelease(source);
 
 	// CGEventCreateKeyboardEvent returns NULL when the process lacks
 	// Accessibility permission (macOS 10.15+). Detect and report this
@@ -83,9 +96,14 @@ int sendKeyComboWithChar(CGKeyCode modifier, CGKeyCode key, UniChar ch) {
 	CGEventKeyboardSetUnicodeString(keyDown, 1, &ch);
 	CGEventKeyboardSetUnicodeString(keyUp, 1, &ch);
 
+	// Post with small inter-event delays so the target app's run loop
+	// has time to process each event before the next arrives.
 	CGEventPost(kCGHIDEventTap, modDown);
+	usleep(2000); // 2ms
 	CGEventPost(kCGHIDEventTap, keyDown);
+	usleep(2000);
 	CGEventPost(kCGHIDEventTap, keyUp);
+	usleep(2000);
 	CGEventPost(kCGHIDEventTap, modUp);
 
 	CFRelease(modDown);

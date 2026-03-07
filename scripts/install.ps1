@@ -58,6 +58,16 @@ if ($env:PATH -notlike "*$InstallDir*") {
     $env:PATH = "$env:PATH;$InstallDir"
 }
 
+# --- Flush Windows icon cache -----------------------------------------------
+# Windows aggressively caches exe icons. After replacing the binary the old
+# icon may still show in the taskbar and Start Menu until the cache is rebuilt.
+
+Write-Info "Refreshing Windows icon cache..."
+try {
+    # ie4uinit -show refreshes the shell icon cache without restarting Explorer.
+    Start-Process -FilePath "ie4uinit.exe" -ArgumentList "-show" -NoNewWindow -Wait -ErrorAction SilentlyContinue
+} catch { }
+
 # --- Start Menu shortcut ----------------------------------------------------
 
 $StartMenu = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs"
