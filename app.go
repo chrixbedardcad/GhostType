@@ -15,6 +15,7 @@ import (
 	"github.com/chrixbedardcad/GhostType/clipboard"
 	"github.com/chrixbedardcad/GhostType/config"
 	"github.com/chrixbedardcad/GhostType/gui"
+	"github.com/chrixbedardcad/GhostType/hotkey"
 	"github.com/chrixbedardcad/GhostType/keyboard"
 	"github.com/chrixbedardcad/GhostType/llm"
 	"github.com/chrixbedardcad/GhostType/mode"
@@ -209,6 +210,12 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	var mu sync.Mutex
 	var cancelLLM context.CancelFunc
 
+	// Hotkey lifecycle — the manager can be stopped and replaced when the
+	// user changes hotkey bindings in Settings.
+	var hkMu sync.Mutex
+	var registeredHotkeys config.Hotkeys
+	var hotkeyReady bool
+
 	// Active mode state — determines what the action hotkey (Ctrl+G) does.
 	// Protected by mu. Can be changed at runtime (e.g., from tray menu).
 	activeMode := cfg.ActiveMode
@@ -333,6 +340,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 					router.ResetClients()
 				}
 				slog.Info("Live config reloaded after settings save")
+				refreshHotkeys()
 			})
 		},
 		OnAddProvider: func() {
@@ -373,7 +381,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		OnExit: func() {
 			slog.Info("Exit requested via tray menu")
 			fmt.Println("\nGhostType exiting (tray menu).")
+			hkMu.Lock()
 			hk.Stop()
+			hkMu.Unlock()
 			go func() {
 				time.Sleep(2 * time.Second)
 				os.Exit(0)
@@ -492,6 +502,108 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		close(wizardDone)
 	}
 
+	// doRegister registers all configured hotkeys on the given manager.
+	// Used both at startup and when re-registering after a settings change.
+	doRegister := func(mgr hotkey.Manager) error {
+		slog.Info("Registering hotkeys", "action", cfg.Hotkeys.Correct)
+
+		// Main action hotkey — dispatches based on active mode.
+		if err := mgr.Register("action", cfg.Hotkeys.Correct, func() {
+			mu.Lock()
+			currentMode := activeMode
+			mu.Unlock()
+
+			m, displayName := modeFromString(currentMode)
+			processMode(displayName, m, cfg, router, cb, kb, &mu, &cancelLLM)
+		}); err != nil {
+			slog.Error("Failed to register action hotkey", "key", cfg.Hotkeys.Correct, "error", err)
+			fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.Correct, err)
+			return err
+		}
+
+		// Optional dedicated hotkeys (only if configured).
+		if cfg.Hotkeys.Translate != "" {
+			if err := mgr.Register("translate", cfg.Hotkeys.Translate, func() {
+				processMode("Translation", mode.ModeTranslate, cfg, router, cb, kb, &mu, &cancelLLM)
+			}); err != nil {
+				slog.Error("Failed to register translate hotkey", "key", cfg.Hotkeys.Translate, "error", err)
+				fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.Translate, err)
+				return err
+			}
+		}
+
+		if cfg.Hotkeys.ToggleLanguage != "" {
+			if err := mgr.Register("toggle_language", cfg.Hotkeys.ToggleLanguage, func() {
+				label := router.ToggleTranslateTarget()
+				slog.Info("Translation target toggled", "target", label)
+				fmt.Printf("Translation target: %s\n", label)
+				sound.PlayToggle()
+			}); err != nil {
+				slog.Error("Failed to register toggle-language hotkey", "key", cfg.Hotkeys.ToggleLanguage, "error", err)
+				fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.ToggleLanguage, err)
+				return err
+			}
+		}
+
+		if cfg.Hotkeys.Rewrite != "" {
+			if err := mgr.Register("rewrite", cfg.Hotkeys.Rewrite, func() {
+				processMode("Rewrite", mode.ModeRewrite, cfg, router, cb, kb, &mu, &cancelLLM)
+			}); err != nil {
+				slog.Error("Failed to register rewrite hotkey", "key", cfg.Hotkeys.Rewrite, "error", err)
+				fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.Rewrite, err)
+				return err
+			}
+		}
+
+		if cfg.Hotkeys.CycleTemplate != "" {
+			if err := mgr.Register("cycle_template", cfg.Hotkeys.CycleTemplate, func() {
+				name := router.CycleTemplate()
+				slog.Info("Rewrite template cycled", "template", name)
+				fmt.Printf("Rewrite template: %s\n", name)
+				sound.PlayToggle()
+			}); err != nil {
+				slog.Error("Failed to register cycle-template hotkey", "key", cfg.Hotkeys.CycleTemplate, "error", err)
+				fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.CycleTemplate, err)
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	// refreshHotkeys re-registers hotkeys when the user changes them in Settings.
+	// It stops the current hotkey manager, creates a new one, and starts listening.
+	refreshHotkeys := func() {
+		hkMu.Lock()
+		if !hotkeyReady {
+			hkMu.Unlock()
+			return
+		}
+		mu.Lock()
+		newHotkeys := cfg.Hotkeys
+		mu.Unlock()
+		if newHotkeys == registeredHotkeys {
+			hkMu.Unlock()
+			return
+		}
+
+		slog.Info("Hotkey config changed, re-registering",
+			"old_correct", registeredHotkeys.Correct,
+			"new_correct", newHotkeys.Correct)
+
+		old := hk
+		hk = newHotkeyManager()
+		newMgr := hk
+		registeredHotkeys = newHotkeys
+		hkMu.Unlock()
+
+		old.Stop()
+
+		restartHotkeyListener(newMgr, func() error {
+			return doRegister(newMgr)
+		})
+	}
+
 	// registerHotkeys is called by startMainLoop at the right time for each
 	// platform (deferred on macOS so the Cocoa event loop is running first).
 	// It blocks on wizardDone so hotkeys are only registered after the LLM
@@ -530,6 +642,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 			fmt.Println("  System Settings > Privacy & Security > grant BOTH permissions.")
 			fmt.Println("  Click '+', add GhostType.app, and toggle ON in both panes.")
 			fmt.Println("")
+			fmt.Println("  If GhostType already appears checked but isn't working,")
+			fmt.Println("  toggle the checkbox OFF then ON again (required after updates).")
+			fmt.Println("")
 			slog.Info("Opening permission settings panes")
 			openAccessibilitySettings()
 
@@ -540,6 +655,12 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				if pollCount%5 == 0 {
 					slog.Info("Still waiting for Accessibility permission", "polls", pollCount)
 					fmt.Printf("Waiting for Accessibility permission... (poll #%d)\n", pollCount)
+				}
+				if pollCount == 30 {
+					fmt.Println("")
+					fmt.Println("  Still waiting... If GhostType is already checked in Accessibility,")
+					fmt.Println("  try toggling it OFF then ON (macOS invalidates after updates).")
+					fmt.Println("")
 				}
 			}
 			fmt.Println("Accessibility permission granted!")
@@ -552,68 +673,15 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 
 		fmt.Println("GhostType is ready. Waiting for hotkey input...")
 		fmt.Println("Press Ctrl+C to exit.")
-		slog.Info("Registering hotkeys", "action", cfg.Hotkeys.Correct)
 
-		// Main action hotkey — dispatches based on active mode.
-		if err := hk.Register("action", cfg.Hotkeys.Correct, func() {
-			mu.Lock()
-			currentMode := activeMode
-			mu.Unlock()
-
-			m, displayName := modeFromString(currentMode)
-			processMode(displayName, m, cfg, router, cb, kb, &mu, &cancelLLM)
-		}); err != nil {
-			slog.Error("Failed to register action hotkey", "key", cfg.Hotkeys.Correct, "error", err)
-			fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.Correct, err)
+		if err := doRegister(hk); err != nil {
 			return err
 		}
 
-		// Optional dedicated hotkeys (only if configured).
-		if cfg.Hotkeys.Translate != "" {
-			if err := hk.Register("translate", cfg.Hotkeys.Translate, func() {
-				processMode("Translation", mode.ModeTranslate, cfg, router, cb, kb, &mu, &cancelLLM)
-			}); err != nil {
-				slog.Error("Failed to register translate hotkey", "key", cfg.Hotkeys.Translate, "error", err)
-				fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.Translate, err)
-				return err
-			}
-		}
-
-		if cfg.Hotkeys.ToggleLanguage != "" {
-			if err := hk.Register("toggle_language", cfg.Hotkeys.ToggleLanguage, func() {
-				label := router.ToggleTranslateTarget()
-				slog.Info("Translation target toggled", "target", label)
-				fmt.Printf("Translation target: %s\n", label)
-				sound.PlayToggle()
-			}); err != nil {
-				slog.Error("Failed to register toggle-language hotkey", "key", cfg.Hotkeys.ToggleLanguage, "error", err)
-				fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.ToggleLanguage, err)
-				return err
-			}
-		}
-
-		if cfg.Hotkeys.Rewrite != "" {
-			if err := hk.Register("rewrite", cfg.Hotkeys.Rewrite, func() {
-				processMode("Rewrite", mode.ModeRewrite, cfg, router, cb, kb, &mu, &cancelLLM)
-			}); err != nil {
-				slog.Error("Failed to register rewrite hotkey", "key", cfg.Hotkeys.Rewrite, "error", err)
-				fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.Rewrite, err)
-				return err
-			}
-		}
-
-		if cfg.Hotkeys.CycleTemplate != "" {
-			if err := hk.Register("cycle_template", cfg.Hotkeys.CycleTemplate, func() {
-				name := router.CycleTemplate()
-				slog.Info("Rewrite template cycled", "template", name)
-				fmt.Printf("Rewrite template: %s\n", name)
-				sound.PlayToggle()
-			}); err != nil {
-				slog.Error("Failed to register cycle-template hotkey", "key", cfg.Hotkeys.CycleTemplate, "error", err)
-				fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.CycleTemplate, err)
-				return err
-			}
-		}
+		hkMu.Lock()
+		registeredHotkeys = cfg.Hotkeys
+		hotkeyReady = true
+		hkMu.Unlock()
 
 		return nil
 	}
@@ -626,7 +694,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		fmt.Println("\nGhostType shutting down.")
 		slog.Info("GhostType shutting down (signal)")
 		stopTrayFn()
+		hkMu.Lock()
 		hk.Stop()
+		hkMu.Unlock()
 		go func() {
 			time.Sleep(2 * time.Second)
 			os.Exit(0)

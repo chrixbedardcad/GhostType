@@ -42,3 +42,16 @@ func startMainLoop(trayRun func() error, registerHotkeys func() error, hk hotkey
 	trayRun()
 	hk.Stop()
 }
+
+// restartHotkeyListener starts a new hotkey listener goroutine.
+// Called when hotkeys are re-registered after a settings change.
+func restartHotkeyListener(hk hotkey.Manager, register func() error) {
+	go func() {
+		if err := register(); err != nil {
+			slog.Error("Failed to re-register hotkeys", "error", err)
+			fmt.Fprintf(os.Stderr, "Hotkey re-registration failed: %v\n", err)
+			return
+		}
+		hk.Listen()
+	}()
+}

@@ -88,6 +88,12 @@ install_macos() {
     killall GhostType 2>/dev/null || true
     sleep 1
 
+    # Clear stale Accessibility TCC entry. When the binary is replaced, macOS
+    # invalidates the old code-signature-based permission but leaves the
+    # checkbox looking "on" in System Settings. AXIsProcessTrusted() returns
+    # false and the app gets stuck. Resetting forces a fresh prompt.
+    tccutil reset Accessibility com.ghosttype.app 2>/dev/null || true
+
     info "Installing GhostType.app to /Applications..."
     # Remove old version if present, then copy.
     if [ -w /Applications ] || [ ! -d /Applications/GhostType.app ]; then
