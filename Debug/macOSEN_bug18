@@ -1,0 +1,94 @@
+time=2026-03-07T15:26:29.573-05:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-07T15:26:34.709-05:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-07T15:26:37.180-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-07T15:26:40.140-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-07T15:26:40.140-05:00 level=INFO msg="[GUI] ShowSettings: window already open, skipping"
+time=2026-03-07T15:26:49.444-05:00 level=INFO msg="[GUI] JS called: CheckForUpdate"
+time=2026-03-07T15:26:53.095-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T15:26:53.095-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T15:26:53.095-05:00 level=INFO msg="Permission check from GUI" accessibility=false postEvent=false
+time=2026-03-07T15:26:54.749-05:00 level=INFO msg="[GUI] JS called: OpenAccessibilityPane"
+time=2026-03-07T15:27:15.464-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T15:27:15.468-05:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=false
+time=2026-03-07T15:27:25.028-05:00 level=INFO msg="[GUI] JS called: OpenInputMonitoringPane"
+time=2026-03-07T15:27:49.144-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-07T15:27:51.192-05:00 level=INFO msg="Exit requested via tray menu"
+time=2026-03-07T15:27:51.192-05:00 level=DEBUG msg="Hotkey unregistered on stop" name=action
+time=2026-03-07T15:27:56.727-05:00 level=INFO msg="GhostType starting" version=0.1.165 default_llm=gemini llm_providers=1
+time=2026-03-07T15:27:56.827-05:00 level=INFO msg="=== GhostType Debug Session ===" version=0.1.165 os=darwin os_version=13.7.8 arch=arm64 locale=en_CA keyboard=Canadian hotkey=Ctrl+G default_llm=gemini providers=1
+time=2026-03-07T15:27:56.827-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=gemini
+time=2026-03-07T15:27:56.828-05:00 level=INFO msg="GhostType launching" version=0.1.165 needs_setup=false
+time=2026-03-07T15:27:56.831-05:00 level=INFO msg="[tray] Start() called" os=darwin icon_bytes=6041
+time=2026-03-07T15:27:56.831-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-07T15:27:56.831-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-07T15:27:56.831-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-07T15:27:56.831-05:00 level=INFO msg="[tray] macOS template icon set" bytes=1743
+time=2026-03-07T15:27:56.831-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-07T15:27:56.831-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-07T15:27:56.831-05:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-07T15:27:56.831-05:00 level=DEBUG msg="[keyboard] Resolving layout key codes..."
+time=2026-03-07T15:27:56.845-05:00 level=DEBUG msg="[keyboard] Resolved layout key codes" a=0x00 c=0x08 v=0x09
+time=2026-03-07T15:27:56.845-05:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-07T15:27:56.871-05:00 level=DEBUG msg="Event loop ready (ApplicationStarted)"
+time=2026-03-07T15:27:56.877-05:00 level=INFO msg="Permission check" accessibility=true postEventAccess=true
+time=2026-03-07T15:27:56.877-05:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-07T15:27:56.909-05:00 level=DEBUG msg="Hotkey registered" name=action key=Ctrl+G
+time=2026-03-07T15:27:56.909-05:00 level=DEBUG msg="Starting hotkey listener" registered=1
+time=2026-03-07T15:28:02.671-05:00 level=INFO msg="Correction triggered"
+time=2026-03-07T15:28:02.671-05:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-07T15:28:02.671-05:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-07T15:28:02.705-05:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-07T15:28:02.705-05:00 level=DEBUG msg="Capturing text..."
+time=2026-03-07T15:28:02.804-05:00 level=DEBUG msg="[keyboard] Waited for modifier release" ms=80
+time=2026-03-07T15:28:02.811-05:00 level=DEBUG msg="captureText: frontmost app" app=Notes
+time=2026-03-07T15:28:02.811-05:00 level=INFO msg="captureText: got all text via Accessibility API" len=68
+time=2026-03-07T15:28:02.811-05:00 level=INFO msg="Captured text" mode=Correction len=68 selection=false ax=true text="Wrote somethong tha I no so good but need to be fixed of correction."
+time=2026-03-07T15:28:02.811-05:00 level=DEBUG msg="Sending to LLM..." mode=Correction text_len=68
+time=2026-03-07T15:28:02.811-05:00 level=DEBUG msg="processing text" mode=correct llm=gemini prompt="Detect the language of the following text (English or French). Fix all spelling ..." input_len=68
+time=2026-03-07T15:28:02.812-05:00 level=DEBUG msg="gemini: sending request" model=gemini-2.5-flash-lite endpoint=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions body_len=367
+time=2026-03-07T15:28:03.222-05:00 level=DEBUG msg="gemini: response received" status=200
+time=2026-03-07T15:28:03.222-05:00 level=DEBUG msg="gemini: raw response body" body="{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"I wrote something that I know isn't so good but needs to be fixed.\",\"role\":\"assistant\"}}],\"created\":1772915283,\"id\":\"U4qsadHYDJG9_uMPnY-YmAI\",\"model\":\"gemini-2.5-flash-lite\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":17,\"prompt_tokens\":54,\"total_tokens\":71}}"
+time=2026-03-07T15:28:03.223-05:00 level=DEBUG msg="gemini: parsed response" text_len=66 choices=1
+time=2026-03-07T15:28:03.223-05:00 level=DEBUG msg="LLM response received" provider=gemini model=gemini-2.5-flash-lite llm=gemini response_len=66
+time=2026-03-07T15:28:03.235-05:00 level=INFO msg="Wrote result via AX API (all text)" mode=Correction
+time=2026-03-07T15:28:03.267-05:00 level=INFO msg="Correction complete" result="I wrote something that I know isn't so good but needs to be fixed."
+time=2026-03-07T15:28:13.547-05:00 level=INFO msg="Correction triggered"
+time=2026-03-07T15:28:13.548-05:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-07T15:28:13.548-05:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-07T15:28:13.581-05:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-07T15:28:13.581-05:00 level=DEBUG msg="Capturing text..."
+time=2026-03-07T15:28:13.644-05:00 level=DEBUG msg="[keyboard] Waited for modifier release" ms=50
+time=2026-03-07T15:28:13.657-05:00 level=DEBUG msg="captureText: frontmost app" app=(unknown)
+time=2026-03-07T15:28:13.657-05:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-07T15:28:13.657-05:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-07T15:28:13.722-05:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-07T15:28:13.722-05:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-07T15:28:13.842-05:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-07T15:28:13.866-05:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-07T15:28:13.866-05:00 level=DEBUG msg="No selection detected, falling back to select-all" mode=Correction
+time=2026-03-07T15:28:13.866-05:00 level=DEBUG msg="[keyboard] SelectAll (Cmd+A)" keyCode=0x00
+time=2026-03-07T15:28:13.936-05:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-07T15:28:13.936-05:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-07T15:28:14.056-05:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-07T15:28:14.088-05:00 level=DEBUG msg="captureText: final clipboard read" len=0
+time=2026-03-07T15:28:14.088-05:00 level=WARN msg="Nothing to process (empty text)" mode=Correction
+time=2026-03-07T15:28:23.035-05:00 level=INFO msg="Correction triggered"
+time=2026-03-07T15:28:23.036-05:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-07T15:28:23.036-05:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-07T15:28:23.070-05:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-07T15:28:23.070-05:00 level=DEBUG msg="Capturing text..."
+time=2026-03-07T15:28:23.157-05:00 level=DEBUG msg="[keyboard] Waited for modifier release" ms=70
+time=2026-03-07T15:28:23.157-05:00 level=DEBUG msg="captureText: frontmost app" app=(unknown)
+time=2026-03-07T15:28:23.157-05:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-07T15:28:23.157-05:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-07T15:28:23.219-05:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-07T15:28:23.219-05:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-07T15:28:23.339-05:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-07T15:28:23.366-05:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-07T15:28:23.366-05:00 level=DEBUG msg="No selection detected, falling back to select-all" mode=Correction
+time=2026-03-07T15:28:23.366-05:00 level=DEBUG msg="[keyboard] SelectAll (Cmd+A)" keyCode=0x00
+time=2026-03-07T15:28:23.436-05:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-07T15:28:23.436-05:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-07T15:28:23.556-05:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-07T15:28:23.590-05:00 level=DEBUG msg="captureText: final clipboard read" len=0
+time=2026-03-07T15:28:23.590-05:00 level=WARN msg="Nothing to process (empty text)" mode=Correction
