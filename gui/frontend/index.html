@@ -373,16 +373,10 @@
       <h2>Languages</h2>
       <p style="font-size:0.82em;color:#6c7086;margin-bottom:12px">Languages used for correction and translation.</p>
       <div id="lang-tags" class="lang-tags"></div>
-      <div style="display:flex;gap:6px;align-items:flex-end">
-        <div class="form-group" style="margin-bottom:0;flex:1">
-          <label for="lang-code">Code</label>
-          <input type="text" id="lang-code" placeholder="es" style="width:80px">
-        </div>
-        <div class="form-group" style="margin-bottom:0;flex:2">
-          <label for="lang-name">Display Name</label>
-          <input type="text" id="lang-name" placeholder="Spanish">
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="addLanguage()" style="margin-bottom:0;height:34px">Add</button>
+      <div style="position:relative">
+        <input type="text" id="lang-search" placeholder="Search languages..." autocomplete="off"
+               oninput="onLangSearch()" onfocus="onLangSearch()" onkeydown="onLangSearchKey(event)">
+        <div id="lang-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;max-height:200px;overflow-y:auto;background:#313244;border:1px solid #45475a;border-radius:0 0 6px 6px;z-index:10"></div>
       </div>
       <div class="status" id="lang-status"></div>
     </div>
@@ -719,15 +713,7 @@ async function onTestProvider(label) {
 }
 
 function showAddProvider() {
-  document.getElementById('provider-form').style.display = 'block';
-  document.getElementById('form-title').textContent = 'Add Provider';
-  document.getElementById('edit-original-label').value = '';
-  document.getElementById('form-provider').value = 'anthropic';
-  document.getElementById('form-label').value = '';
-  document.getElementById('form-apikey').value = '';
-  document.getElementById('form-endpoint').value = '';
-  onFormProviderChange();
-  clearStatus('form-status');
+  window.location.href = '/wizard.html?returnTo=settings';
 }
 
 function onEditProvider(label) {
@@ -1005,9 +991,30 @@ async function tmplDrop(e, toIdx) {
 // LANGUAGES TAB
 // ===========================================================================
 
+const ALL_LANGUAGES = [
+  {code:'af',name:'Afrikaans'},{code:'ar',name:'Arabic'},{code:'bg',name:'Bulgarian'},
+  {code:'bn',name:'Bengali'},{code:'ca',name:'Catalan'},{code:'cs',name:'Czech'},
+  {code:'cy',name:'Welsh'},{code:'da',name:'Danish'},{code:'de',name:'German'},
+  {code:'el',name:'Greek'},{code:'en',name:'English'},{code:'es',name:'Spanish'},
+  {code:'et',name:'Estonian'},{code:'fa',name:'Persian'},{code:'fi',name:'Finnish'},
+  {code:'fr',name:'French'},{code:'ga',name:'Irish'},{code:'he',name:'Hebrew'},
+  {code:'hi',name:'Hindi'},{code:'hr',name:'Croatian'},{code:'hu',name:'Hungarian'},
+  {code:'id',name:'Indonesian'},{code:'is',name:'Icelandic'},{code:'it',name:'Italian'},
+  {code:'ja',name:'Japanese'},{code:'ko',name:'Korean'},{code:'lt',name:'Lithuanian'},
+  {code:'lv',name:'Latvian'},{code:'mk',name:'Macedonian'},{code:'ms',name:'Malay'},
+  {code:'nl',name:'Dutch'},{code:'no',name:'Norwegian'},{code:'pl',name:'Polish'},
+  {code:'pt',name:'Portuguese'},{code:'ro',name:'Romanian'},{code:'ru',name:'Russian'},
+  {code:'sk',name:'Slovak'},{code:'sl',name:'Slovenian'},{code:'sq',name:'Albanian'},
+  {code:'sr',name:'Serbian'},{code:'sv',name:'Swedish'},{code:'sw',name:'Swahili'},
+  {code:'th',name:'Thai'},{code:'tl',name:'Filipino'},{code:'tr',name:'Turkish'},
+  {code:'uk',name:'Ukrainian'},{code:'ur',name:'Urdu'},{code:'vi',name:'Vietnamese'},
+  {code:'zh',name:'Chinese'},
+];
+
+let langDropdownIdx = -1;
+
 async function renderLanguages() {
   await reloadConfig();
-  // Language tags
   const tagsEl = document.getElementById('lang-tags');
   const langs = configData.languages || [];
   const names = configData.language_names || {};
@@ -1044,16 +1051,81 @@ async function renderLanguages() {
     thtml += `<div class="target-row"><span>${esc(label)}</span><button class="btn btn-danger btn-sm" onclick="removeTarget(${i})">Remove</button></div>`;
   });
   targetList.innerHTML = thtml || '<div class="empty-state" style="padding:12px">No translation targets configured.</div>';
+
+  // Clear search
+  const searchEl = document.getElementById('lang-search');
+  if (searchEl) searchEl.value = '';
+  closeLangDropdown();
 }
 
-async function addLanguage() {
-  const code = document.getElementById('lang-code').value.trim().toLowerCase();
-  const name = document.getElementById('lang-name').value.trim();
-  if (!code || !name) { setStatus('lang-status', 'error', 'Code and name are required'); return; }
+function getAvailableLanguages() {
+  const existing = new Set(configData.languages || []);
+  return ALL_LANGUAGES.filter(l => !existing.has(l.code));
+}
+
+function onLangSearch() {
+  const query = document.getElementById('lang-search').value.trim().toLowerCase();
+  const available = getAvailableLanguages();
+  const filtered = query
+    ? available.filter(l => l.name.toLowerCase().includes(query) || l.code.includes(query))
+    : available;
+  const dd = document.getElementById('lang-dropdown');
+  if (filtered.length === 0) {
+    dd.innerHTML = '<div style="padding:10px;color:#6c7086;font-size:0.85em">' + (available.length === 0 ? 'All languages added' : 'No match') + '</div>';
+    dd.style.display = 'block';
+    langDropdownIdx = -1;
+    return;
+  }
+  let html = '';
+  filtered.forEach((l, i) => {
+    html += `<div class="lang-option" data-code="${esc(l.code)}" data-name="${esc(l.name)}" onmousedown="selectLanguage('${escJS(l.code)}','${escJS(l.name)}')" style="padding:8px 12px;cursor:pointer;font-size:0.9em;${i === langDropdownIdx ? 'background:#45475a' : ''}" onmouseenter="this.style.background='#45475a'" onmouseleave="this.style.background=${i === langDropdownIdx ? "'#45475a'" : "''"}">${esc(l.name)} <span style="color:#6c7086">(${esc(l.code)})</span></div>`;
+  });
+  dd.innerHTML = html;
+  dd.style.display = 'block';
+}
+
+function onLangSearchKey(e) {
+  const dd = document.getElementById('lang-dropdown');
+  const items = dd.querySelectorAll('.lang-option');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    langDropdownIdx = Math.min(langDropdownIdx + 1, items.length - 1);
+    highlightLangOption(items);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    langDropdownIdx = Math.max(langDropdownIdx - 1, 0);
+    highlightLangOption(items);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (langDropdownIdx >= 0 && langDropdownIdx < items.length) {
+      const item = items[langDropdownIdx];
+      selectLanguage(item.dataset.code, item.dataset.name);
+    }
+  } else if (e.key === 'Escape') {
+    closeLangDropdown();
+    document.getElementById('lang-search').blur();
+  } else {
+    langDropdownIdx = -1;
+  }
+}
+
+function highlightLangOption(items) {
+  items.forEach((el, i) => {
+    el.style.background = i === langDropdownIdx ? '#45475a' : '';
+  });
+  if (langDropdownIdx >= 0 && items[langDropdownIdx]) {
+    items[langDropdownIdx].scrollIntoView({ block: 'nearest' });
+  }
+}
+
+function closeLangDropdown() {
+  document.getElementById('lang-dropdown').style.display = 'none';
+  langDropdownIdx = -1;
+}
+
+async function selectLanguage(code, name) {
   const result = await goCall('addLanguage', code, name);
   if (result && result.startsWith('ok')) {
-    document.getElementById('lang-code').value = '';
-    document.getElementById('lang-name').value = '';
     clearStatus('lang-status');
     renderLanguages();
   } else {
@@ -1065,6 +1137,13 @@ async function removeLanguage(code) {
   const result = await goCall('removeLanguage', code);
   if (result && result.startsWith('ok')) renderLanguages();
 }
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#lang-search') && !e.target.closest('#lang-dropdown')) {
+    closeLangDropdown();
+  }
+});
 
 async function addTarget() {
   const a = document.getElementById('target-a').value;

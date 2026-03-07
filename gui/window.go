@@ -84,34 +84,6 @@ func ShowWizardOnApp(svc *SettingsService, app *application.App, cfg *config.Con
 	})
 }
 
-// ShowWizard opens the wizard window on the already-running tray Wails app.
-// Non-blocking — creates a window and returns immediately.
-// Used by the tray "Add..." menu item to add a new provider.
-func ShowWizard(svc *SettingsService, cfg *config.Config, configPath string, onSaved func()) {
-	guiLog("[GUI] ShowWizard (add provider) called")
-
-	svc.Reset(cfg, configPath, onSaved)
-
-	app := application.Get()
-	if app == nil {
-		guiLog("[GUI] ERROR: no running Wails app for wizard window")
-		return
-	}
-	svc.app = app
-
-	win := app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:  "GhostType — Add Provider",
-		Width:  600,
-		Height: 640,
-		URL:    "/wizard.html",
-		Mac: application.MacWindow{
-			InvisibleTitleBarHeight: 50,
-			Backdrop:               application.MacBackdropTranslucent,
-		},
-	})
-	svc.window = win
-}
-
 // ShowSettings opens the settings window on the already-running tray Wails app.
 // Non-blocking — creates a window and returns immediately.
 // svc must be the SettingsService that was pre-registered on the app before Run().

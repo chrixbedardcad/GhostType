@@ -212,6 +212,10 @@
         Requires ~4 GB disk space for a model.
       </div>
     </div>
+
+    <div id="wizard-cancel-row" class="btn-row" style="display:none;justify-content:flex-start">
+      <button class="btn btn-secondary" onclick="cancelWizard()">Back to Settings</button>
+    </div>
   </div>
 
   <!-- ============ STEP 2a: CLOUD PROVIDER SELECTION ============ -->
@@ -330,6 +334,7 @@ let totalSteps = 4;
 let category = '';       // 'cloud' or 'ollama'
 let cloudProvider = '';  // 'gemini', 'anthropic', 'openai', 'xai'
 let ollamaModel = '';    // selected ollama model name
+const returnTo = new URLSearchParams(window.location.search).get('returnTo');
 
 // ==================== PROVIDER METADATA ====================
 const PROVIDERS = {
@@ -655,9 +660,19 @@ function showDone(label, provider, model) {
 }
 
 async function finishWizard() {
+  if (returnTo === 'settings') {
+    window.location.href = '/index.html';
+    return;
+  }
   const btn = document.querySelector('#step-4 .btn-primary');
   btn.disabled = true; btn.textContent = 'Starting...';
   await goCall('closeWindow');
+}
+
+function cancelWizard() {
+  if (returnTo === 'settings') {
+    window.location.href = '/index.html';
+  }
 }
 
 // ==================== HELPERS ====================
@@ -685,6 +700,10 @@ function escJS(s) {
 
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', function() {
+  if (returnTo === 'settings') {
+    document.getElementById('wizard-cancel-row').style.display = 'flex';
+    document.querySelector('.header .sub').textContent = 'Add a new AI provider';
+  }
   goToStep(1);
 });
 </script>

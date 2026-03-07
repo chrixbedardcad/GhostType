@@ -30,9 +30,8 @@ type Config struct {
 	OnTargetSelect func(idx int)
 	OnTemplSelect  func(idx int)
 	OnCancel       func()
-	OnSettings     func()
-	OnAddProvider  func() // open wizard to add a new provider
-	OnModelSelect  func(label string)
+	OnSettings    func()
+	OnModelSelect func(label string)
 	OnExit         func()
 
 	// State readers — called to build the menu.
@@ -194,13 +193,6 @@ func (ts *trayState) refreshMenu() {
 			}
 		}
 	}
-
-	addItem := menu.Add("  Add...")
-	addItem.OnClick(func(ctx *application.Context) {
-		if ts.cfg.OnAddProvider != nil {
-			ts.cfg.OnAddProvider()
-		}
-	})
 
 	// Language targets.
 	if len(ts.cfg.TargetLabels) > 0 {

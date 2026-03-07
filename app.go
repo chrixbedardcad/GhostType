@@ -351,23 +351,6 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				refreshHotkeys()
 			})
 		},
-		OnAddProvider: func() {
-			gui.ShowWizard(settingsSvc, cfg, configPath, func() {
-				// Reload config from disk after wizard save.
-				newCfg, err := config.LoadRaw(configPath)
-				if err != nil {
-					slog.Error("Failed to reload config after wizard", "error", err)
-					return
-				}
-				mu.Lock()
-				*cfg = *newCfg
-				mu.Unlock()
-				if router != nil {
-					router.ResetClients()
-				}
-				slog.Info("Live config reloaded after add-provider wizard")
-			})
-		},
 		OnModelSelect: func(label string) {
 			mu.Lock()
 			cfg.DefaultLLM = label
