@@ -231,14 +231,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		sound.PlayToggle()
 	}
 
-	// Build target labels for the tray menu.
-	targetLabels := cfg.TranslateTargetLabels()
-
-	// Build template name list for the tray menu.
-	templNames := make([]string, len(cfg.Prompts.RewriteTemplates))
-	for i, t := range cfg.Prompts.RewriteTemplates {
-		templNames[i] = t.Name
-	}
+	// (Target labels and template names are now computed dynamically by the tray.)
 
 	// Create the shared Wails application used by both the tray, wizard, and settings.
 	// The SettingsService is pre-registered so its JS bindings are available
@@ -417,8 +410,20 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 			}
 			return router.CurrentTemplateIdx()
 		},
-		TargetLabels:  targetLabels,
-		TemplateNames: templNames,
+		GetTargetLabels: func() []string {
+			mu.Lock()
+			defer mu.Unlock()
+			return cfg.TranslateTargetLabels()
+		},
+		GetTemplateNames: func() []string {
+			mu.Lock()
+			defer mu.Unlock()
+			names := make([]string, len(cfg.Prompts.RewriteTemplates))
+			for i, t := range cfg.Prompts.RewriteTemplates {
+				names[i] = t.Name
+			}
+			return names
+		},
 	}
 
 	trayRun, stopTrayFn = tray.Start(trayCfg, wailsApp)

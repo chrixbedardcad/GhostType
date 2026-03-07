@@ -803,6 +803,8 @@ async function saveForm() {
 
 async function onOpenConfigFile() { await goCall('openConfigFile'); }
 
+const TAG_LABELS = {recommended:' \u2605 Recommended',best:' \u2605 Best quality',free:' \u2605 Free',fast:' \u26A1 Fast'};
+
 async function loadModels(selectId, provider) {
   const sel = document.getElementById(selectId);
   sel.innerHTML = '';
@@ -810,7 +812,9 @@ async function loadModels(selectId, provider) {
   let models = [];
   if (raw) { try { models = JSON.parse(raw); } catch(e) {} }
   for (const m of models) {
-    const opt = document.createElement('option'); opt.value = m; opt.textContent = m; sel.appendChild(opt);
+    const name = typeof m === 'string' ? m : m.name;
+    const tag = (typeof m === 'object' && m.tag) ? (TAG_LABELS[m.tag] || '') : '';
+    const opt = document.createElement('option'); opt.value = name; opt.textContent = name + tag; sel.appendChild(opt);
   }
   const opt = document.createElement('option'); opt.value = '__custom__'; opt.textContent = '(custom model...)'; sel.appendChild(opt);
   sel.onchange = function() {

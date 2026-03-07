@@ -41,9 +41,9 @@ type Config struct {
 	GetIsProcessing func() bool
 	GetModelLabels func() []ModelLabel
 
-	// Static data for building menu items.
-	TargetLabels  []string // translate target display labels
-	TemplateNames []string // rewrite template display names
+	// Dynamic data for building menu items.
+	GetTargetLabels  func() []string // translate target display labels
+	GetTemplateNames func() []string // rewrite template display names
 }
 
 // trayState holds the runtime state of the system tray.
@@ -195,7 +195,11 @@ func (ts *trayState) refreshMenu() {
 	}
 
 	// Language targets.
-	if len(ts.cfg.TargetLabels) > 0 {
+	var targetLabels []string
+	if ts.cfg.GetTargetLabels != nil {
+		targetLabels = ts.cfg.GetTargetLabels()
+	}
+	if len(targetLabels) > 0 {
 		menu.AddSeparator()
 		menu.Add("Language:").SetEnabled(false)
 
@@ -204,7 +208,7 @@ func (ts *trayState) refreshMenu() {
 			targetIdx = ts.cfg.GetTargetIdx()
 		}
 
-		for i, name := range ts.cfg.TargetLabels {
+		for i, name := range targetLabels {
 			item := menu.AddRadio("  "+name, i == targetIdx)
 			idx := i // capture for closure
 			item.OnClick(func(ctx *application.Context) {
@@ -217,7 +221,11 @@ func (ts *trayState) refreshMenu() {
 	}
 
 	// Rewrite templates.
-	if len(ts.cfg.TemplateNames) > 0 {
+	var templateNames []string
+	if ts.cfg.GetTemplateNames != nil {
+		templateNames = ts.cfg.GetTemplateNames()
+	}
+	if len(templateNames) > 0 {
 		menu.AddSeparator()
 		menu.Add("Template:").SetEnabled(false)
 
@@ -226,7 +234,7 @@ func (ts *trayState) refreshMenu() {
 			templIdx = ts.cfg.GetTemplateIdx()
 		}
 
-		for i, name := range ts.cfg.TemplateNames {
+		for i, name := range templateNames {
 			item := menu.AddRadio("  "+name, i == templIdx)
 			idx := i // capture for closure
 			item.OnClick(func(ctx *application.Context) {
@@ -274,8 +282,8 @@ func (ts *trayState) refreshMenu() {
 	slog.Info("[tray] Menu built and set",
 		"active_mode", activeMode,
 		"models", modelCount,
-		"targets", len(ts.cfg.TargetLabels),
-		"templates", len(ts.cfg.TemplateNames),
+		"targets", len(targetLabels),
+		"templates", len(templateNames),
 	)
 }
 

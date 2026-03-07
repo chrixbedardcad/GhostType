@@ -49,7 +49,7 @@
   .card .card-header {
     display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
   }
-  .card .card-icon { font-size: 1.5em; }
+  .card .card-icon { font-size: 1.5em; flex-shrink: 0; }
   .card .card-title { font-weight: 600; font-size: 1em; }
   .card .card-desc { font-size: 0.85em; color: #a6adc8; line-height: 1.4; }
 
@@ -224,7 +224,7 @@
 
     <div class="card" onclick="selectCloudProvider('gemini')">
       <div class="card-header">
-        <span class="card-icon">&#10024;</span>
+        <svg class="card-icon" width="28" height="28" viewBox="0 0 28 28"><defs><linearGradient id="gm1" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop stop-color="#4285F4"/><stop offset=".33" stop-color="#9B72CB"/><stop offset=".66" stop-color="#D96570"/><stop offset="1" stop-color="#F9AB00"/></linearGradient></defs><path d="M14 0C14 7.732 7.732 14 0 14c7.732 0 14 6.268 14 14 0-7.732 6.268-14 14-14C20.268 14 14 7.732 14 0z" fill="url(#gm1)"/></svg>
         <span class="card-title">Google Gemini <span class="badge badge-free">FREE</span> <span class="badge badge-rec">RECOMMENDED</span></span>
       </div>
       <div class="card-desc">Free tier: 250 requests/day. Great for getting started.</div>
@@ -232,7 +232,7 @@
 
     <div class="card" onclick="selectCloudProvider('xai')">
       <div class="card-header">
-        <span class="card-icon">&#129302;</span>
+        <svg class="card-icon" width="28" height="28" viewBox="0 0 28 28"><text x="4" y="22" font-family="Arial,sans-serif" font-weight="900" font-size="24" fill="#cdd6f4">X</text></svg>
         <span class="card-title">xAI Grok</span>
       </div>
       <div class="card-desc">$25 free credits at signup. Fast inference.</div>
@@ -240,7 +240,7 @@
 
     <div class="card" onclick="selectCloudProvider('anthropic')">
       <div class="card-header">
-        <span class="card-icon">&#129504;</span>
+        <svg class="card-icon" width="28" height="28" viewBox="0 0 28 28"><path d="M16.2 4L24 24h-4.3L12 7.5 4.3 24H0L7.8 4h8.4z" fill="#D4A574"/></svg>
         <span class="card-title">Anthropic Claude <span class="badge badge-paid">$</span></span>
       </div>
       <div class="card-desc">Premium quality, best multilingual support.</div>
@@ -248,7 +248,7 @@
 
     <div class="card" onclick="selectCloudProvider('openai')">
       <div class="card-header">
-        <span class="card-icon">&#128161;</span>
+        <svg class="card-icon" width="28" height="28" viewBox="0 0 28 28"><path d="M25.3 11.6a7.1 7.1 0 00-.6-5.9A7.2 7.2 0 0017 2a7.1 7.1 0 00-5.4-2.4A7.2 7.2 0 004.8 3a7.1 7.1 0 00-3.2 3.4 7.2 7.2 0 00.9 7.2 7.1 7.1 0 00.6 5.9 7.2 7.2 0 007.7 3.7 7.1 7.1 0 005.4 2.4 7.2 7.2 0 006.8-3.4 7.1 7.1 0 003.2-3.4 7.2 7.2 0 00-.9-7.2zm-10.7 14a5.4 5.4 0 01-3.4-1.2l.2-.1 5.6-3.2a.9.9 0 00.5-.8v-7.9l2.4 1.4v6.6a5.4 5.4 0 01-5.3 5.2zM4.3 20.8a5.3 5.3 0 01-.6-3.6l.2.1 5.6 3.2a.9.9 0 001 0l6.8-3.9v2.7l-5.7 3.3a5.4 5.4 0 01-7.3-1.8zM3 9.7A5.3 5.3 0 015.8 7.4v6.6a.9.9 0 00.5.8l6.8 3.9-2.4 1.4L5 16.8A5.4 5.4 0 013 9.7zm18.3 4.3l-6.8-3.9 2.4-1.4 5.7 3.3a5.4 5.4 0 01-.8 9.7v-6.9a.9.9 0 00-.5-.8zm2.3-3.7l-.2-.1-5.6-3.2a.9.9 0 00-1 0L10 11v-2.7l5.7-3.3a5.4 5.4 0 018 5.3zm-14.8 4.8L6.4 13.7v-6.6a5.4 5.4 0 018.8-4.1l-.2.1L9.4 6.3a.9.9 0 00-.5.8v7.9z" fill="#10A37F"/></svg>
         <span class="card-title">OpenAI GPT <span class="badge badge-paid">$</span></span>
       </div>
       <div class="card-desc">Popular choice, wide ecosystem.</div>
@@ -414,6 +414,8 @@ function setupCloudForm() {
   loadCloudModels();
 }
 
+const TAG_LABELS = {recommended:' \u2605 Recommended',best:' \u2605 Best quality',free:' \u2605 Free',fast:' \u26A1 Fast'};
+
 async function loadCloudModels() {
   const sel = document.getElementById('cfg-model');
   sel.innerHTML = '';
@@ -421,8 +423,10 @@ async function loadCloudModels() {
   let models = [];
   if (raw) { try { models = JSON.parse(raw); } catch(e) {} }
   for (const m of models) {
+    const name = typeof m === 'string' ? m : m.name;
+    const tag = (typeof m === 'object' && m.tag) ? (TAG_LABELS[m.tag] || '') : '';
     const opt = document.createElement('option');
-    opt.value = m; opt.textContent = m;
+    opt.value = name; opt.textContent = name + tag;
     sel.appendChild(opt);
   }
 }
