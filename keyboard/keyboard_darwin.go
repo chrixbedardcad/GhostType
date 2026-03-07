@@ -185,6 +185,46 @@ CFStringRef getFrontAppName(void) {
 	return (CFStringRef)title;
 }
 
+// getFrontPid returns the PID of the frontmost application.
+// Returns -1 on failure.
+pid_t getFrontPid(void) {
+	AXUIElementRef systemWide = AXUIElementCreateSystemWide();
+	AXUIElementRef focused = NULL;
+	AXError err = AXUIElementCopyAttributeValue(systemWide, kAXFocusedUIElementAttribute, (CFTypeRef *)&focused);
+	CFRelease(systemWide);
+	if (err != kAXErrorSuccess || !focused) return -1;
+
+	pid_t pid;
+	err = AXUIElementGetPid(focused, &pid);
+	CFRelease(focused);
+	if (err != kAXErrorSuccess) return -1;
+	return pid;
+}
+
+// sendCmdKeyViaAX sends a Cmd+key combo using AXUIElementPostKeyboardEvent.
+// This routes through the Accessibility framework instead of the HID event tap,
+// which can reach apps (like Chrome) where CGEventPost events are ignored.
+// Returns 0 on success, -1 on failure.
+int sendCmdKeyViaAX(CGKeyCode key, CGCharCode ch) {
+	pid_t pid = getFrontPid();
+	if (pid < 0) return -1;
+
+	AXUIElementRef app = AXUIElementCreateApplication(pid);
+
+	// Cmd down → key down → key up → Cmd up
+	AXError e1 = AXUIElementPostKeyboardEvent(app, 0, kVK_Command, true);
+	usleep(2000);
+	AXError e2 = AXUIElementPostKeyboardEvent(app, ch, key, true);
+	usleep(2000);
+	AXError e3 = AXUIElementPostKeyboardEvent(app, ch, key, false);
+	usleep(2000);
+	AXError e4 = AXUIElementPostKeyboardEvent(app, 0, kVK_Command, false);
+
+	CFRelease(app);
+	return (e1 == kAXErrorSuccess && e2 == kAXErrorSuccess &&
+	        e3 == kAXErrorSuccess && e4 == kAXErrorSuccess) ? 0 : -1;
+}
+
 // sendKeyComboWithChar posts a Cmd+key event with an explicit Unicode character.
 // The key code is layout-resolved (correct for Cocoa apps), and the Unicode
 // string is set explicitly (correct for non-Cocoa apps like Firestorm that
@@ -411,6 +451,36 @@ func (s *DarwinSimulator) FrontAppName() string {
 		return "(unknown)"
 	}
 	return name
+}
+
+func (s *DarwinSimulator) SelectAllAX() error {
+	resolveKeys()
+	slog.Debug("[keyboard] SelectAllAX (AXUIElementPostKeyboardEvent)", "keyCode", fmt.Sprintf("0x%02X", keyA))
+	if ret := C.sendCmdKeyViaAX(keyA, C.CGCharCode('a')); ret != 0 {
+		return fmt.Errorf("AXUIElementPostKeyboardEvent failed for SelectAll")
+	}
+	time.Sleep(10 * time.Millisecond)
+	return nil
+}
+
+func (s *DarwinSimulator) CopyAX() error {
+	resolveKeys()
+	slog.Debug("[keyboard] CopyAX (AXUIElementPostKeyboardEvent)", "keyCode", fmt.Sprintf("0x%02X", keyC))
+	if ret := C.sendCmdKeyViaAX(keyC, C.CGCharCode('c')); ret != 0 {
+		return fmt.Errorf("AXUIElementPostKeyboardEvent failed for Copy")
+	}
+	time.Sleep(10 * time.Millisecond)
+	return nil
+}
+
+func (s *DarwinSimulator) PasteAX() error {
+	resolveKeys()
+	slog.Debug("[keyboard] PasteAX (AXUIElementPostKeyboardEvent)", "keyCode", fmt.Sprintf("0x%02X", keyV))
+	if ret := C.sendCmdKeyViaAX(keyV, C.CGCharCode('v')); ret != 0 {
+		return fmt.Errorf("AXUIElementPostKeyboardEvent failed for Paste")
+	}
+	time.Sleep(10 * time.Millisecond)
+	return nil
 }
 
 func (s *DarwinSimulator) SelectAll() error {

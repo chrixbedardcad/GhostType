@@ -23,6 +23,9 @@ func (s *LinuxSimulator) ReadAllText() string              { return "" }
 func (s *LinuxSimulator) WriteSelectedText(string) bool { return false }
 func (s *LinuxSimulator) WriteAllText(string) bool      { return false }
 func (s *LinuxSimulator) FrontAppName() string             { return "" }
+func (s *LinuxSimulator) SelectAllAX() error               { return fmt.Errorf("not supported") }
+func (s *LinuxSimulator) CopyAX() error                    { return fmt.Errorf("not supported") }
+func (s *LinuxSimulator) PasteAX() error                   { return fmt.Errorf("not supported") }
 
 func (s *LinuxSimulator) SelectAll() error {
 	return xdotoolKey("ctrl+a")

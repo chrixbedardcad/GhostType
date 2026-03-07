@@ -25,19 +25,30 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
+// captureMethod indicates which strategy was used to capture text.
+// This determines the paste strategy in processMode.
+type captureMethod int
+
+const (
+	captureViaAXAPI      captureMethod = iota // AX API read — paste via AX write
+	captureViaCGEvent                         // CGEventPost + clipboard — paste via CGEventPost
+	captureViaAXKeystroke                     // AXUIElementPostKeyboardEvent + clipboard — paste via AX keystroke
+)
+
 // captureText reads text from the focused UI element.
 // Strategy:
 //  1. Try macOS Accessibility API (kAXSelectedTextAttribute / kAXValueAttribute)
 //     — instant, no clipboard pollution, no keyboard simulation needed.
-//  2. Fall back to Cmd+C / Cmd+A+Cmd+C clipboard approach.
+//  2. Fall back to CGEventPost Cmd+C / Cmd+A+Cmd+C clipboard approach.
+//  3. Fall back to AXUIElementPostKeyboardEvent Cmd+A+Cmd+C (for Chrome/browsers).
 //
 // Returns the captured text, whether the user had an active selection,
-// whether the Accessibility API was used (for write-back), and any error.
+// the capture method used (for paste strategy), and any error.
 func captureText(
 	modeName string,
 	cb *clipboard.Clipboard,
 	kb keyboard.Simulator,
-) (text string, hadSelection bool, usedAX bool, err error) {
+) (text string, hadSelection bool, method captureMethod, err error) {
 	// Wait for the user to release hotkey modifier keys (e.g. Ctrl from Ctrl+G).
 	// On macOS, CGEventPost at kCGHIDEventTap merges with hardware state —
 	// if Ctrl is still held, our Cmd+A/C/V become Ctrl+Cmd+A/C/V which apps ignore.
@@ -52,12 +63,12 @@ func captureText(
 	// Try reading selected text directly — no keyboard simulation, no clipboard.
 	if selected := kb.ReadSelectedText(); selected != "" {
 		slog.Info("captureText: got selection via Accessibility API", "len", len(selected))
-		return selected, true, true, nil
+		return selected, true, captureViaAXAPI, nil
 	}
 	// No selection — try reading all text from the focused element.
 	if allText := kb.ReadAllText(); allText != "" {
 		slog.Info("captureText: got all text via Accessibility API", "len", len(allText))
-		return allText, false, true, nil
+		return allText, false, captureViaAXAPI, nil
 	}
 	slog.Debug("captureText: Accessibility API returned no text, falling back to clipboard")
 
@@ -65,50 +76,87 @@ func captureText(
 	// Clear clipboard so we can detect whether Ctrl+C actually grabbed something.
 	slog.Debug("captureText: clearing clipboard...")
 	if err := cb.Clear(); err != nil {
-		return "", false, false, fmt.Errorf("clear clipboard: %w", err)
+		return "", false, captureViaCGEvent, fmt.Errorf("clear clipboard: %w", err)
 	}
 	time.Sleep(50 * time.Millisecond)
 
 	// Try copying the current selection (if any).
 	slog.Debug("captureText: sending Copy keystroke...")
 	if err := kb.Copy(); err != nil {
-		return "", false, false, fmt.Errorf("copy: %w", err)
+		return "", false, captureViaCGEvent, fmt.Errorf("copy: %w", err)
 	}
 	time.Sleep(100 * time.Millisecond)
 
 	slog.Debug("captureText: reading clipboard...")
 	text, err = cb.Read()
 	if err != nil {
-		return "", false, false, fmt.Errorf("read clipboard: %w", err)
+		return "", false, captureViaCGEvent, fmt.Errorf("read clipboard: %w", err)
 	}
 	slog.Debug("captureText: clipboard read", "len", len(text), "empty", text == "")
 
 	if text != "" {
 		slog.Info("Selection detected", "mode", modeName, "len", len(text))
-		return text, true, false, nil
+		return text, true, captureViaCGEvent, nil
 	}
 
 	// No selection — fall back to select-all + copy.
 	slog.Debug("No selection detected, falling back to select-all", "mode", modeName)
 	if err := kb.SelectAll(); err != nil {
-		return "", false, false, fmt.Errorf("select all: %w", err)
+		return "", false, captureViaCGEvent, fmt.Errorf("select all: %w", err)
 	}
 	time.Sleep(50 * time.Millisecond)
 
 	slog.Debug("captureText: sending Copy after select-all...")
 	if err := kb.Copy(); err != nil {
-		return "", false, false, fmt.Errorf("copy after select-all: %w", err)
+		return "", false, captureViaCGEvent, fmt.Errorf("copy after select-all: %w", err)
 	}
 	time.Sleep(100 * time.Millisecond)
 
 	slog.Debug("captureText: reading clipboard after select-all...")
 	text, err = cb.Read()
 	if err != nil {
-		return "", false, false, fmt.Errorf("read clipboard after select-all: %w", err)
+		return "", false, captureViaCGEvent, fmt.Errorf("read clipboard after select-all: %w", err)
 	}
 	slog.Debug("captureText: final clipboard read", "len", len(text))
 
-	return text, false, false, nil
+	if text != "" {
+		return text, false, captureViaCGEvent, nil
+	}
+
+	// --- Strategy 3: AXUIElementPostKeyboardEvent (macOS, for Chrome/browsers) ---
+	// CGEventPost keystrokes didn't reach the app (common with Chrome's
+	// multi-process sandbox). Try AXUIElementPostKeyboardEvent which routes
+	// through the Accessibility framework instead of the HID event tap.
+	slog.Debug("captureText: CGEventPost clipboard empty, trying AX keystroke fallback")
+
+	if err := cb.Clear(); err != nil {
+		return "", false, captureViaAXKeystroke, fmt.Errorf("clear clipboard (AX fallback): %w", err)
+	}
+	time.Sleep(50 * time.Millisecond)
+
+	if err := kb.SelectAllAX(); err != nil {
+		slog.Debug("captureText: SelectAllAX not available", "error", err)
+		return "", false, captureViaCGEvent, nil
+	}
+	time.Sleep(100 * time.Millisecond)
+
+	if err := kb.CopyAX(); err != nil {
+		slog.Debug("captureText: CopyAX not available", "error", err)
+		return "", false, captureViaCGEvent, nil
+	}
+	time.Sleep(150 * time.Millisecond)
+
+	text, err = cb.Read()
+	if err != nil {
+		return "", false, captureViaAXKeystroke, fmt.Errorf("read clipboard (AX fallback): %w", err)
+	}
+	if text != "" {
+		slog.Info("captureText: got text via AX keystroke fallback", "len", len(text))
+	} else {
+		slog.Debug("captureText: AX keystroke fallback also returned empty")
+	}
+
+	return text, false, captureViaAXKeystroke, nil
 }
 
 // processMode captures text from the active window, sends it through the LLM
@@ -138,7 +186,7 @@ func processMode(
 
 	// Capture text — detects existing selection or falls back to select-all.
 	slog.Debug("Capturing text...")
-	text, hadSelection, usedAX, err := captureText(modeName, cb, kb)
+	text, hadSelection, capMethod, err := captureText(modeName, cb, kb)
 	if err != nil {
 		slog.Error("Failed to capture text", "mode", modeName, "error", err)
 		cb.Restore()
@@ -150,7 +198,7 @@ func processMode(
 		return
 	}
 
-	slog.Info("Captured text", "mode", modeName, "len", len(text), "selection", hadSelection, "ax", usedAX, "text", text)
+	slog.Info("Captured text", "mode", modeName, "len", len(text), "selection", hadSelection, "method", capMethod, "text", text)
 	fmt.Printf("[%s] Captured: %q\n", modeName, text)
 
 	// Create cancellable context with per-provider timeout.
@@ -184,20 +232,21 @@ func processMode(
 	}
 
 	// --- Write result back ---
-	// Strategy 1: If we read via Accessibility API, try writing back via AX too.
-	// This bypasses clipboard and CGEventPost entirely — the most reliable path.
-	axWritten := false
-	if usedAX {
+	written := false
+
+	// Strategy 1: AX API write — for apps where we read via AX API (Cocoa apps).
+	// Bypasses clipboard and CGEventPost entirely.
+	if capMethod == captureViaAXAPI {
 		if hadSelection {
-			axWritten = kb.WriteSelectedText(result)
-			if axWritten {
+			written = kb.WriteSelectedText(result)
+			if written {
 				slog.Info("Wrote result via AX API (selected text)", "mode", modeName)
 			} else {
 				slog.Debug("AX WriteSelectedText failed, falling back to clipboard paste", "mode", modeName)
 			}
 		} else {
-			axWritten = kb.WriteAllText(result)
-			if axWritten {
+			written = kb.WriteAllText(result)
+			if written {
 				slog.Info("Wrote result via AX API (all text)", "mode", modeName)
 			} else {
 				slog.Debug("AX WriteAllText failed, falling back to clipboard paste", "mode", modeName)
@@ -205,8 +254,8 @@ func processMode(
 		}
 	}
 
-	// Strategy 2: Fall back to clipboard + Cmd+V if AX write wasn't used or failed.
-	if !axWritten {
+	// Strategy 2 & 3: Clipboard-based paste.
+	if !written {
 		if err := cb.Write(result); err != nil {
 			slog.Error("Failed to write result to clipboard", "mode", modeName, "error", err)
 			cb.Restore()
@@ -215,22 +264,38 @@ func processMode(
 		slog.Debug("Result written to clipboard", "mode", modeName, "result_len", len(result))
 		time.Sleep(50 * time.Millisecond)
 
-		// Paste-prep: only select-all before paste when we used select-all to capture.
-		if !hadSelection {
-			if err := kb.SelectAll(); err != nil {
-				slog.Error("SelectAll (paste prep) failed", "mode", modeName, "error", err)
+		if capMethod == captureViaAXKeystroke {
+			// Strategy 3: AX keystroke paste — for Chrome/browsers where CGEventPost
+			// keystrokes don't reach the content area. Use the same AX routing
+			// that successfully captured the text.
+			if !hadSelection {
+				if err := kb.SelectAllAX(); err != nil {
+					slog.Error("SelectAllAX (paste prep) failed", "mode", modeName, "error", err)
+				}
+				time.Sleep(50 * time.Millisecond)
+			}
+			if err := kb.PasteAX(); err != nil {
+				slog.Error("PasteAX failed", "mode", modeName, "error", err)
 				cb.Restore()
 				return
 			}
-			time.Sleep(50 * time.Millisecond)
+		} else {
+			// Strategy 2: CGEventPost paste — for native apps.
+			if !hadSelection {
+				if err := kb.SelectAll(); err != nil {
+					slog.Error("SelectAll (paste prep) failed", "mode", modeName, "error", err)
+					cb.Restore()
+					return
+				}
+				time.Sleep(50 * time.Millisecond)
+			}
+			if err := kb.Paste(); err != nil {
+				slog.Error("Paste failed", "mode", modeName, "error", err)
+				cb.Restore()
+				return
+			}
 		}
-
-		if err := kb.Paste(); err != nil {
-			slog.Error("Paste failed", "mode", modeName, "error", err)
-			cb.Restore()
-			return
-		}
-		// Wait for the target app to process Cmd+V before restoring clipboard.
+		// Wait for the target app to process the paste event.
 		time.Sleep(300 * time.Millisecond)
 	}
 

@@ -35,4 +35,15 @@ type Simulator interface {
 
 	// FrontAppName returns the name of the frontmost application.
 	FrontAppName() string
+
+	// SelectAllAX sends Cmd+A via AXUIElementPostKeyboardEvent (Accessibility
+	// framework routing). Fallback for apps like Chrome where CGEventPost
+	// keystrokes don't reach the content area. No-op on non-macOS.
+	SelectAllAX() error
+
+	// CopyAX sends Cmd+C via AXUIElementPostKeyboardEvent.
+	CopyAX() error
+
+	// PasteAX sends Cmd+V via AXUIElementPostKeyboardEvent.
+	PasteAX() error
 }

@@ -94,6 +94,9 @@ func (s *WindowsSimulator) ReadAllText() string              { return "" }
 func (s *WindowsSimulator) WriteSelectedText(string) bool { return false }
 func (s *WindowsSimulator) WriteAllText(string) bool      { return false }
 func (s *WindowsSimulator) FrontAppName() string             { return "" }
+func (s *WindowsSimulator) SelectAllAX() error               { return fmt.Errorf("not supported") }
+func (s *WindowsSimulator) CopyAX() error                    { return fmt.Errorf("not supported") }
+func (s *WindowsSimulator) PasteAX() error                   { return fmt.Errorf("not supported") }
 
 func (s *WindowsSimulator) SelectAll() error {
 	return sendKeyCombo(vkControl, vkA)
