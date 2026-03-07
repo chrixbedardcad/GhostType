@@ -1,0 +1,234 @@
+time=2026-03-07T09:38:32.240-05:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-07T09:38:42.646-05:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-07T09:38:51.358-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T09:38:51.358-05:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-07T09:38:59.639-05:00 level=INFO msg="Correction triggered"
+time=2026-03-07T09:38:59.639-05:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-07T09:38:59.639-05:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-07T09:38:59.674-05:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-07T09:38:59.674-05:00 level=DEBUG msg="Capturing text..."
+time=2026-03-07T09:38:59.674-05:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-07T09:38:59.744-05:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-07T09:38:59.744-05:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-07T09:38:59.856-05:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-07T09:38:59.884-05:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-07T09:38:59.884-05:00 level=DEBUG msg="No selection detected, falling back to select-all" mode=Correction
+time=2026-03-07T09:38:59.884-05:00 level=DEBUG msg="[keyboard] SelectAll (Cmd+A)" keyCode=0x00
+time=2026-03-07T09:38:59.946-05:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-07T09:38:59.946-05:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-07T09:39:00.059-05:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-07T09:39:00.091-05:00 level=DEBUG msg="captureText: final clipboard read" len=0
+time=2026-03-07T09:39:00.091-05:00 level=WARN msg="Nothing to process (empty text)" mode=Correction
+time=2026-03-07T09:39:23.960-05:00 level=INFO msg="Correction triggered"
+time=2026-03-07T09:39:23.960-05:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-07T09:39:23.960-05:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-07T09:39:23.995-05:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-07T09:39:23.995-05:00 level=DEBUG msg="Capturing text..."
+time=2026-03-07T09:39:23.995-05:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-07T09:39:24.065-05:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-07T09:39:24.065-05:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-07T09:39:24.177-05:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-07T09:39:24.206-05:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-07T09:39:24.206-05:00 level=DEBUG msg="No selection detected, falling back to select-all" mode=Correction
+time=2026-03-07T09:39:24.206-05:00 level=DEBUG msg="[keyboard] SelectAll (Cmd+A)" keyCode=0x00
+time=2026-03-07T09:39:24.269-05:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-07T09:39:24.269-05:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-07T09:39:24.381-05:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-07T09:39:24.413-05:00 level=DEBUG msg="captureText: final clipboard read" len=0
+time=2026-03-07T09:39:24.413-05:00 level=WARN msg="Nothing to process (empty text)" mode=Correction
+time=2026-03-07T09:39:31.990-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-07T09:39:34.106-05:00 level=INFO msg="Exit requested via tray menu"
+time=2026-03-07T09:39:34.106-05:00 level=DEBUG msg="Hotkey unregistered on stop" name=action
+time=2026-03-07T09:39:38.784-05:00 level=INFO msg="GhostType starting" version=0.1.145 default_llm=gemini llm_providers=1
+time=2026-03-07T09:39:38.887-05:00 level=INFO msg="=== GhostType Debug Session ===" version=0.1.145 os=darwin os_version=13.7.8 arch=arm64 locale=en_CA keyboard=Canadian hotkey=Ctrl+G default_llm=gemini providers=1
+time=2026-03-07T09:39:38.887-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=gemini
+time=2026-03-07T09:39:38.888-05:00 level=INFO msg="GhostType launching" version=0.1.145 needs_setup=false
+time=2026-03-07T09:39:38.891-05:00 level=INFO msg="[tray] Start() called" os=darwin icon_bytes=6041 target_labels=1 template_names=5
+time=2026-03-07T09:39:38.891-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-07T09:39:38.891-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-07T09:39:38.891-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-07T09:39:38.891-05:00 level=INFO msg="[tray] macOS template icon set" bytes=1743
+time=2026-03-07T09:39:38.891-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-07T09:39:38.891-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-07T09:39:38.891-05:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-07T09:39:38.907-05:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-07T09:39:38.942-05:00 level=INFO msg="Permission check" accessibility=true postEventAccess=true
+time=2026-03-07T09:39:38.942-05:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-07T09:39:53.884-05:00 level=INFO msg="Correction triggered"
+time=2026-03-07T09:39:54.326-05:00 level=WARN msg="Nothing to process (empty text)" mode=Correction
+time=2026-03-07T09:40:12.347-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-07T09:40:14.372-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-07T09:40:14.372-05:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-07T09:40:14.449-05:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-07T09:40:14.542-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:40:14.549-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:40:14.549-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T09:40:14.549-05:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-07T09:40:17.197-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:40:19.687-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:40:19.688-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T09:40:19.688-05:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-07T09:47:25.632-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-07T09:47:27.113-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-07T09:47:27.113-05:00 level=INFO msg="[GUI] ShowSettings: window already open, skipping"
+time=2026-03-07T09:47:35.812-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:47:35.812-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T09:47:35.812-05:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-07T09:47:38.291-05:00 level=INFO msg="[GUI] JS called: CheckForUpdate"
+time=2026-03-07T09:47:39.864-05:00 level=INFO msg="[GUI] JS called: UpdateNow"
+time=2026-03-07T09:47:39.876-05:00 level=INFO msg="[GUI] UpdateNow: installer launched (PID 17348), exiting app..."
+time=2026-03-07T09:47:46.765-05:00 level=INFO msg="GhostType starting" version=0.1.146 default_llm=gemini llm_providers=1
+time=2026-03-07T09:47:46.991-05:00 level=INFO msg="=== GhostType Debug Session ===" version=0.1.146 os=darwin os_version=13.7.8 arch=arm64 locale=en_CA keyboard=Canadian hotkey=Ctrl+G default_llm=gemini providers=1
+time=2026-03-07T09:47:46.991-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=gemini
+time=2026-03-07T09:47:46.993-05:00 level=INFO msg="GhostType launching" version=0.1.146 needs_setup=false
+time=2026-03-07T09:47:46.997-05:00 level=INFO msg="[tray] Start() called" os=darwin icon_bytes=6041 target_labels=1 template_names=5
+time=2026-03-07T09:47:46.997-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-07T09:47:46.997-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-07T09:47:46.997-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-07T09:47:46.997-05:00 level=INFO msg="[tray] macOS template icon set" bytes=1743
+time=2026-03-07T09:47:46.997-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-07T09:47:46.997-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-07T09:47:46.997-05:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-07T09:47:47.010-05:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-07T09:47:47.042-05:00 level=INFO msg="Permission check" accessibility=false postEventAccess=false
+time=2026-03-07T09:47:47.042-05:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-07T09:47:53.921-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-07T09:47:55.379-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-07T09:47:55.379-05:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-07T09:47:55.447-05:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-07T09:47:55.535-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:47:55.536-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:47:55.536-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T09:47:55.537-05:00 level=INFO msg="Permission check from GUI" accessibility=false postEvent=false
+time=2026-03-07T09:47:58.791-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:47:58.791-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T09:47:58.791-05:00 level=INFO msg="Permission check from GUI" accessibility=false postEvent=false
+time=2026-03-07T09:48:04.827-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:48:04.827-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T09:48:04.828-05:00 level=INFO msg="Permission check from GUI" accessibility=false postEvent=false
+time=2026-03-07T09:48:20.527-05:00 level=INFO msg="[GUI] JS called: CheckForUpdate"
+time=2026-03-07T09:53:13.875-05:00 level=INFO msg="[GUI] JS called: CheckForUpdate"
+time=2026-03-07T09:53:15.971-05:00 level=INFO msg="[GUI] JS called: UpdateNow"
+time=2026-03-07T09:53:15.989-05:00 level=INFO msg="[GUI] UpdateNow: installer launched (PID 17475), exiting app..."
+time=2026-03-07T09:53:23.757-05:00 level=INFO msg="GhostType starting" version=0.1.147 default_llm=gemini llm_providers=1
+time=2026-03-07T09:53:23.864-05:00 level=INFO msg="=== GhostType Debug Session ===" version=0.1.147 os=darwin os_version=13.7.8 arch=arm64 locale=en_CA keyboard=Canadian hotkey=Ctrl+G default_llm=gemini providers=1
+time=2026-03-07T09:53:23.865-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=gemini
+time=2026-03-07T09:53:23.867-05:00 level=INFO msg="GhostType launching" version=0.1.147 needs_setup=false
+time=2026-03-07T09:53:23.870-05:00 level=INFO msg="[tray] Start() called" os=darwin icon_bytes=6041 target_labels=1 template_names=5
+time=2026-03-07T09:53:23.871-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-07T09:53:23.871-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-07T09:53:23.871-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-07T09:53:23.871-05:00 level=INFO msg="[tray] macOS template icon set" bytes=1743
+time=2026-03-07T09:53:23.871-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-07T09:53:23.871-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-07T09:53:23.871-05:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-07T09:53:23.884-05:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-07T09:53:23.914-05:00 level=INFO msg="Permission check" accessibility=false postEventAccess=false
+time=2026-03-07T09:53:23.914-05:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-07T09:53:26.791-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-07T09:53:28.586-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-07T09:53:28.587-05:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-07T09:53:28.647-05:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-07T09:53:28.731-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:53:28.733-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:53:28.733-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T09:53:28.733-05:00 level=INFO msg="Permission check from GUI" accessibility=false postEvent=false
+time=2026-03-07T09:53:32.349-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:53:33.701-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:53:33.702-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T09:53:33.702-05:00 level=INFO msg="Permission check from GUI" accessibility=false postEvent=false
+time=2026-03-07T09:53:36.515-05:00 level=INFO msg="[GUI] JS called: OpenAccessibilityPane"
+time=2026-03-07T09:53:52.661-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T09:53:52.666-05:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=false
+time=2026-03-07T09:54:02.815-05:00 level=INFO msg="[GUI] JS called: OpenInputMonitoringPane"
+time=2026-03-07T09:54:22.398-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-07T09:54:23.947-05:00 level=INFO msg="Exit requested via tray menu"
+time=2026-03-07T09:54:39.110-05:00 level=INFO msg="GhostType starting" version=0.1.147 default_llm=gemini llm_providers=1
+time=2026-03-07T09:54:39.211-05:00 level=INFO msg="=== GhostType Debug Session ===" version=0.1.147 os=darwin os_version=13.7.8 arch=arm64 locale=en_CA keyboard=Canadian hotkey=Ctrl+G default_llm=gemini providers=1
+time=2026-03-07T09:54:39.211-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=gemini
+time=2026-03-07T09:54:39.213-05:00 level=INFO msg="GhostType launching" version=0.1.147 needs_setup=false
+time=2026-03-07T09:54:39.217-05:00 level=INFO msg="[tray] Start() called" os=darwin icon_bytes=6041 target_labels=1 template_names=5
+time=2026-03-07T09:54:39.217-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-07T09:54:39.217-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-07T09:54:39.217-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-07T09:54:39.217-05:00 level=INFO msg="[tray] macOS template icon set" bytes=1743
+time=2026-03-07T09:54:39.217-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-07T09:54:39.217-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-07T09:54:39.217-05:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-07T09:54:39.233-05:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-07T09:54:39.267-05:00 level=INFO msg="Permission check" accessibility=true postEventAccess=true
+time=2026-03-07T09:54:39.267-05:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-07T09:54:44.018-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-07T09:54:45.805-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-07T09:54:45.805-05:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-07T09:54:45.866-05:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-07T09:54:45.966-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:54:45.968-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:54:45.968-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T09:54:45.968-05:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-07T09:54:48.910-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:54:50.779-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:54:50.780-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T09:54:50.780-05:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-07T09:54:52.236-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T09:54:52.236-05:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-07T09:54:54.162-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T09:54:54.162-05:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-07T09:54:59.705-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T09:55:02.667-05:00 level=INFO msg="[GUI] JS called: SetLogLevel(debug)"
+time=2026-03-07T09:55:02.669-05:00 level=INFO msg="Live config reloaded after settings save"
+time=2026-03-07T09:55:04.610-05:00 level=INFO msg="[GUI] JS called: EnableDebug"
+time=2026-03-07T09:55:04.610-05:00 level=INFO msg="=== Debug logging enabled ==="
+time=2026-03-07T09:55:09.532-05:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-07T09:55:18.596-05:00 level=INFO msg="[GUI] Settings window closing event received"
+time=2026-03-07T09:55:22.470-05:00 level=INFO msg="Correction triggered"
+time=2026-03-07T09:55:22.470-05:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-07T09:55:22.470-05:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-07T09:55:22.505-05:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-07T09:55:22.505-05:00 level=DEBUG msg="Capturing text..."
+time=2026-03-07T09:55:22.505-05:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-07T09:55:22.576-05:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-07T09:55:22.576-05:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-07T09:55:22.689-05:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-07T09:55:22.718-05:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-07T09:55:22.718-05:00 level=DEBUG msg="No selection detected, falling back to select-all" mode=Correction
+time=2026-03-07T09:55:22.718-05:00 level=DEBUG msg="[keyboard] SelectAll (Cmd+A)" keyCode=0x00
+time=2026-03-07T09:55:22.781-05:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-07T09:55:22.781-05:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-07T09:55:22.893-05:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-07T09:55:22.926-05:00 level=DEBUG msg="captureText: final clipboard read" len=0
+time=2026-03-07T09:55:22.926-05:00 level=WARN msg="Nothing to process (empty text)" mode=Correction
+time=2026-03-07T09:55:29.928-05:00 level=INFO msg="Correction triggered"
+time=2026-03-07T09:55:29.928-05:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-07T09:55:29.928-05:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-07T09:55:29.962-05:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-07T09:55:29.962-05:00 level=DEBUG msg="Capturing text..."
+time=2026-03-07T09:55:29.962-05:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-07T09:55:30.034-05:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-07T09:55:30.034-05:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-07T09:55:30.146-05:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-07T09:55:30.174-05:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-07T09:55:30.174-05:00 level=DEBUG msg="No selection detected, falling back to select-all" mode=Correction
+time=2026-03-07T09:55:30.174-05:00 level=DEBUG msg="[keyboard] SelectAll (Cmd+A)" keyCode=0x00
+time=2026-03-07T09:55:30.236-05:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-07T09:55:30.236-05:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-07T09:55:30.348-05:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-07T09:55:30.382-05:00 level=DEBUG msg="captureText: final clipboard read" len=0
+time=2026-03-07T09:55:30.382-05:00 level=WARN msg="Nothing to process (empty text)" mode=Correction
+time=2026-03-07T09:55:48.986-05:00 level=INFO msg="Correction triggered"
+time=2026-03-07T09:55:48.986-05:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-07T09:55:48.987-05:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-07T09:55:49.021-05:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-07T09:55:49.021-05:00 level=DEBUG msg="Capturing text..."
+time=2026-03-07T09:55:49.021-05:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-07T09:55:49.091-05:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-07T09:55:49.091-05:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-07T09:55:49.204-05:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-07T09:55:49.228-05:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-07T09:55:49.228-05:00 level=DEBUG msg="No selection detected, falling back to select-all" mode=Correction
+time=2026-03-07T09:55:49.228-05:00 level=DEBUG msg="[keyboard] SelectAll (Cmd+A)" keyCode=0x00
+time=2026-03-07T09:55:49.291-05:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-07T09:55:49.291-05:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-07T09:55:49.403-05:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-07T09:55:49.436-05:00 level=DEBUG msg="captureText: final clipboard read" len=0
+time=2026-03-07T09:55:49.436-05:00 level=WARN msg="Nothing to process (empty text)" mode=Correction
