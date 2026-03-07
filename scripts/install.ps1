@@ -58,23 +58,9 @@ if ($env:PATH -notlike "*$InstallDir*") {
     $env:PATH = "$env:PATH;$InstallDir"
 }
 
-# --- Flush Windows icon cache -----------------------------------------------
-# Windows aggressively caches exe icons. After replacing the binary the old
-# icon may still show in the taskbar and Start Menu until the cache is rebuilt.
+# --- Refresh icon cache -----------------------------------------------------
 
-Write-Info "Refreshing Windows icon cache..."
-try {
-    # Delete icon cache files and restart Explorer for a full refresh.
-    $cacheDir = Join-Path $env:LOCALAPPDATA "Microsoft\Windows\Explorer"
-    Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
-    Start-Sleep -Seconds 1
-    Get-ChildItem "$cacheDir\iconcache*" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
-    Start-Process explorer.exe
-    Start-Sleep -Seconds 2
-} catch {
-    # Fallback: light refresh without Explorer restart.
-    try { Start-Process -FilePath "ie4uinit.exe" -ArgumentList "-show" -NoNewWindow -Wait -ErrorAction SilentlyContinue } catch { }
-}
+try { Start-Process -FilePath "ie4uinit.exe" -ArgumentList "-show" -NoNewWindow -Wait -ErrorAction SilentlyContinue } catch { }
 
 # --- Start Menu shortcut ----------------------------------------------------
 
