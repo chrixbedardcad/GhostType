@@ -1,0 +1,132 @@
+time=2026-03-08T00:11:17.137+01:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-08T00:11:28.831+01:00 level=INFO msg="[GUI] JS called: CheckForUpdate"
+time=2026-03-08T00:11:30.367+01:00 level=INFO msg="[GUI] JS called: UpdateNow"
+time=2026-03-08T00:11:30.440+01:00 level=INFO msg="[GUI] UpdateNow: installer launched (PID 6018), exiting app..."
+time=2026-03-08T00:11:37.251+01:00 level=INFO msg="GhostType starting" version=0.1.172 default_llm=anthropic llm_providers=1
+time=2026-03-08T00:11:37.299+01:00 level=INFO msg="=== GhostType Debug Session ===" version=0.1.172 os=darwin os_version=15.5 arch=amd64 locale=fr_FR keyboard=French hotkey=Ctrl+G default_llm=anthropic providers=1
+time=2026-03-08T00:11:37.299+01:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=anthropic
+time=2026-03-08T00:11:37.315+01:00 level=INFO msg="GhostType launching" version=0.1.172 needs_setup=false
+time=2026-03-08T00:11:37.325+01:00 level=INFO msg="[tray] Start() called" os=darwin icon_bytes=6041
+time=2026-03-08T00:11:37.325+01:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-08T00:11:37.325+01:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-08T00:11:37.325+01:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-08T00:11:37.325+01:00 level=INFO msg="[tray] macOS template icon set" bytes=1743
+time=2026-03-08T00:11:37.325+01:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-08T00:11:37.325+01:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-08T00:11:37.325+01:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-08T00:11:37.326+01:00 level=DEBUG msg="[keyboard] Resolving layout key codes..."
+time=2026-03-08T00:11:37.364+01:00 level=DEBUG msg="[keyboard] Resolved layout key codes" a=0x0C c=0x08 v=0x09
+time=2026-03-08T00:11:37.364+01:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-08T00:11:37.460+01:00 level=DEBUG msg="Event loop ready (ApplicationStarted)"
+time=2026-03-08T00:11:37.472+01:00 level=INFO msg="Permission check" accessibility=false postEventAccess=false
+time=2026-03-08T00:11:37.473+01:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-08T00:11:37.611+01:00 level=DEBUG msg="Hotkey registered" name=action key=Ctrl+G
+time=2026-03-08T00:11:37.611+01:00 level=DEBUG msg="Starting hotkey listener" registered=1
+time=2026-03-08T00:12:19.229+01:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-08T00:12:20.922+01:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-08T00:12:20.922+01:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-08T00:12:20.997+01:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-08T00:12:21.192+01:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-08T00:12:21.289+01:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-08T00:12:21.290+01:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-08T00:12:21.290+01:00 level=INFO msg="Permission check from GUI" accessibility=false postEvent=false
+time=2026-03-08T00:12:24.145+01:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-08T00:12:24.146+01:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-08T00:12:24.146+01:00 level=INFO msg="Permission check from GUI" accessibility=false postEvent=false
+time=2026-03-08T00:12:26.852+01:00 level=INFO msg="[GUI] JS called: OpenAccessibilityPane"
+time=2026-03-08T00:12:34.588+01:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-08T00:12:34.591+01:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=false
+time=2026-03-08T00:12:37.737+01:00 level=INFO msg="[GUI] JS called: OpenInputMonitoringPane"
+time=2026-03-08T00:13:03.314+01:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-08T00:13:03.314+01:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=false
+time=2026-03-08T00:13:08.270+01:00 level=INFO msg="[GUI] Settings window closing event received"
+time=2026-03-08T00:13:09.494+01:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-08T00:13:11.190+01:00 level=INFO msg="Exit requested via tray menu"
+time=2026-03-08T00:13:11.190+01:00 level=DEBUG msg="Hotkey unregistered on stop" name=action
+time=2026-03-08T00:13:16.603+01:00 level=INFO msg="GhostType starting" version=0.1.172 default_llm=anthropic llm_providers=1
+time=2026-03-08T00:13:16.636+01:00 level=INFO msg="=== GhostType Debug Session ===" version=0.1.172 os=darwin os_version=15.5 arch=amd64 locale=fr_FR keyboard=French hotkey=Ctrl+G default_llm=anthropic providers=1
+time=2026-03-08T00:13:16.636+01:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=anthropic
+time=2026-03-08T00:13:16.639+01:00 level=INFO msg="GhostType launching" version=0.1.172 needs_setup=false
+time=2026-03-08T00:13:16.648+01:00 level=INFO msg="[tray] Start() called" os=darwin icon_bytes=6041
+time=2026-03-08T00:13:16.648+01:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-08T00:13:16.648+01:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-08T00:13:16.648+01:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-08T00:13:16.648+01:00 level=INFO msg="[tray] macOS template icon set" bytes=1743
+time=2026-03-08T00:13:16.648+01:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-08T00:13:16.648+01:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-08T00:13:16.648+01:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-08T00:13:16.648+01:00 level=DEBUG msg="[keyboard] Resolving layout key codes..."
+time=2026-03-08T00:13:16.673+01:00 level=DEBUG msg="[keyboard] Resolved layout key codes" a=0x0C c=0x08 v=0x09
+time=2026-03-08T00:13:16.673+01:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-08T00:13:16.739+01:00 level=DEBUG msg="Event loop ready (ApplicationStarted)"
+time=2026-03-08T00:13:16.746+01:00 level=INFO msg="Permission check" accessibility=true postEventAccess=true
+time=2026-03-08T00:13:16.746+01:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-08T00:13:16.833+01:00 level=DEBUG msg="Hotkey registered" name=action key=Ctrl+G
+time=2026-03-08T00:13:16.833+01:00 level=DEBUG msg="Starting hotkey listener" registered=1
+time=2026-03-08T00:13:19.358+01:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
+time=2026-03-08T00:13:21.202+01:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-08T00:13:21.202+01:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-08T00:13:21.262+01:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-08T00:13:21.400+01:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-08T00:13:21.478+01:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-08T00:13:21.478+01:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-08T00:13:21.478+01:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-08T00:13:25.785+01:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-08T00:13:25.785+01:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-08T00:13:25.785+01:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-08T00:13:43.155+01:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-08T00:13:43.155+01:00 level=INFO msg="Correction triggered"
+time=2026-03-08T00:13:43.155+01:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-08T00:13:43.155+01:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-08T00:13:43.235+01:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-08T00:13:43.235+01:00 level=DEBUG msg="Capturing text..."
+time=2026-03-08T00:13:43.628+01:00 level=DEBUG msg="[keyboard] Waited for modifier release" ms=350
+time=2026-03-08T00:13:43.636+01:00 level=DEBUG msg="captureText: frontmost app" app=TextEdit
+time=2026-03-08T00:13:43.636+01:00 level=INFO msg="captureText: got all text via Accessibility API" len=9
+time=2026-03-08T00:13:43.636+01:00 level=INFO msg="Captured text" mode=Correction len=9 selection=false method=0 text="Ojourdui "
+time=2026-03-08T00:13:43.636+01:00 level=DEBUG msg="Sending to LLM..." mode=Correction text_len=9
+time=2026-03-08T00:13:43.636+01:00 level=DEBUG msg="processing text" mode=correct llm=anthropic prompt="Detect the language of the following text (English or French). Fix all spelling ..." input_len=9
+time=2026-03-08T00:13:43.637+01:00 level=DEBUG msg="anthropic: sending request" model=claude-sonnet-4-6 endpoint=https://api.anthropic.com/v1/messages body_len=303
+time=2026-03-08T00:13:47.478+01:00 level=DEBUG msg="anthropic: response received" status=200
+time=2026-03-08T00:13:47.478+01:00 level=DEBUG msg="LLM response received" provider=anthropic model=claude-sonnet-4-6 llm=anthropic response_len=11
+time=2026-03-08T00:13:47.480+01:00 level=INFO msg="Wrote result via AX API (all text)" mode=Correction
+time=2026-03-08T00:13:47.481+01:00 level=INFO msg="Correction complete" result=Aujourd'hui
+time=2026-03-08T00:13:55.884+01:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-08T00:13:55.884+01:00 level=INFO msg="Correction triggered"
+time=2026-03-08T00:13:55.884+01:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-08T00:13:55.884+01:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-08T00:13:55.885+01:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-08T00:13:55.885+01:00 level=DEBUG msg="Capturing text..."
+time=2026-03-08T00:13:56.108+01:00 level=DEBUG msg="[keyboard] Waited for modifier release" ms=200
+time=2026-03-08T00:13:56.114+01:00 level=DEBUG msg="captureText: frontmost app" app=(unknown)
+time=2026-03-08T00:13:56.114+01:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-08T00:13:56.114+01:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-08T00:13:56.165+01:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-08T00:13:56.165+01:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-08T00:13:56.284+01:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-08T00:13:56.299+01:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-08T00:13:56.300+01:00 level=DEBUG msg="No selection detected, falling back to select-all" mode=Correction
+time=2026-03-08T00:13:56.300+01:00 level=DEBUG msg="[keyboard] SelectAll (Cmd+A, ANSI key code)" keyCode=0x00
+time=2026-03-08T00:13:56.367+01:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-08T00:13:56.367+01:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-08T00:13:56.486+01:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-08T00:13:56.486+01:00 level=DEBUG msg="captureText: final clipboard read" len=0
+time=2026-03-08T00:13:56.486+01:00 level=DEBUG msg="captureText: CGEventPost clipboard empty, trying AX keystroke fallback"
+time=2026-03-08T00:13:56.537+01:00 level=DEBUG msg="[keyboard] SelectAllAX (AXUIElementPostKeyboardEvent)" keyCode=0x00
+time=2026-03-08T00:13:56.677+01:00 level=DEBUG msg="[keyboard] CopyAX (AXUIElementPostKeyboardEvent)" keyCode=0x08
+time=2026-03-08T00:13:56.847+01:00 level=DEBUG msg="captureText: AX keystroke fallback also returned empty"
+time=2026-03-08T00:13:56.847+01:00 level=DEBUG msg="captureText: trying osascript fallback"
+time=2026-03-08T00:13:56.899+01:00 level=DEBUG msg="[keyboard] SelectAllScript (osascript)"
+time=2026-03-08T00:13:57.511+01:00 level=DEBUG msg="[keyboard] CopyScript (osascript)"
+time=2026-03-08T00:13:57.922+01:00 level=INFO msg="captureText: got text via osascript fallback" len=9
+time=2026-03-08T00:13:57.922+01:00 level=INFO msg="Captured text" mode=Correction len=9 selection=false method=3 text="ojourdui "
+time=2026-03-08T00:13:57.922+01:00 level=DEBUG msg="Sending to LLM..." mode=Correction text_len=9
+time=2026-03-08T00:13:57.922+01:00 level=DEBUG msg="processing text" mode=correct llm=anthropic prompt="Detect the language of the following text (English or French). Fix all spelling ..." input_len=9
+time=2026-03-08T00:13:57.922+01:00 level=DEBUG msg="anthropic: sending request" model=claude-sonnet-4-6 endpoint=https://api.anthropic.com/v1/messages body_len=303
+time=2026-03-08T00:13:59.382+01:00 level=DEBUG msg="anthropic: response received" status=200
+time=2026-03-08T00:13:59.383+01:00 level=DEBUG msg="LLM response received" provider=anthropic model=claude-sonnet-4-6 llm=anthropic response_len=11
+time=2026-03-08T00:13:59.384+01:00 level=DEBUG msg="Result written to clipboard" mode=Correction result_len=11
+time=2026-03-08T00:13:59.435+01:00 level=DEBUG msg="[keyboard] SelectAllScript (osascript)"
+time=2026-03-08T00:13:59.730+01:00 level=DEBUG msg="[keyboard] PasteScript (osascript)"
+time=2026-03-08T00:14:00.224+01:00 level=INFO msg="Correction complete" result=Aujourd'hui
+time=2026-03-08T00:14:16.081+01:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=1 templates=5
