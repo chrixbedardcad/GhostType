@@ -229,15 +229,9 @@ func printStatus(cfg *config.Config, client llm.Client, router *mode.Router) {
 			}
 			fmt.Printf("  %s: %s / %s%s\n", label, def.Provider, def.Model, suffix)
 		}
-		if cfg.CorrectLLM != "" {
-			fmt.Printf("  correct  → %s\n", cfg.CorrectLLM)
-		}
-		if cfg.TranslateLLM != "" {
-			fmt.Printf("  translate → %s\n", cfg.TranslateLLM)
-		}
-		for _, tmpl := range cfg.Prompts.RewriteTemplates {
-			if tmpl.LLM != "" {
-				fmt.Printf("  rewrite/%s → %s\n", tmpl.Name, tmpl.LLM)
+		for _, p := range cfg.Prompts {
+			if p.LLM != "" {
+				fmt.Printf("  prompt/%s → %s\n", p.Name, p.LLM)
 			}
 		}
 	} else {
@@ -246,26 +240,25 @@ func printStatus(cfg *config.Config, client llm.Client, router *mode.Router) {
 	}
 
 	fmt.Println("")
-	fmt.Printf("Active mode: %s\n", cfg.ActiveMode)
-	targetLabels := cfg.TranslateTargetLabels()
-	if idx := router.CurrentTranslateIdx(); idx < len(targetLabels) {
-		fmt.Printf("Translate target: %s\n", targetLabels[idx])
+	activePromptName := "Correct"
+	if cfg.ActivePrompt >= 0 && cfg.ActivePrompt < len(cfg.Prompts) {
+		activePromptName = cfg.Prompts[cfg.ActivePrompt].Name
 	}
-	fmt.Printf("Rewrite template: %s\n", router.CurrentTemplateName())
+	fmt.Printf("Active prompt: %s\n", activePromptName)
+	fmt.Println("")
+	fmt.Println("Prompts:")
+	for i, p := range cfg.Prompts {
+		marker := "  "
+		if i == cfg.ActivePrompt {
+			marker = "* "
+		}
+		fmt.Printf("  %s%s\n", marker, p.Name)
+	}
 	fmt.Println("")
 	fmt.Println("Hotkeys:")
-	fmt.Printf("  %s - Action (%s)\n", cfg.Hotkeys.Correct, cfg.ActiveMode)
-	if cfg.Hotkeys.Translate != "" {
-		fmt.Printf("  %s - Translate\n", cfg.Hotkeys.Translate)
-	}
-	if cfg.Hotkeys.ToggleLanguage != "" {
-		fmt.Printf("  %s - Toggle translation language\n", cfg.Hotkeys.ToggleLanguage)
-	}
-	if cfg.Hotkeys.Rewrite != "" {
-		fmt.Printf("  %s - Rewrite\n", cfg.Hotkeys.Rewrite)
-	}
-	if cfg.Hotkeys.CycleTemplate != "" {
-		fmt.Printf("  %s - Cycle rewrite template\n", cfg.Hotkeys.CycleTemplate)
+	fmt.Printf("  %s - Action (%s)\n", cfg.Hotkeys.Action, activePromptName)
+	if cfg.Hotkeys.CyclePrompt != "" {
+		fmt.Printf("  %s - Cycle prompt\n", cfg.Hotkeys.CyclePrompt)
 	}
 	fmt.Println("")
 }

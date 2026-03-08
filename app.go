@@ -98,12 +98,12 @@ func captureText(
 	slog.Debug("captureText: clipboard read", "len", len(text), "empty", text == "")
 
 	if text != "" {
-		slog.Info("Selection detected", "mode", modeName, "len", len(text))
+		slog.Info("Selection detected", "prompt", promptName, "len", len(text))
 		return text, true, captureViaCGEvent, nil
 	}
 
 	// No selection — fall back to select-all + copy.
-	slog.Debug("No selection detected, falling back to select-all", "mode", modeName)
+	slog.Debug("No selection detected, falling back to select-all", "prompt", promptName)
 	if err := kb.SelectAll(); err != nil {
 		return "", false, captureViaCGEvent, fmt.Errorf("select all: %w", err)
 	}
@@ -201,11 +201,10 @@ func captureText(
 var processingGuard sync.Mutex
 
 // processMode captures text from the active window, sends it through the LLM
-// with the given mode, and pastes the result back. This is the shared workflow
-// for correction, translation, and rewrite hotkeys.
+// with the given prompt, and pastes the result back.
 func processMode(
-	modeName string,
-	m mode.Mode,
+	promptName string,
+	promptIdx int,
 	cfg *config.Config,
 	router *mode.Router,
 	cb *clipboard.Clipboard,
@@ -218,37 +217,37 @@ func processMode(
 		return
 	}
 	defer processingGuard.Unlock()
-	slog.Info(modeName + " triggered")
+	slog.Info(promptName + " triggered")
 	slog.Debug("Playing working sound...")
 	sound.PlayWorking()
 
 	// Save original clipboard.
 	slog.Debug("Saving clipboard...")
 	if err := cb.Save(); err != nil {
-		slog.Error("Failed to save clipboard", "mode", modeName, "error", err)
+		slog.Error("Failed to save clipboard", "prompt", promptName, "error", err)
 		return
 	}
 	slog.Debug("Clipboard saved")
 
 	// Capture text — detects existing selection or falls back to select-all.
 	slog.Debug("Capturing text...")
-	text, hadSelection, capMethod, err := captureText(modeName, cb, kb)
+	text, hadSelection, capMethod, err := captureText(promptName, cb, kb)
 	if err != nil {
-		slog.Error("Failed to capture text", "mode", modeName, "error", err)
+		slog.Error("Failed to capture text", "prompt", promptName, "error", err)
 		cb.Restore()
 		return
 	}
 	if text == "" {
-		slog.Warn("Nothing to process (empty text)", "mode", modeName)
+		slog.Warn("Nothing to process (empty text)", "prompt", promptName)
 		cb.Restore()
 		return
 	}
 
-	slog.Info("Captured text", "mode", modeName, "len", len(text), "selection", hadSelection, "method", capMethod, "text", text)
-	fmt.Printf("[%s] Captured: %q\n", modeName, text)
+	slog.Info("Captured text", "prompt", promptName, "len", len(text), "selection", hadSelection, "method", capMethod, "text", text)
+	fmt.Printf("[%s] Captured: %q\n", promptName, text)
 
 	// Create cancellable context with per-provider timeout.
-	timeout := time.Duration(router.TimeoutForMode(m)) * time.Millisecond
+	timeout := time.Duration(router.TimeoutForPrompt(promptIdx)) * time.Millisecond
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 
 	mu.Lock()
@@ -263,10 +262,10 @@ func processMode(
 	}()
 
 	// Send to LLM via mode router.
-	slog.Debug("Sending to LLM...", "mode", modeName, "text_len", len(text))
-	result, err := router.Process(ctx, m, text)
+	slog.Debug("Sending to LLM...", "prompt", promptName, "text_len", len(text))
+	result, err := router.Process(ctx, promptIdx, text)
 	if err != nil {
-		slog.Error("LLM processing failed", "mode", modeName, "error", err)
+		slog.Error("LLM processing failed", "prompt", promptName, "error", err)
 		// Paste error indicator so the user sees something went wrong
 		// directly in their text. They can Ctrl+Z to undo.
 		cb.Write("\U0001F47B\u274C") // 👻❌
@@ -286,16 +285,16 @@ func processMode(
 		if hadSelection {
 			written = kb.WriteSelectedText(result)
 			if written {
-				slog.Info("Wrote result via AX API (selected text)", "mode", modeName)
+				slog.Info("Wrote result via AX API (selected text)", "prompt", promptName)
 			} else {
-				slog.Debug("AX WriteSelectedText failed, falling back to clipboard paste", "mode", modeName)
+				slog.Debug("AX WriteSelectedText failed, falling back to clipboard paste", "prompt", promptName)
 			}
 		} else {
 			written = kb.WriteAllText(result)
 			if written {
-				slog.Info("Wrote result via AX API (all text)", "mode", modeName)
+				slog.Info("Wrote result via AX API (all text)", "prompt", promptName)
 			} else {
-				slog.Debug("AX WriteAllText failed, falling back to clipboard paste", "mode", modeName)
+				slog.Debug("AX WriteAllText failed, falling back to clipboard paste", "prompt", promptName)
 			}
 		}
 	}
@@ -303,11 +302,11 @@ func processMode(
 	// Strategy 2 & 3: Clipboard-based paste.
 	if !written {
 		if err := cb.Write(result); err != nil {
-			slog.Error("Failed to write result to clipboard", "mode", modeName, "error", err)
+			slog.Error("Failed to write result to clipboard", "prompt", promptName, "error", err)
 			cb.Restore()
 			return
 		}
-		slog.Debug("Result written to clipboard", "mode", modeName, "result_len", len(result))
+		slog.Debug("Result written to clipboard", "prompt", promptName, "result_len", len(result))
 		time.Sleep(50 * time.Millisecond)
 
 		switch capMethod {
@@ -315,12 +314,12 @@ func processMode(
 			// Strategy 3: AX keystroke paste.
 			if !hadSelection {
 				if err := kb.SelectAllAX(); err != nil {
-					slog.Error("SelectAllAX (paste prep) failed", "mode", modeName, "error", err)
+					slog.Error("SelectAllAX (paste prep) failed", "prompt", promptName, "error", err)
 				}
 				time.Sleep(50 * time.Millisecond)
 			}
 			if err := kb.PasteAX(); err != nil {
-				slog.Error("PasteAX failed", "mode", modeName, "error", err)
+				slog.Error("PasteAX failed", "prompt", promptName, "error", err)
 				cb.Restore()
 				return
 			}
@@ -328,12 +327,12 @@ func processMode(
 			// Strategy 4: osascript paste.
 			if !hadSelection {
 				if err := kb.SelectAllScript(); err != nil {
-					slog.Error("SelectAllScript (paste prep) failed", "mode", modeName, "error", err)
+					slog.Error("SelectAllScript (paste prep) failed", "prompt", promptName, "error", err)
 				}
 				time.Sleep(100 * time.Millisecond)
 			}
 			if err := kb.PasteScript(); err != nil {
-				slog.Error("PasteScript failed", "mode", modeName, "error", err)
+				slog.Error("PasteScript failed", "prompt", promptName, "error", err)
 				cb.Restore()
 				return
 			}
@@ -341,14 +340,14 @@ func processMode(
 			// Strategy 2: CGEventPost paste — for native apps.
 			if !hadSelection {
 				if err := kb.SelectAll(); err != nil {
-					slog.Error("SelectAll (paste prep) failed", "mode", modeName, "error", err)
+					slog.Error("SelectAll (paste prep) failed", "prompt", promptName, "error", err)
 					cb.Restore()
 					return
 				}
 				time.Sleep(50 * time.Millisecond)
 			}
 			if err := kb.Paste(); err != nil {
-				slog.Error("Paste failed", "mode", modeName, "error", err)
+				slog.Error("Paste failed", "prompt", promptName, "error", err)
 				cb.Restore()
 				return
 			}
@@ -361,21 +360,10 @@ func processMode(
 	cb.Restore()
 
 	sound.PlaySuccess()
-	slog.Info(modeName+" complete", "result", result)
-	fmt.Printf("[%s] Result: %q\n", modeName, result)
+	slog.Info(promptName+" complete", "result", result)
+	fmt.Printf("[%s] Result: %q\n", promptName, result)
 }
 
-// modeFromString converts a mode name string to a mode.Mode value.
-func modeFromString(name string) (mode.Mode, string) {
-	switch name {
-	case "translate":
-		return mode.ModeTranslate, "Translation"
-	case "rewrite":
-		return mode.ModeRewrite, "Rewrite"
-	default:
-		return mode.ModeCorrect, "Correction"
-	}
-}
 
 func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSetup bool) {
 	cb := newClipboard()
@@ -394,21 +382,21 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	var refreshHotkeys func()
 	var reRegisterHotkeys func() // force re-register (after tray menu disrupts Carbon events)
 
-	// Active mode state — determines what the action hotkey (Ctrl+G) does.
-	// Protected by mu. Can be changed at runtime (e.g., from tray menu).
-	activeMode := cfg.ActiveMode
-
-	// setActiveMode changes the active mode at runtime.
-	setActiveMode := func(modeName string) {
+	// setActivePrompt changes the active prompt at runtime.
+	setActivePrompt := func(idx int) {
 		mu.Lock()
-		activeMode = modeName
+		if idx >= 0 && idx < len(cfg.Prompts) {
+			cfg.ActivePrompt = idx
+		}
 		mu.Unlock()
-		slog.Info("Active mode changed", "mode", modeName)
-		fmt.Printf("Active mode: %s\n", modeName)
+		name := ""
+		if idx >= 0 && idx < len(cfg.Prompts) {
+			name = cfg.Prompts[idx].Name
+		}
+		slog.Info("Active prompt changed", "index", idx, "name", name)
+		fmt.Printf("Active prompt: %s\n", name)
 		sound.PlayToggle()
 	}
-
-	// (Target labels and template names are now computed dynamically by the tray.)
 
 	// Create the shared Wails application used by both the tray, wizard, and settings.
 	// The SettingsService is pre-registered so its JS bindings are available
@@ -498,29 +486,14 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	trayCfg := tray.Config{
 		IconPNG:         assets.TrayIcon64,
 		TemplateIconPNG: assets.TrayIconMacOS,
-		OnModeChange: func(modeName string) {
-			setActiveMode(modeName)
-			scheduleHotkeyRecovery()
-		},
-		OnTargetSelect: func(idx int) {
-			if router == nil {
-				return
+		OnPromptSelect: func(idx int) {
+			slog.Debug("OnPromptSelect callback entered", "index", idx)
+			setActivePrompt(idx)
+			if router != nil {
+				router.SetPrompt(idx)
 			}
-			label := router.SetTranslateTarget(idx)
-			setActiveMode("translate")
-			slog.Info("Translation target changed", "target", label)
-			fmt.Printf("Translation target: %s\n", label)
 			scheduleHotkeyRecovery()
-		},
-		OnTemplSelect: func(idx int) {
-			if router == nil {
-				return
-			}
-			name := router.SetTemplate(idx)
-			setActiveMode("rewrite")
-			slog.Info("Rewrite template changed", "template", name)
-			fmt.Printf("Rewrite template: %s\n", name)
-			scheduleHotkeyRecovery()
+			slog.Debug("OnPromptSelect callback exiting", "index", idx)
 		},
 		OnSettings: func() {
 			gui.ShowSettings(settingsSvc, cfg, configPath, func() {
@@ -549,16 +522,6 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 			sound.PlayToggle()
 			scheduleHotkeyRecovery()
 		},
-		OnCancel: func() {
-			mu.Lock()
-			fn := cancelLLM
-			mu.Unlock()
-
-			if fn != nil {
-				slog.Info("Cancel requested via tray — aborting LLM call")
-				fn()
-			}
-		},
 		OnExit: func() {
 			slog.Info("Exit requested via tray menu")
 			fmt.Println("\nGhostType exiting (tray menu).")
@@ -570,15 +533,19 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				os.Exit(0)
 			}()
 		},
-		GetActiveMode: func() string {
+		GetActivePrompt: func() int {
 			mu.Lock()
 			defer mu.Unlock()
-			return activeMode
+			return cfg.ActivePrompt
 		},
-		GetIsProcessing: func() bool {
+		GetPromptNames: func() []string {
 			mu.Lock()
 			defer mu.Unlock()
-			return cancelLLM != nil
+			names := make([]string, len(cfg.Prompts))
+			for i, p := range cfg.Prompts {
+				names[i] = p.Name
+			}
+			return names
 		},
 		GetModelLabels: func() []tray.ModelLabel {
 			mu.Lock()
@@ -594,32 +561,6 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 			}
 			sort.Slice(labels, func(i, j int) bool { return labels[i].Label < labels[j].Label })
 			return labels
-		},
-		GetTargetIdx: func() int {
-			if router == nil {
-				return 0
-			}
-			return router.CurrentTranslateIdx()
-		},
-		GetTemplateIdx: func() int {
-			if router == nil {
-				return 0
-			}
-			return router.CurrentTemplateIdx()
-		},
-		GetTargetLabels: func() []string {
-			mu.Lock()
-			defer mu.Unlock()
-			return cfg.TranslateTargetLabels()
-		},
-		GetTemplateNames: func() []string {
-			mu.Lock()
-			defer mu.Unlock()
-			names := make([]string, len(cfg.Prompts.RewriteTemplates))
-			for i, t := range cfg.Prompts.RewriteTemplates {
-				names[i] = t.Name
-			}
-			return names
 		},
 	}
 
@@ -698,67 +639,40 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	// doRegister registers all configured hotkeys on the given manager.
 	// Used both at startup and when re-registering after a settings change.
 	doRegister := func(mgr hotkey.Manager) error {
-		slog.Info("Registering hotkeys", "action", cfg.Hotkeys.Correct)
+		slog.Info("Registering hotkeys", "action", cfg.Hotkeys.Action)
 
-		// Main action hotkey — dispatches based on active mode.
-		if err := mgr.Register("action", cfg.Hotkeys.Correct, func() {
+		// Main action hotkey — dispatches based on active prompt.
+		if err := mgr.Register("action", cfg.Hotkeys.Action, func() {
 			slog.Debug("Hotkey callback fired")
 
 			mu.Lock()
-			currentMode := activeMode
+			promptIdx := cfg.ActivePrompt
 			mu.Unlock()
 
-			m, displayName := modeFromString(currentMode)
-			processMode(displayName, m, cfg, router, cb, kb, &mu, &cancelLLM)
+			promptName := "Prompt"
+			if promptIdx >= 0 && promptIdx < len(cfg.Prompts) {
+				promptName = cfg.Prompts[promptIdx].Name
+			}
+			processMode(promptName, promptIdx, cfg, router, cb, kb, &mu, &cancelLLM)
 		}); err != nil {
-			slog.Error("Failed to register action hotkey", "key", cfg.Hotkeys.Correct, "error", err)
-			fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.Correct, err)
+			slog.Error("Failed to register action hotkey", "key", cfg.Hotkeys.Action, "error", err)
+			fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.Action, err)
 			return err
 		}
 
-		// Optional dedicated hotkeys (only if configured).
-		if cfg.Hotkeys.Translate != "" {
-			if err := mgr.Register("translate", cfg.Hotkeys.Translate, func() {
-				processMode("Translation", mode.ModeTranslate, cfg, router, cb, kb, &mu, &cancelLLM)
-			}); err != nil {
-				slog.Error("Failed to register translate hotkey", "key", cfg.Hotkeys.Translate, "error", err)
-				fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.Translate, err)
-				return err
-			}
-		}
-
-		if cfg.Hotkeys.ToggleLanguage != "" {
-			if err := mgr.Register("toggle_language", cfg.Hotkeys.ToggleLanguage, func() {
-				label := router.ToggleTranslateTarget()
-				slog.Info("Translation target toggled", "target", label)
-				fmt.Printf("Translation target: %s\n", label)
+		// Optional cycle-prompt hotkey.
+		if cfg.Hotkeys.CyclePrompt != "" {
+			if err := mgr.Register("cycle_prompt", cfg.Hotkeys.CyclePrompt, func() {
+				if router == nil {
+					return
+				}
+				idx, name := router.CyclePrompt()
+				slog.Info("Prompt cycled", "index", idx, "name", name)
+				fmt.Printf("Active prompt: %s\n", name)
 				sound.PlayToggle()
 			}); err != nil {
-				slog.Error("Failed to register toggle-language hotkey", "key", cfg.Hotkeys.ToggleLanguage, "error", err)
-				fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.ToggleLanguage, err)
-				return err
-			}
-		}
-
-		if cfg.Hotkeys.Rewrite != "" {
-			if err := mgr.Register("rewrite", cfg.Hotkeys.Rewrite, func() {
-				processMode("Rewrite", mode.ModeRewrite, cfg, router, cb, kb, &mu, &cancelLLM)
-			}); err != nil {
-				slog.Error("Failed to register rewrite hotkey", "key", cfg.Hotkeys.Rewrite, "error", err)
-				fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.Rewrite, err)
-				return err
-			}
-		}
-
-		if cfg.Hotkeys.CycleTemplate != "" {
-			if err := mgr.Register("cycle_template", cfg.Hotkeys.CycleTemplate, func() {
-				name := router.CycleTemplate()
-				slog.Info("Rewrite template cycled", "template", name)
-				fmt.Printf("Rewrite template: %s\n", name)
-				sound.PlayToggle()
-			}); err != nil {
-				slog.Error("Failed to register cycle-template hotkey", "key", cfg.Hotkeys.CycleTemplate, "error", err)
-				fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.CycleTemplate, err)
+				slog.Error("Failed to register cycle-prompt hotkey", "key", cfg.Hotkeys.CyclePrompt, "error", err)
+				fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.CyclePrompt, err)
 				return err
 			}
 		}

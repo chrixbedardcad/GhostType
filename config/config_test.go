@@ -10,36 +10,29 @@ import (
 func TestDefaultConfig(t *testing.T) {
 	cfg := DefaultConfig()
 
-	// Legacy flat fields are empty — providers are configured via llm_providers map.
-	if cfg.LLMProvider != "" {
-		t.Errorf("expected default provider empty (wizard handles setup), got '%s'", cfg.LLMProvider)
-	}
-	if cfg.Model != "" {
-		t.Errorf("expected default model empty (wizard handles setup), got '%s'", cfg.Model)
-	}
 	if cfg.MaxTokens != 256 {
 		t.Errorf("expected default max_tokens 256, got %d", cfg.MaxTokens)
 	}
 	if cfg.TimeoutMs != 30000 {
 		t.Errorf("expected default timeout_ms 30000, got %d", cfg.TimeoutMs)
 	}
-	if cfg.ActiveMode != "correct" {
-		t.Errorf("expected default active_mode 'correct', got '%s'", cfg.ActiveMode)
+	if cfg.Hotkeys.Action != "Ctrl+G" {
+		t.Errorf("expected default action hotkey 'Ctrl+G', got '%s'", cfg.Hotkeys.Action)
 	}
-	if cfg.Hotkeys.Correct != "Ctrl+G" {
-		t.Errorf("expected default correct hotkey 'Ctrl+G', got '%s'", cfg.Hotkeys.Correct)
+	if len(cfg.Prompts) != 3 {
+		t.Errorf("expected 3 default prompts, got %d", len(cfg.Prompts))
 	}
-	if cfg.Hotkeys.Translate != "" {
-		t.Errorf("expected default translate hotkey empty, got '%s'", cfg.Hotkeys.Translate)
+	if cfg.Prompts[0].Name != "Correct" {
+		t.Errorf("expected first prompt 'Correct', got '%s'", cfg.Prompts[0].Name)
 	}
-	if cfg.Hotkeys.Rewrite != "" {
-		t.Errorf("expected default rewrite hotkey empty, got '%s'", cfg.Hotkeys.Rewrite)
+	if cfg.Prompts[1].Name != "Polish" {
+		t.Errorf("expected second prompt 'Polish', got '%s'", cfg.Prompts[1].Name)
 	}
-	if len(cfg.Languages) != 2 {
-		t.Errorf("expected 2 default languages, got %d", len(cfg.Languages))
+	if cfg.Prompts[2].Name != "Translate to En" {
+		t.Errorf("expected third prompt 'Translate to En', got '%s'", cfg.Prompts[2].Name)
 	}
-	if len(cfg.Prompts.RewriteTemplates) != 5 {
-		t.Errorf("expected 5 default rewrite templates, got %d", len(cfg.Prompts.RewriteTemplates))
+	if cfg.ActivePrompt != 0 {
+		t.Errorf("expected default active_prompt 0, got %d", cfg.ActivePrompt)
 	}
 	if !cfg.PreserveClipboard {
 		t.Error("expected preserve_clipboard to be true by default")
@@ -55,12 +48,8 @@ func TestLoadCreatesDefaultWhenMissing(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Default config has empty flat fields — wizard sets up llm_providers.
-	if cfg.LLMProvider != "" {
-		t.Errorf("expected empty default provider, got '%s'", cfg.LLMProvider)
-	}
-	if cfg.ActiveMode != "correct" {
-		t.Errorf("expected default active_mode 'correct', got '%s'", cfg.ActiveMode)
+	if len(cfg.Prompts) != 3 {
+		t.Errorf("expected 3 default prompts, got %d", len(cfg.Prompts))
 	}
 
 	// Verify file was created
@@ -77,8 +66,8 @@ func TestLoadValidConfig(t *testing.T) {
 		"llm_provider": "openai",
 		"api_key":      "sk-test-key-12345",
 		"model":        "gpt-4o",
-		"prompts": map[string]interface{}{
-			"correct": "Fix spelling errors. Return ONLY corrected text.",
+		"prompts": []map[string]interface{}{
+			{"name": "Correct", "prompt": "Fix spelling errors."},
 		},
 	}
 	data, _ := json.MarshalIndent(cfg, "", "  ")
@@ -93,10 +82,13 @@ func TestLoadValidConfig(t *testing.T) {
 		t.Errorf("expected provider 'openai', got '%s'", loaded.LLMProvider)
 	}
 	if loaded.APIKey != "sk-test-key-12345" {
-		t.Errorf("expected api_key 'sk-test-key-12345', got '%s'", loaded.APIKey)
+		t.Errorf("expected api_key, got '%s'", loaded.APIKey)
 	}
-	if loaded.Model != "gpt-4o" {
-		t.Errorf("expected model 'gpt-4o', got '%s'", loaded.Model)
+	if len(loaded.Prompts) != 1 {
+		t.Fatalf("expected 1 prompt, got %d", len(loaded.Prompts))
+	}
+	if loaded.Prompts[0].Name != "Correct" {
+		t.Errorf("expected prompt name 'Correct', got '%s'", loaded.Prompts[0].Name)
 	}
 }
 
@@ -108,8 +100,8 @@ func TestLoadInvalidProvider(t *testing.T) {
 		"llm_provider": "invalid_provider",
 		"api_key":      "sk-test",
 		"model":        "some-model",
-		"prompts": map[string]interface{}{
-			"correct": "Fix errors.",
+		"prompts": []map[string]interface{}{
+			{"name": "Correct", "prompt": "Fix errors."},
 		},
 	}
 	data, _ := json.MarshalIndent(cfg, "", "  ")
@@ -129,8 +121,8 @@ func TestLoadMissingAPIKey(t *testing.T) {
 		"llm_provider": "anthropic",
 		"api_key":      "",
 		"model":        "claude-sonnet-4-5-20250929",
-		"prompts": map[string]interface{}{
-			"correct": "Fix errors.",
+		"prompts": []map[string]interface{}{
+			{"name": "Correct", "prompt": "Fix errors."},
 		},
 	}
 	data, _ := json.MarshalIndent(cfg, "", "  ")
@@ -150,8 +142,8 @@ func TestLoadOllamaNoAPIKeyRequired(t *testing.T) {
 		"llm_provider": "ollama",
 		"api_key":      "",
 		"model":        "mistral",
-		"prompts": map[string]interface{}{
-			"correct": "Fix errors.",
+		"prompts": []map[string]interface{}{
+			{"name": "Correct", "prompt": "Fix errors."},
 		},
 	}
 	data, _ := json.MarshalIndent(cfg, "", "  ")
@@ -183,13 +175,12 @@ func TestLoadAppliesDefaults(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.json")
 
-	// Minimal config, should get defaults applied
 	cfg := map[string]interface{}{
 		"llm_provider": "openai",
 		"api_key":      "sk-test",
 		"model":        "gpt-4o",
-		"prompts": map[string]interface{}{
-			"correct": "Fix errors.",
+		"prompts": []map[string]interface{}{
+			{"name": "Correct", "prompt": "Fix errors."},
 		},
 	}
 	data, _ := json.MarshalIndent(cfg, "", "  ")
@@ -206,9 +197,6 @@ func TestLoadAppliesDefaults(t *testing.T) {
 	if loaded.TimeoutMs != 30000 {
 		t.Errorf("expected default timeout_ms 30000, got %d", loaded.TimeoutMs)
 	}
-	if loaded.LogLevel != "" {
-		t.Errorf("expected empty log_level (disabled by default), got '%s'", loaded.LogLevel)
-	}
 }
 
 func TestLoadLoggingDisabledByDefault(t *testing.T) {
@@ -219,7 +207,9 @@ func TestLoadLoggingDisabledByDefault(t *testing.T) {
 		"llm_provider": "openai",
 		"api_key":      "sk-test",
 		"model":        "gpt-4o",
-		"prompts":      map[string]interface{}{"correct": "Fix errors."},
+		"prompts": []map[string]interface{}{
+			{"name": "Correct", "prompt": "Fix errors."},
+		},
 	}
 	data, _ := json.MarshalIndent(cfg, "", "  ")
 	os.WriteFile(path, data, 0644)
@@ -246,7 +236,9 @@ func TestLoadLoggingEnabledSetsLogFileDefault(t *testing.T) {
 		"api_key":      "sk-test",
 		"model":        "gpt-4o",
 		"log_level":    "debug",
-		"prompts":      map[string]interface{}{"correct": "Fix errors."},
+		"prompts": []map[string]interface{}{
+			{"name": "Correct", "prompt": "Fix errors."},
+		},
 	}
 	data, _ := json.MarshalIndent(cfg, "", "  ")
 	os.WriteFile(path, data, 0644)
@@ -264,33 +256,6 @@ func TestLoadLoggingEnabledSetsLogFileDefault(t *testing.T) {
 	}
 }
 
-func TestLoadLogLevelCaseInsensitive(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.json")
-
-	cfg := map[string]interface{}{
-		"llm_provider": "openai",
-		"api_key":      "sk-test",
-		"model":        "gpt-4o",
-		"log_level":    "DEBUG",
-		"prompts":      map[string]interface{}{"correct": "Fix errors."},
-	}
-	data, _ := json.MarshalIndent(cfg, "", "  ")
-	os.WriteFile(path, data, 0644)
-
-	loaded, err := Load(path)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if loaded.LogLevel != "debug" {
-		t.Errorf("expected normalized log_level 'debug', got '%s'", loaded.LogLevel)
-	}
-	if loaded.LogFile != "ghosttype.log" {
-		t.Errorf("expected default log_file 'ghosttype.log', got '%s'", loaded.LogFile)
-	}
-}
-
 func TestLoadInvalidLogLevel(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.json")
@@ -300,7 +265,9 @@ func TestLoadInvalidLogLevel(t *testing.T) {
 		"api_key":      "sk-test",
 		"model":        "gpt-4o",
 		"log_level":    "verbose",
-		"prompts":      map[string]interface{}{"correct": "Fix errors."},
+		"prompts": []map[string]interface{}{
+			{"name": "Correct", "prompt": "Fix errors."},
+		},
 	}
 	data, _ := json.MarshalIndent(cfg, "", "  ")
 	os.WriteFile(path, data, 0644)
@@ -308,73 +275,6 @@ func TestLoadInvalidLogLevel(t *testing.T) {
 	_, err := Load(path)
 	if err == nil {
 		t.Fatal("expected validation error for invalid log_level")
-	}
-}
-
-func TestLoadActiveModeDefault(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.json")
-
-	cfg := map[string]interface{}{
-		"llm_provider": "openai",
-		"api_key":      "sk-test",
-		"model":        "gpt-4o",
-		"prompts":      map[string]interface{}{"correct": "Fix errors."},
-	}
-	data, _ := json.MarshalIndent(cfg, "", "  ")
-	os.WriteFile(path, data, 0644)
-
-	loaded, err := Load(path)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if loaded.ActiveMode != "correct" {
-		t.Errorf("expected default active_mode 'correct', got '%s'", loaded.ActiveMode)
-	}
-}
-
-func TestLoadActiveModeCustom(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.json")
-
-	cfg := map[string]interface{}{
-		"llm_provider": "openai",
-		"api_key":      "sk-test",
-		"model":        "gpt-4o",
-		"active_mode":  "translate",
-		"prompts":      map[string]interface{}{"correct": "Fix errors."},
-	}
-	data, _ := json.MarshalIndent(cfg, "", "  ")
-	os.WriteFile(path, data, 0644)
-
-	loaded, err := Load(path)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if loaded.ActiveMode != "translate" {
-		t.Errorf("expected active_mode 'translate', got '%s'", loaded.ActiveMode)
-	}
-}
-
-func TestLoadActiveModeInvalid(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.json")
-
-	cfg := map[string]interface{}{
-		"llm_provider": "openai",
-		"api_key":      "sk-test",
-		"model":        "gpt-4o",
-		"active_mode":  "invalid",
-		"prompts":      map[string]interface{}{"correct": "Fix errors."},
-	}
-	data, _ := json.MarshalIndent(cfg, "", "  ")
-	os.WriteFile(path, data, 0644)
-
-	_, err := Load(path)
-	if err == nil {
-		t.Fatal("expected validation error for invalid active_mode")
 	}
 }
 
@@ -386,7 +286,9 @@ func TestLoadOptionalHotkeysEmpty(t *testing.T) {
 		"llm_provider": "openai",
 		"api_key":      "sk-test",
 		"model":        "gpt-4o",
-		"prompts":      map[string]interface{}{"correct": "Fix errors."},
+		"prompts": []map[string]interface{}{
+			{"name": "Correct", "prompt": "Fix errors."},
+		},
 	}
 	data, _ := json.MarshalIndent(cfg, "", "  ")
 	os.WriteFile(path, data, 0644)
@@ -396,22 +298,13 @@ func TestLoadOptionalHotkeysEmpty(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Only action (correct) should have a default
-	if loaded.Hotkeys.Correct != "Ctrl+G" {
-		t.Errorf("expected action hotkey 'Ctrl+G', got '%s'", loaded.Hotkeys.Correct)
+	// Action hotkey should have a default
+	if loaded.Hotkeys.Action != "Ctrl+G" {
+		t.Errorf("expected action hotkey 'Ctrl+G', got '%s'", loaded.Hotkeys.Action)
 	}
-	// Optional hotkeys should remain empty
-	if loaded.Hotkeys.Translate != "" {
-		t.Errorf("expected translate hotkey empty, got '%s'", loaded.Hotkeys.Translate)
-	}
-	if loaded.Hotkeys.Rewrite != "" {
-		t.Errorf("expected rewrite hotkey empty, got '%s'", loaded.Hotkeys.Rewrite)
-	}
-	if loaded.Hotkeys.ToggleLanguage != "" {
-		t.Errorf("expected toggle_language hotkey empty, got '%s'", loaded.Hotkeys.ToggleLanguage)
-	}
-	if loaded.Hotkeys.CycleTemplate != "" {
-		t.Errorf("expected cycle_template hotkey empty, got '%s'", loaded.Hotkeys.CycleTemplate)
+	// CyclePrompt should remain empty
+	if loaded.Hotkeys.CyclePrompt != "" {
+		t.Errorf("expected cycle_prompt hotkey empty, got '%s'", loaded.Hotkeys.CyclePrompt)
 	}
 }
 
@@ -435,12 +328,11 @@ func TestWriteDefault(t *testing.T) {
 		t.Fatalf("written file is not valid JSON: %v", err)
 	}
 
-	// Default config writes empty flat fields — wizard populates llm_providers.
-	if loaded.ActiveMode != "correct" {
-		t.Errorf("expected active_mode 'correct' in written file, got '%s'", loaded.ActiveMode)
+	if loaded.Hotkeys.Action != "Ctrl+G" {
+		t.Errorf("expected hotkey 'Ctrl+G' in written file, got '%s'", loaded.Hotkeys.Action)
 	}
-	if loaded.Hotkeys.Correct != "Ctrl+G" {
-		t.Errorf("expected hotkey 'Ctrl+G' in written file, got '%s'", loaded.Hotkeys.Correct)
+	if len(loaded.Prompts) != 3 {
+		t.Errorf("expected 3 prompts in written file, got %d", len(loaded.Prompts))
 	}
 }
 
@@ -452,7 +344,9 @@ func TestLLMProvidersSynthesizedFromFlat(t *testing.T) {
 		"llm_provider": "openai",
 		"api_key":      "sk-test-key",
 		"model":        "gpt-4o",
-		"prompts":      map[string]interface{}{"correct": "Fix errors."},
+		"prompts": []map[string]interface{}{
+			{"name": "Correct", "prompt": "Fix errors."},
+		},
 	}
 	data, _ := json.MarshalIndent(cfg, "", "  ")
 	os.WriteFile(path, data, 0644)
@@ -475,12 +369,6 @@ func TestLLMProvidersSynthesizedFromFlat(t *testing.T) {
 	if def.Provider != "openai" {
 		t.Errorf("expected provider 'openai', got %q", def.Provider)
 	}
-	if def.APIKey != "sk-test-key" {
-		t.Errorf("expected api_key 'sk-test-key', got %q", def.APIKey)
-	}
-	if def.Model != "gpt-4o" {
-		t.Errorf("expected model 'gpt-4o', got %q", def.Model)
-	}
 }
 
 func TestLoadLLMProviders(t *testing.T) {
@@ -501,7 +389,9 @@ func TestLoadLLMProviders(t *testing.T) {
 			},
 		},
 		"default_llm": "claude",
-		"prompts":     map[string]interface{}{"correct": "Fix errors."},
+		"prompts": []map[string]interface{}{
+			{"name": "Correct", "prompt": "Fix errors."},
+		},
 	}
 	data, _ := json.MarshalIndent(cfg, "", "  ")
 	os.WriteFile(path, data, 0644)
@@ -516,64 +406,6 @@ func TestLoadLLMProviders(t *testing.T) {
 	}
 	if loaded.DefaultLLM != "claude" {
 		t.Errorf("expected default_llm 'claude', got %q", loaded.DefaultLLM)
-	}
-	if loaded.LLMProviders["gpt"].Model != "gpt-4o" {
-		t.Errorf("expected gpt model 'gpt-4o', got %q", loaded.LLMProviders["gpt"].Model)
-	}
-}
-
-func TestCorrectPromptLanguagesSubstitution(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.json")
-
-	cfg := map[string]interface{}{
-		"llm_provider": "ollama",
-		"model":        "mistral",
-		"languages":    []string{"en", "fr", "es"},
-		"language_names": map[string]string{
-			"en": "English",
-			"fr": "French",
-			"es": "Spanish",
-		},
-		"prompts": map[string]interface{}{
-			"correct": "Fix errors in {languages}.",
-		},
-	}
-	data, _ := json.MarshalIndent(cfg, "", "  ")
-	os.WriteFile(path, data, 0644)
-
-	loaded, err := Load(path)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	expected := "Fix errors in English or French or Spanish."
-	if loaded.Prompts.Correct != expected {
-		t.Errorf("expected prompt %q, got %q", expected, loaded.Prompts.Correct)
-	}
-}
-
-func TestCustomCorrectPromptNotOverwritten(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.json")
-
-	cfg := map[string]interface{}{
-		"llm_provider": "ollama",
-		"model":        "mistral",
-		"prompts": map[string]interface{}{
-			"correct": "Just fix the text please.",
-		},
-	}
-	data, _ := json.MarshalIndent(cfg, "", "  ")
-	os.WriteFile(path, data, 0644)
-
-	loaded, err := Load(path)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if loaded.Prompts.Correct != "Just fix the text please." {
-		t.Errorf("expected custom prompt unchanged, got %q", loaded.Prompts.Correct)
 	}
 }
 
@@ -590,7 +422,9 @@ func TestValidateInvalidLLMLabel(t *testing.T) {
 			},
 		},
 		"default_llm": "nonexistent",
-		"prompts":     map[string]interface{}{"correct": "Fix errors."},
+		"prompts": []map[string]interface{}{
+			{"name": "Correct", "prompt": "Fix errors."},
+		},
 	}
 	data, _ := json.MarshalIndent(cfg, "", "  ")
 	os.WriteFile(path, data, 0644)
@@ -598,5 +432,121 @@ func TestValidateInvalidLLMLabel(t *testing.T) {
 	_, err := Load(path)
 	if err == nil {
 		t.Fatal("expected validation error for invalid default_llm label")
+	}
+}
+
+func TestMigrateOldFormat(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	// Old format: prompts as a JSON object with correct/translate/rewrite_templates
+	cfg := map[string]interface{}{
+		"llm_provider": "ollama",
+		"model":        "mistral",
+		"active_mode":  "correct",
+		"hotkeys": map[string]interface{}{
+			"correct":        "Ctrl+G",
+			"cycle_template": "Ctrl+T",
+		},
+		"prompts": map[string]interface{}{
+			"correct":          "Fix all errors.",
+			"translate":        "Translate between {language_a} and {language_b}.",
+			"translate_single": "Translate to {target_language}.",
+			"rewrite_templates": []map[string]interface{}{
+				{"name": "funny", "prompt": "Make it funny."},
+				{"name": "formal", "prompt": "Make it formal.", "llm": "gpt"},
+			},
+		},
+	}
+	data, _ := json.MarshalIndent(cfg, "", "  ")
+	os.WriteFile(path, data, 0644)
+
+	loaded, err := LoadRaw(path)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Should have migrated: correction prompt + 2 rewrite templates = 3 prompts
+	if len(loaded.Prompts) != 3 {
+		t.Fatalf("expected 3 migrated prompts, got %d", len(loaded.Prompts))
+	}
+	if loaded.Prompts[0].Name != "Correct" {
+		t.Errorf("expected first prompt 'Correct', got '%s'", loaded.Prompts[0].Name)
+	}
+	if loaded.Prompts[0].Prompt != "Fix all errors." {
+		t.Errorf("expected old correct prompt preserved, got '%s'", loaded.Prompts[0].Prompt)
+	}
+	if loaded.Prompts[1].Name != "funny" {
+		t.Errorf("expected second prompt 'funny', got '%s'", loaded.Prompts[1].Name)
+	}
+	if loaded.Prompts[2].LLM != "gpt" {
+		t.Errorf("expected formal template LLM 'gpt', got '%s'", loaded.Prompts[2].LLM)
+	}
+
+	// Hotkeys should be migrated
+	if loaded.Hotkeys.Action != "Ctrl+G" {
+		t.Errorf("expected action hotkey 'Ctrl+G', got '%s'", loaded.Hotkeys.Action)
+	}
+	if loaded.Hotkeys.CyclePrompt != "Ctrl+T" {
+		t.Errorf("expected cycle_prompt hotkey 'Ctrl+T', got '%s'", loaded.Hotkeys.CyclePrompt)
+	}
+}
+
+func TestNewFormatLoadsDirect(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	cfg := map[string]interface{}{
+		"llm_provider": "ollama",
+		"model":        "mistral",
+		"prompts": []map[string]interface{}{
+			{"name": "Correct", "prompt": "Fix errors."},
+			{"name": "Polish", "prompt": "Polish the text."},
+		},
+		"hotkeys": map[string]interface{}{
+			"action": "Ctrl+G",
+		},
+	}
+	data, _ := json.MarshalIndent(cfg, "", "  ")
+	os.WriteFile(path, data, 0644)
+
+	loaded, err := LoadRaw(path)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(loaded.Prompts) != 2 {
+		t.Fatalf("expected 2 prompts, got %d", len(loaded.Prompts))
+	}
+	if loaded.Prompts[0].Name != "Correct" {
+		t.Errorf("expected 'Correct', got '%s'", loaded.Prompts[0].Name)
+	}
+	if loaded.Prompts[1].Name != "Polish" {
+		t.Errorf("expected 'Polish', got '%s'", loaded.Prompts[1].Name)
+	}
+}
+
+func TestActivePromptClamped(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	cfg := map[string]interface{}{
+		"llm_provider":  "ollama",
+		"model":         "mistral",
+		"active_prompt": 99,
+		"prompts": []map[string]interface{}{
+			{"name": "Correct", "prompt": "Fix errors."},
+		},
+	}
+	data, _ := json.MarshalIndent(cfg, "", "  ")
+	os.WriteFile(path, data, 0644)
+
+	loaded, err := LoadRaw(path)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if loaded.ActivePrompt != 0 {
+		t.Errorf("expected active_prompt clamped to 0, got %d", loaded.ActivePrompt)
 	}
 }

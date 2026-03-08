@@ -4,24 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-// TranslateTarget represents a parsed translate target.
-// A pair (e.g. "en|fr") has both LangA and LangB set.
-// A single target (e.g. "es") has only LangA set.
-type TranslateTarget struct {
-	LangA string // always set
-	LangB string // empty for single-target mode
-}
-
-// IsPair returns true if this target is a bilingual pair.
-func (t TranslateTarget) IsPair() bool { return t.LangB != "" }
-
-// RewriteTemplate defines a named rewrite prompt template.
-type RewriteTemplate struct {
+// PromptEntry defines a named prompt with an optional per-prompt LLM override.
+type PromptEntry struct {
 	Name   string `json:"name"`
 	Prompt string `json:"prompt"`
 	LLM    string `json:"llm,omitempty"`
@@ -39,19 +29,8 @@ type LLMProviderDef struct {
 
 // Hotkeys defines the configurable hotkey bindings.
 type Hotkeys struct {
-	Correct        string `json:"correct"`
-	Translate      string `json:"translate"`
-	ToggleLanguage string `json:"toggle_language"`
-	Rewrite        string `json:"rewrite"`
-	CycleTemplate  string `json:"cycle_template"`
-}
-
-// Prompts defines the LLM prompt configuration.
-type Prompts struct {
-	Correct          string            `json:"correct"`
-	Translate        string            `json:"translate"`
-	TranslateSingle  string            `json:"translate_single"`
-	RewriteTemplates []RewriteTemplate `json:"rewrite_templates"`
+	Action      string `json:"action"`
+	CyclePrompt string `json:"cycle_prompt"`
 }
 
 // Overlay defines overlay display settings.
@@ -67,66 +46,54 @@ type Overlay struct {
 
 // Config is the top-level configuration for GhostType.
 type Config struct {
-	LLMProvider            string            `json:"llm_provider,omitempty"`
-	APIKey                 string            `json:"api_key,omitempty"`
-	Model                  string            `json:"model,omitempty"`
-	APIEndpoint            string                     `json:"api_endpoint,omitempty"`
-	LLMProviders           map[string]LLMProviderDef  `json:"llm_providers,omitempty"`
-	DefaultLLM             string                     `json:"default_llm,omitempty"`
-	CorrectLLM             string                     `json:"correct_llm,omitempty"`
-	TranslateLLM           string                     `json:"translate_llm,omitempty"`
-	Languages              []string                   `json:"languages"`
-	LanguageNames          map[string]string `json:"language_names"`
-	TranslateTargets       []string          `json:"translate_targets"`
-	ParsedTargets          []TranslateTarget `json:"-"`
-	DefaultTranslateTarget string            `json:"default_translate_target"`
-	ActiveMode             string            `json:"active_mode"`
-	Hotkeys                Hotkeys           `json:"hotkeys"`
-	Prompts                Prompts           `json:"prompts"`
-	Overlay                Overlay           `json:"overlay"`
-	MaxTokens              int               `json:"max_tokens"`
-	TimeoutMs              int               `json:"timeout_ms"`
-	PreserveClipboard      bool              `json:"preserve_clipboard"`
-	SoundEnabled           *bool             `json:"sound_enabled"`
-	LogLevel               string            `json:"log_level"`
-	LogFile                string            `json:"log_file"`
+	// Legacy flat fields — kept for backward-compat migration only.
+	LLMProvider string `json:"llm_provider,omitempty"`
+	APIKey      string `json:"api_key,omitempty"`
+	Model       string `json:"model,omitempty"`
+	APIEndpoint string `json:"api_endpoint,omitempty"`
+
+	LLMProviders map[string]LLMProviderDef `json:"llm_providers,omitempty"`
+	DefaultLLM   string                    `json:"default_llm,omitempty"`
+
+	ActivePrompt int           `json:"active_prompt"`
+	Prompts      []PromptEntry `json:"prompts"`
+	Hotkeys      Hotkeys       `json:"hotkeys"`
+	Overlay      Overlay       `json:"overlay"`
+
+	MaxTokens         int    `json:"max_tokens"`
+	TimeoutMs         int    `json:"timeout_ms"`
+	PreserveClipboard bool   `json:"preserve_clipboard"`
+	SoundEnabled      *bool  `json:"sound_enabled"`
+	LogLevel          string `json:"log_level"`
+	LogFile           string `json:"log_file"`
 }
 
 func boolPtr(v bool) *bool { return &v }
 
+// Default prompt texts.
+const (
+	DefaultCorrectPrompt   = "Fix only spelling and grammar errors. Do not rewrite, rephrase, or restructure the sentence. Keep the text in its original language — never translate it. Preserve slang, abbreviations, acronyms, and informal tone exactly as written. Only fix what is objectively incorrect. Return ONLY the corrected text with no explanation."
+	DefaultPolishPrompt    = "Improve the following text to make it clearer, more natural, and better structured while preserving its original meaning. Use proper grammar, punctuation, and phrasing that best expresses the intent of the sentence. Keep the text in its original language — never translate it. Return ONLY the polished text with no explanation."
+	DefaultTranslatePrompt = "Translate the following text to English regardless of its source language. Return ONLY the translated text with no explanation."
+)
+
+// DefaultPrompts returns the default prompt list.
+func DefaultPrompts() []PromptEntry {
+	return []PromptEntry{
+		{Name: "Correct", Prompt: DefaultCorrectPrompt},
+		{Name: "Polish", Prompt: DefaultPolishPrompt},
+		{Name: "Translate to En", Prompt: DefaultTranslatePrompt},
+	}
+}
+
 // DefaultConfig returns a Config populated with default values.
 func DefaultConfig() Config {
 	return Config{
-		LLMProvider: "",
-		APIKey:      "",
-		Model:       "",
-		APIEndpoint: "",
-		Languages:   []string{"en", "fr"},
-		LanguageNames: map[string]string{
-			"en": "English",
-			"fr": "French",
-		},
-		DefaultTranslateTarget: "en",
-		ActiveMode:             "correct",
 		Hotkeys: Hotkeys{
-			Correct:        defaultCorrectHotkey,
-			Translate:      "",
-			ToggleLanguage: "",
-			Rewrite:        "",
-			CycleTemplate:  "",
+			Action: defaultActionHotkey,
 		},
-		Prompts: Prompts{
-			Correct:         "The following text is written in one of these languages: {languages}. Fix all spelling and grammar errors. IMPORTANT: Keep the text in its ORIGINAL language — do NOT translate it. Return ONLY the corrected text with no explanation.",
-			Translate:       "The two configured languages are {language_a} and {language_b}. Detect the language of the following text and translate it to the OTHER language. If it is {language_a}, translate to {language_b}. If it is {language_b}, translate to {language_a}. Preserve the tone and intent. Return ONLY the translation with no explanation.",
-			TranslateSingle: "Translate the following text to {target_language}. Preserve the tone and intent. Return ONLY the translation with no explanation.",
-			RewriteTemplates: []RewriteTemplate{
-				{Name: "funny", Prompt: "Rewrite this as a funny, witty reply. Keep it short and punchy. Return ONLY the rewritten text."},
-				{Name: "formal", Prompt: "Rewrite this in a formal, professional tone. Return ONLY the rewritten text."},
-				{Name: "sarcastic", Prompt: "Rewrite this with heavy sarcasm. Return ONLY the rewritten text."},
-				{Name: "flirty", Prompt: "Rewrite this in a playful, flirty tone. Return ONLY the rewritten text."},
-				{Name: "poetic", Prompt: "Rewrite this as if you were a romantic poet. Return ONLY the rewritten text."},
-			},
-		},
+		Prompts:      DefaultPrompts(),
+		ActivePrompt: 0,
 		Overlay: Overlay{
 			Enabled:            true,
 			Position:           "above_chat",
@@ -161,18 +128,18 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	var cfg Config
-	if err := json.Unmarshal(data, &cfg); err != nil {
+	cfg, err := unmarshalWithMigration(data)
+	if err != nil {
 		return nil, fmt.Errorf("failed to parse config JSON: %w", err)
 	}
 
-	applyDefaults(&cfg)
+	applyDefaults(cfg)
 
-	if err := Validate(&cfg); err != nil {
+	if err := Validate(cfg); err != nil {
 		return nil, fmt.Errorf("config validation failed: %w", err)
 	}
 
-	return &cfg, nil
+	return cfg, nil
 }
 
 // LoadRaw reads a config from the given JSON file path without validation.
@@ -192,13 +159,137 @@ func LoadRaw(path string) (*Config, error) {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	var cfg Config
-	if err := json.Unmarshal(data, &cfg); err != nil {
+	cfg, err := unmarshalWithMigration(data)
+	if err != nil {
 		return nil, fmt.Errorf("failed to parse config JSON: %w", err)
 	}
 
-	applyDefaults(&cfg)
+	applyDefaults(cfg)
+	return cfg, nil
+}
+
+// unmarshalWithMigration parses config JSON, detecting and migrating old format
+// where "prompts" was a JSON object (with correct/translate/rewrite_templates fields)
+// to the new format where "prompts" is a JSON array of PromptEntry.
+func unmarshalWithMigration(data []byte) (*Config, error) {
+	// First, try parsing into a raw map to detect the prompts format.
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+
+	promptsRaw, hasPrompts := raw["prompts"]
+	needsMigration := false
+
+	if hasPrompts && len(promptsRaw) > 0 {
+		// Trim whitespace to find the first meaningful character.
+		trimmed := strings.TrimSpace(string(promptsRaw))
+		if len(trimmed) > 0 && trimmed[0] == '{' {
+			needsMigration = true
+		}
+	}
+
+	if needsMigration {
+		return migrateOldConfig(data)
+	}
+
+	// New format — parse directly.
+	var cfg Config
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		return nil, err
+	}
 	return &cfg, nil
+}
+
+// oldPrompts represents the old prompts format.
+type oldPrompts struct {
+	Correct          string              `json:"correct"`
+	Translate        string              `json:"translate"`
+	TranslateSingle  string              `json:"translate_single"`
+	RewriteTemplates []oldRewriteTemplate `json:"rewrite_templates"`
+}
+
+type oldRewriteTemplate struct {
+	Name   string `json:"name"`
+	Prompt string `json:"prompt"`
+	LLM    string `json:"llm,omitempty"`
+}
+
+// oldConfig is a partial struct for deserializing the old format.
+type oldConfig struct {
+	LLMProvider  string                    `json:"llm_provider,omitempty"`
+	APIKey       string                    `json:"api_key,omitempty"`
+	Model        string                    `json:"model,omitempty"`
+	APIEndpoint  string                    `json:"api_endpoint,omitempty"`
+	LLMProviders map[string]LLMProviderDef `json:"llm_providers,omitempty"`
+	DefaultLLM   string                    `json:"default_llm,omitempty"`
+	ActiveMode   string                    `json:"active_mode"`
+	OldHotkeys   struct {
+		Correct        string `json:"correct"`
+		Translate      string `json:"translate"`
+		ToggleLanguage string `json:"toggle_language"`
+		Rewrite        string `json:"rewrite"`
+		CycleTemplate  string `json:"cycle_template"`
+	} `json:"hotkeys"`
+	Prompts           oldPrompts `json:"prompts"`
+	Overlay           Overlay    `json:"overlay"`
+	MaxTokens         int        `json:"max_tokens"`
+	TimeoutMs         int        `json:"timeout_ms"`
+	PreserveClipboard bool       `json:"preserve_clipboard"`
+	SoundEnabled      *bool      `json:"sound_enabled"`
+	LogLevel          string     `json:"log_level"`
+	LogFile           string     `json:"log_file"`
+}
+
+// migrateOldConfig converts an old-format config to the new format.
+func migrateOldConfig(data []byte) (*Config, error) {
+	var old oldConfig
+	if err := json.Unmarshal(data, &old); err != nil {
+		return nil, fmt.Errorf("migration: %w", err)
+	}
+
+	slog.Info("Migrating config from old 3-mode format to unified prompts format")
+
+	// Build new prompt list from old prompts.
+	var prompts []PromptEntry
+
+	// Correction prompt
+	if old.Prompts.Correct != "" {
+		prompts = append(prompts, PromptEntry{Name: "Correct", Prompt: old.Prompts.Correct})
+	}
+
+	// Rewrite templates become top-level prompts.
+	for _, t := range old.Prompts.RewriteTemplates {
+		prompts = append(prompts, PromptEntry{Name: t.Name, Prompt: t.Prompt, LLM: t.LLM})
+	}
+
+	// Map old active_mode to active_prompt index.
+	activePrompt := 0
+	// "correct" → 0 (default), others we leave at 0
+
+	cfg := &Config{
+		LLMProvider:   old.LLMProvider,
+		APIKey:        old.APIKey,
+		Model:         old.Model,
+		APIEndpoint:   old.APIEndpoint,
+		LLMProviders:  old.LLMProviders,
+		DefaultLLM:    old.DefaultLLM,
+		ActivePrompt:  activePrompt,
+		Prompts:       prompts,
+		Hotkeys: Hotkeys{
+			Action:      old.OldHotkeys.Correct,
+			CyclePrompt: old.OldHotkeys.CycleTemplate,
+		},
+		Overlay:           old.Overlay,
+		MaxTokens:         old.MaxTokens,
+		TimeoutMs:         old.TimeoutMs,
+		PreserveClipboard: old.PreserveClipboard,
+		SoundEnabled:      old.SoundEnabled,
+		LogLevel:          old.LogLevel,
+		LogFile:           old.LogFile,
+	}
+
+	return cfg, nil
 }
 
 // WriteDefault writes a default config file to the given path.
@@ -234,45 +325,21 @@ func applyDefaults(cfg *Config) {
 	if cfg.SoundEnabled == nil {
 		cfg.SoundEnabled = boolPtr(true)
 	}
-	if cfg.ActiveMode == "" {
-		cfg.ActiveMode = "correct"
-	}
-	if cfg.Hotkeys.Correct == "" {
-		cfg.Hotkeys.Correct = "Ctrl+G"
-	}
-	// Translate, ToggleLanguage, Rewrite, CycleTemplate default to empty
-	// (not registered). Users can add dedicated hotkeys in config if desired.
-	if len(cfg.Languages) == 0 {
-		cfg.Languages = []string{"en", "fr"}
-	}
-	if cfg.LanguageNames == nil {
-		cfg.LanguageNames = map[string]string{"en": "English", "fr": "French"}
+	if cfg.Hotkeys.Action == "" {
+		cfg.Hotkeys.Action = "Ctrl+G"
 	}
 
-	// Derive translate_targets from languages if not explicitly set.
-	if len(cfg.TranslateTargets) == 0 {
-		if len(cfg.Languages) >= 2 {
-			cfg.TranslateTargets = []string{cfg.Languages[0] + "|" + cfg.Languages[1]}
-		} else if len(cfg.Languages) == 1 {
-			cfg.TranslateTargets = []string{cfg.Languages[0]}
-		}
+	// Default prompts if empty.
+	if len(cfg.Prompts) == 0 {
+		cfg.Prompts = DefaultPrompts()
 	}
 
-	// Parse translate_targets into ParsedTargets.
-	cfg.ParsedTargets = make([]TranslateTarget, len(cfg.TranslateTargets))
-	for i, raw := range cfg.TranslateTargets {
-		parts := strings.SplitN(raw, "|", 2)
-		cfg.ParsedTargets[i].LangA = strings.TrimSpace(parts[0])
-		if len(parts) == 2 {
-			cfg.ParsedTargets[i].LangB = strings.TrimSpace(parts[1])
-		}
+	// Clamp active_prompt to valid range.
+	if cfg.ActivePrompt < 0 || cfg.ActivePrompt >= len(cfg.Prompts) {
+		cfg.ActivePrompt = 0
 	}
 
 	// Synthesize LLMProviders from legacy flat fields if not set.
-	// Only migrate when the legacy provider is actually usable (has an API key,
-	// or is ollama which doesn't need one). An empty API key for a cloud provider
-	// means the user never completed setup — don't create a phantom entry that
-	// would block the wizard.
 	if len(cfg.LLMProviders) == 0 && cfg.LLMProvider != "" {
 		if cfg.LLMProvider == "ollama" || cfg.APIKey != "" {
 			cfg.LLMProviders = map[string]LLMProviderDef{
@@ -292,32 +359,15 @@ func applyDefaults(cfg *Config) {
 	}
 
 	// Fill missing TimeoutMs per provider from global value.
-	// MaxTokens is NOT filled here — each LLM constructor applies its own
-	// sensible default (e.g. 2048 for OpenAI reasoning models vs 256 for others).
 	for label, def := range cfg.LLMProviders {
 		if def.TimeoutMs == 0 {
 			if def.Provider == "ollama" {
-				// Ollama needs a longer timeout: the first request loads the
-				// model into memory which can take 30-60+ seconds.
 				def.TimeoutMs = 120000
 			} else {
 				def.TimeoutMs = cfg.TimeoutMs
 			}
 		}
 		cfg.LLMProviders[label] = def
-	}
-
-	// Substitute {languages} in the correct prompt using configured language names.
-	if strings.Contains(cfg.Prompts.Correct, "{languages}") {
-		names := make([]string, 0, len(cfg.Languages))
-		for _, code := range cfg.Languages {
-			if name, ok := cfg.LanguageNames[code]; ok {
-				names = append(names, name)
-			} else {
-				names = append(names, code)
-			}
-		}
-		cfg.Prompts.Correct = strings.ReplaceAll(cfg.Prompts.Correct, "{languages}", strings.Join(names, " or "))
 	}
 }
 
@@ -378,30 +428,24 @@ func Validate(cfg *Config) error {
 		if err := checkLabel("default_llm", cfg.DefaultLLM); err != nil {
 			return err
 		}
-		if err := checkLabel("correct_llm", cfg.CorrectLLM); err != nil {
-			return err
-		}
-		if err := checkLabel("translate_llm", cfg.TranslateLLM); err != nil {
-			return err
-		}
-		for _, tmpl := range cfg.Prompts.RewriteTemplates {
-			if err := checkLabel(fmt.Sprintf("rewrite_template[%s].llm", tmpl.Name), tmpl.LLM); err != nil {
+		for _, p := range cfg.Prompts {
+			if err := checkLabel(fmt.Sprintf("prompt[%s].llm", p.Name), p.LLM); err != nil {
 				return err
 			}
 		}
 	}
 
-	if cfg.Prompts.Correct == "" {
-		return fmt.Errorf("prompts.correct is required")
+	// Must have at least one prompt.
+	if len(cfg.Prompts) == 0 {
+		return fmt.Errorf("at least one prompt is required")
 	}
-
-	validModes := map[string]bool{
-		"correct":   true,
-		"translate": true,
-		"rewrite":   true,
-	}
-	if !validModes[cfg.ActiveMode] {
-		return fmt.Errorf("unsupported active_mode: %q (valid: correct, translate, rewrite)", cfg.ActiveMode)
+	for i, p := range cfg.Prompts {
+		if p.Name == "" {
+			return fmt.Errorf("prompts[%d]: name is required", i)
+		}
+		if p.Prompt == "" {
+			return fmt.Errorf("prompts[%d]: prompt text is required", i)
+		}
 	}
 
 	// Validate log_level if set.
@@ -417,39 +461,5 @@ func Validate(cfg *Config) error {
 		}
 	}
 
-	// Validate translate target language codes exist in LanguageNames.
-	for _, target := range cfg.ParsedTargets {
-		if _, ok := cfg.LanguageNames[target.LangA]; !ok {
-			return fmt.Errorf("translate target language %q not found in language_names", target.LangA)
-		}
-		if target.LangB != "" {
-			if _, ok := cfg.LanguageNames[target.LangB]; !ok {
-				return fmt.Errorf("translate target language %q not found in language_names", target.LangB)
-			}
-		}
-	}
-
 	return nil
-}
-
-// TranslateTargetLabels returns display labels for each parsed target.
-// Pairs are shown as "English ↔ French", singles as "Spanish".
-func (cfg *Config) TranslateTargetLabels() []string {
-	labels := make([]string, len(cfg.ParsedTargets))
-	for i, t := range cfg.ParsedTargets {
-		nameA := cfg.LanguageNames[t.LangA]
-		if nameA == "" {
-			nameA = t.LangA
-		}
-		if t.IsPair() {
-			nameB := cfg.LanguageNames[t.LangB]
-			if nameB == "" {
-				nameB = t.LangB
-			}
-			labels[i] = nameA + " ↔ " + nameB
-		} else {
-			labels[i] = nameA
-		}
-	}
-	return labels
 }

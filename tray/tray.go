@@ -26,24 +26,15 @@ type Config struct {
 	TemplateIconPNG []byte
 
 	// Callbacks — called on the tray thread.
-	OnModeChange   func(modeName string) // "correct", "translate", "rewrite"
-	OnTargetSelect func(idx int)
-	OnTemplSelect  func(idx int)
-	OnCancel       func()
-	OnSettings    func()
-	OnModelSelect func(label string)
+	OnPromptSelect func(idx int)
+	OnModelSelect  func(label string)
+	OnSettings     func()
 	OnExit         func()
 
 	// State readers — called to build the menu.
-	GetActiveMode  func() string // returns "correct", "translate", or "rewrite"
-	GetTargetIdx   func() int
-	GetTemplateIdx func() int
-	GetIsProcessing func() bool
-	GetModelLabels func() []ModelLabel
-
-	// Dynamic data for building menu items.
-	GetTargetLabels  func() []string // translate target display labels
-	GetTemplateNames func() []string // rewrite template display names
+	GetActivePrompt func() int
+	GetPromptNames  func() []string
+	GetModelLabels  func() []ModelLabel
 }
 
 // trayState holds the runtime state of the system tray.
@@ -134,37 +125,27 @@ func (ts *trayState) refreshMenu() {
 	menu.Add(fmt.Sprintf("GhostType v%s", version.Version)).SetEnabled(false)
 	menu.AddSeparator()
 
-	// Mode selection (radio group).
-	activeMode := "correct"
-	if ts.cfg.GetActiveMode != nil {
-		activeMode = ts.cfg.GetActiveMode()
+	// Prompt selection (radio group).
+	activePrompt := 0
+	if ts.cfg.GetActivePrompt != nil {
+		activePrompt = ts.cfg.GetActivePrompt()
 	}
 
-	correctItem := menu.AddRadio("Correct", activeMode == "correct")
-	translateItem := menu.AddRadio("Translate", activeMode == "translate")
-	rewriteItem := menu.AddRadio("Rewrite", activeMode == "rewrite")
+	var promptNames []string
+	if ts.cfg.GetPromptNames != nil {
+		promptNames = ts.cfg.GetPromptNames()
+	}
 
-	correctItem.OnClick(func(ctx *application.Context) {
-		ts.uncheckModes(correctItem, translateItem, rewriteItem)
-		correctItem.SetChecked(true)
-		if ts.cfg.OnModeChange != nil {
-			ts.cfg.OnModeChange("correct")
-		}
-	})
-	translateItem.OnClick(func(ctx *application.Context) {
-		ts.uncheckModes(correctItem, translateItem, rewriteItem)
-		translateItem.SetChecked(true)
-		if ts.cfg.OnModeChange != nil {
-			ts.cfg.OnModeChange("translate")
-		}
-	})
-	rewriteItem.OnClick(func(ctx *application.Context) {
-		ts.uncheckModes(correctItem, translateItem, rewriteItem)
-		rewriteItem.SetChecked(true)
-		if ts.cfg.OnModeChange != nil {
-			ts.cfg.OnModeChange("rewrite")
-		}
-	})
+	for i, name := range promptNames {
+		item := menu.AddRadio(name, i == activePrompt)
+		idx := i // capture for closure
+		item.OnClick(func(ctx *application.Context) {
+			if ts.cfg.OnPromptSelect != nil {
+				ts.cfg.OnPromptSelect(idx)
+			}
+			ts.refreshMenu()
+		})
+	}
 
 	// Models section.
 	menu.AddSeparator()
@@ -192,82 +173,15 @@ func (ts *trayState) refreshMenu() {
 		}
 	}
 
-	// Language targets.
-	var targetLabels []string
-	if ts.cfg.GetTargetLabels != nil {
-		targetLabels = ts.cfg.GetTargetLabels()
-	}
-	if len(targetLabels) > 0 {
-		menu.AddSeparator()
-		menu.Add("Language:").SetEnabled(false)
-
-		targetIdx := 0
-		if ts.cfg.GetTargetIdx != nil {
-			targetIdx = ts.cfg.GetTargetIdx()
-		}
-
-		for i, name := range targetLabels {
-			item := menu.AddRadio("  "+name, i == targetIdx)
-			idx := i // capture for closure
-			item.OnClick(func(ctx *application.Context) {
-				if ts.cfg.OnTargetSelect != nil {
-					ts.cfg.OnTargetSelect(idx)
-				}
-				ts.refreshMenu()
-			})
-		}
-	}
-
-	// Rewrite templates.
-	var templateNames []string
-	if ts.cfg.GetTemplateNames != nil {
-		templateNames = ts.cfg.GetTemplateNames()
-	}
-	if len(templateNames) > 0 {
-		menu.AddSeparator()
-		menu.Add("Template:").SetEnabled(false)
-
-		templIdx := 0
-		if ts.cfg.GetTemplateIdx != nil {
-			templIdx = ts.cfg.GetTemplateIdx()
-		}
-
-		for i, name := range templateNames {
-			item := menu.AddRadio("  "+name, i == templIdx)
-			idx := i // capture for closure
-			item.OnClick(func(ctx *application.Context) {
-				if ts.cfg.OnTemplSelect != nil {
-					ts.cfg.OnTemplSelect(idx)
-				}
-				ts.refreshMenu()
-			})
-		}
-	}
-
-	// Cancel LLM.
+	// Settings and Exit — together, no separator between them.
 	menu.AddSeparator()
-	isProcessing := false
-	if ts.cfg.GetIsProcessing != nil {
-		isProcessing = ts.cfg.GetIsProcessing()
-	}
-	cancelItem := menu.Add("Cancel LLM")
-	cancelItem.SetEnabled(isProcessing)
-	cancelItem.OnClick(func(ctx *application.Context) {
-		if ts.cfg.OnCancel != nil {
-			ts.cfg.OnCancel()
-		}
-	})
-
-	// Settings — just before Exit.
-	settingsItem := menu.Add("Settings...")
+	settingsItem := menu.Add("Settings")
 	settingsItem.OnClick(func(ctx *application.Context) {
 		if ts.cfg.OnSettings != nil {
 			ts.cfg.OnSettings()
 		}
 	})
 
-	// Exit.
-	menu.AddSeparator()
 	exitItem := menu.Add("Exit")
 	exitItem.OnClick(func(ctx *application.Context) {
 		if ts.cfg.OnExit != nil {
@@ -278,16 +192,8 @@ func (ts *trayState) refreshMenu() {
 	ts.systray.SetMenu(menu)
 
 	slog.Info("[tray] Menu built and set",
-		"active_mode", activeMode,
+		"active_prompt", activePrompt,
+		"prompts", len(promptNames),
 		"models", modelCount,
-		"targets", len(targetLabels),
-		"templates", len(templateNames),
 	)
-}
-
-// uncheckModes unchecks all mode radio items.
-func (ts *trayState) uncheckModes(items ...*application.MenuItem) {
-	for _, item := range items {
-		item.SetChecked(false)
-	}
 }

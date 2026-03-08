@@ -2,5 +2,5 @@
 
 package config
 
-// defaultCorrectHotkey is the default hotkey for the "correct" action.
-const defaultCorrectHotkey = "Ctrl+G"
+// defaultActionHotkey is the default hotkey for the main action.
+const defaultActionHotkey = "Ctrl+G"

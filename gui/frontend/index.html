@@ -295,8 +295,7 @@
 
 <div class="tab-bar">
   <button class="active" onclick="switchTab('models')">Models</button>
-  <button onclick="switchTab('templates')">Templates</button>
-  <button onclick="switchTab('languages')">Languages</button>
+  <button onclick="switchTab('prompts')">Prompts</button>
   <button onclick="switchTab('hotkeys')">Hotkeys</button>
   <button onclick="switchTab('general')">General</button>
   <button onclick="switchTab('debug')">Debug</button>
@@ -375,108 +374,34 @@
     </div>
   </div>
 
-  <!-- ============ TEMPLATES TAB ============ -->
-  <div id="tab-templates" class="tab-panel">
-    <!-- Correction Prompt -->
-    <div class="section">
-      <h2>Correction Prompt</h2>
-      <p style="font-size:0.82em;color:#6c7086;margin-bottom:8px">System prompt sent when correcting text. Use <code style="color:#89b4fa">{languages}</code> for configured language names.</p>
-      <div class="form-group" style="margin-bottom:8px">
-        <textarea id="prompt-correct" rows="3"></textarea>
-      </div>
-      <div class="btn-row" style="margin-top:0">
-        <button class="btn btn-primary btn-sm" onclick="savePromptField('correct')">Save</button>
-        <button class="btn btn-secondary btn-sm" onclick="resetPromptField('correct')">Reset to Default</button>
-      </div>
-      <div class="status" id="prompt-correct-status"></div>
-    </div>
-
-    <hr class="section-divider">
-
-    <!-- Translation Prompts -->
-    <div class="section">
-      <h2>Translation Prompts</h2>
-      <p style="font-size:0.82em;color:#6c7086;margin-bottom:8px">Pair mode (e.g. English ↔ French): use <code style="color:#89b4fa">{language_a}</code> and <code style="color:#89b4fa">{language_b}</code>.</p>
-      <div class="form-group" style="margin-bottom:8px">
-        <label for="prompt-translate">Pair Translation</label>
-        <textarea id="prompt-translate" rows="3"></textarea>
-      </div>
-      <p style="font-size:0.82em;color:#6c7086;margin-bottom:8px">Single target mode (e.g. → Spanish): use <code style="color:#89b4fa">{target_language}</code>.</p>
-      <div class="form-group" style="margin-bottom:8px">
-        <label for="prompt-translate-single">Single Target Translation</label>
-        <textarea id="prompt-translate-single" rows="3"></textarea>
-      </div>
-      <div class="btn-row" style="margin-top:0">
-        <button class="btn btn-primary btn-sm" onclick="saveTranslatePrompts()">Save</button>
-        <button class="btn btn-secondary btn-sm" onclick="resetPromptField('translate')">Reset to Default</button>
-      </div>
-      <div class="status" id="prompt-translate-status"></div>
-    </div>
-
-    <hr class="section-divider">
-
-    <!-- Rewrite Templates -->
+  <!-- ============ PROMPTS TAB ============ -->
+  <div id="tab-prompts" class="tab-panel">
     <div class="toolbar">
-      <h2 style="margin-bottom:0">Rewrite Templates</h2>
-      <button class="btn btn-primary btn-sm" onclick="showAddTemplate()">+ Add Template</button>
+      <h2 style="margin-bottom:0">Prompts</h2>
+      <button class="btn btn-primary btn-sm" onclick="showAddPrompt()">+ Add Prompt</button>
     </div>
-    <div id="template-list"></div>
+    <div id="prompt-list"></div>
 
-    <div id="template-form" style="display:none;margin-top:14px;padding:14px;background:#313244;border-radius:8px">
-      <h2 id="tmpl-form-title">Add Template</h2>
-      <input type="hidden" id="tmpl-edit-index" value="-1">
+    <div id="prompt-form" style="display:none;margin-top:14px;padding:14px;background:#313244;border-radius:8px">
+      <h2 id="prompt-form-title">Add Prompt</h2>
+      <input type="hidden" id="prompt-edit-index" value="-1">
       <div class="form-group">
-        <label for="tmpl-name">Name</label>
-        <input type="text" id="tmpl-name" placeholder="e.g. casual">
+        <label for="prompt-name">Name</label>
+        <input type="text" id="prompt-name" placeholder="e.g. Translate to French">
       </div>
       <div class="form-group">
-        <label for="tmpl-prompt">Prompt</label>
-        <textarea id="tmpl-prompt" rows="3" placeholder="Rewrite this in a casual tone. Return ONLY the rewritten text."></textarea>
+        <label for="prompt-text">Prompt</label>
+        <textarea id="prompt-text" rows="4" placeholder="System instructions for the LLM..."></textarea>
       </div>
       <div class="form-group">
-        <label for="tmpl-llm">LLM Override (optional)</label>
-        <select id="tmpl-llm"><option value="">Use default</option></select>
+        <label for="prompt-llm">LLM Override (optional)</label>
+        <select id="prompt-llm"><option value="">Use default</option></select>
       </div>
       <div class="btn-row">
-        <button class="btn btn-secondary" onclick="cancelTemplateForm()">Cancel</button>
-        <button class="btn btn-primary" onclick="saveTemplate()">Save</button>
+        <button class="btn btn-secondary" onclick="cancelPromptForm()">Cancel</button>
+        <button class="btn btn-primary" onclick="savePrompt()">Save</button>
       </div>
-      <div class="status" id="tmpl-status"></div>
-    </div>
-  </div>
-
-  <!-- ============ LANGUAGES TAB ============ -->
-  <div id="tab-languages" class="tab-panel">
-    <div class="section">
-      <h2>Languages</h2>
-      <p style="font-size:0.82em;color:#6c7086;margin-bottom:12px">Languages used for correction and translation.</p>
-      <div id="lang-tags" class="lang-tags"></div>
-      <div style="position:relative">
-        <input type="text" id="lang-search" placeholder="Search languages..." autocomplete="off"
-               oninput="onLangSearch()" onfocus="onLangSearch()" onkeydown="onLangSearchKey(event)">
-        <div id="lang-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;max-height:200px;overflow-y:auto;background:#313244;border:1px solid #45475a;border-radius:0 0 6px 6px;z-index:10"></div>
-      </div>
-      <div class="status" id="lang-status"></div>
-    </div>
-
-    <hr class="section-divider">
-
-    <div class="section">
-      <h2>Translation Targets</h2>
-      <p style="font-size:0.82em;color:#6c7086;margin-bottom:12px">Pairs auto-detect direction. Single targets always translate to that language.</p>
-      <div id="target-list"></div>
-      <div style="display:flex;gap:6px;align-items:flex-end;margin-top:10px">
-        <div class="form-group" style="margin-bottom:0;flex:1">
-          <label for="target-a">Language A</label>
-          <select id="target-a"></select>
-        </div>
-        <div class="form-group" style="margin-bottom:0;flex:1">
-          <label for="target-b">Language B (optional)</label>
-          <select id="target-b"><option value="">Single target</option></select>
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="addTarget()" style="margin-bottom:0;height:34px">Add</button>
-      </div>
-      <div class="status" id="target-status"></div>
+      <div class="status" id="prompt-status"></div>
     </div>
   </div>
 
@@ -490,29 +415,14 @@
         Leave blank to disable. Restart required for hotkey changes.
       </p>
       <div class="hotkey-input">
-        <label>Action (Correct/Translate/Rewrite)</label>
-        <input type="text" id="hk-correct" placeholder="Click, then press keys..." readonly>
-        <button class="clear-btn" onclick="clearHotkey('correct')" title="Clear">&times;</button>
+        <label>Action</label>
+        <input type="text" id="hk-action" placeholder="Click, then press keys..." readonly>
+        <button class="clear-btn" onclick="clearHotkey('action')" title="Clear">&times;</button>
       </div>
       <div class="hotkey-input">
-        <label>Translate</label>
-        <input type="text" id="hk-translate" placeholder="Click, then press keys..." readonly>
-        <button class="clear-btn" onclick="clearHotkey('translate')" title="Clear">&times;</button>
-      </div>
-      <div class="hotkey-input">
-        <label>Toggle Language</label>
-        <input type="text" id="hk-toggle_language" placeholder="Click, then press keys..." readonly>
-        <button class="clear-btn" onclick="clearHotkey('toggle_language')" title="Clear">&times;</button>
-      </div>
-      <div class="hotkey-input">
-        <label>Rewrite</label>
-        <input type="text" id="hk-rewrite" placeholder="Click, then press keys..." readonly>
-        <button class="clear-btn" onclick="clearHotkey('rewrite')" title="Clear">&times;</button>
-      </div>
-      <div class="hotkey-input">
-        <label>Cycle Template</label>
-        <input type="text" id="hk-cycle_template" placeholder="Click, then press keys..." readonly>
-        <button class="clear-btn" onclick="clearHotkey('cycle_template')" title="Clear">&times;</button>
+        <label>Cycle Prompt</label>
+        <input type="text" id="hk-cycle_prompt" placeholder="Click, then press keys..." readonly>
+        <button class="clear-btn" onclick="clearHotkey('cycle_prompt')" title="Clear">&times;</button>
       </div>
       <button class="btn btn-primary btn-sm" onclick="saveHotkeys()" style="margin-top:8px">Save Hotkeys</button>
       <div class="status" id="hk-status"></div>
@@ -640,7 +550,7 @@
       <img src="/ghost-icon.png" alt="GhostType" style="width:64px;height:64px;margin-bottom:8px">
       <div class="app-name">GhostType</div>
       <div class="app-ver" id="about-version"></div>
-      <div class="desc">AI-powered multilingual text correction, translation, and rewriting.</div>
+      <div class="desc">AI-powered text correction and rewriting.</div>
     </div>
     <div class="update-box">
       <button class="btn btn-primary" onclick="checkForUpdate()" id="update-btn">Check for Updates</button>
@@ -679,8 +589,7 @@ function switchTab(name) {
     if (b.textContent.toLowerCase() === name) b.classList.add('active');
   });
   // Refresh tab data
-  if (name === 'templates') { renderPrompts(); renderTemplates(); }
-  if (name === 'languages') renderLanguages();
+  if (name === 'prompts') renderPrompts();
   if (name === 'hotkeys') renderGeneral();
   if (name === 'general') { renderGeneral(); onCheckPermissions(); }
   if (name === 'debug') renderDebug();
@@ -1008,90 +917,31 @@ function ollamaSetFormModel(name) {
 }
 
 // ===========================================================================
-// TEMPLATES TAB — Correction & Translation Prompts
+// PROMPTS TAB
 // ===========================================================================
-
-const DEFAULT_PROMPTS = {
-  correct: 'The following text is written in one of these languages: {languages}. Fix all spelling and grammar errors. IMPORTANT: Keep the text in its ORIGINAL language — do NOT translate it. Return ONLY the corrected text with no explanation.',
-  translate: 'The two configured languages are {language_a} and {language_b}. Detect the language of the following text and translate it to the OTHER language. If it is {language_a}, translate to {language_b}. If it is {language_b}, translate to {language_a}. Preserve the tone and intent. Return ONLY the translation with no explanation.',
-  translate_single: 'Translate the following text to {target_language}. Preserve the tone and intent. Return ONLY the translation with no explanation.',
-};
 
 async function renderPrompts() {
   await reloadConfig();
-  const prompts = configData.prompts || {};
-  document.getElementById('prompt-correct').value = prompts.correct || DEFAULT_PROMPTS.correct;
-  document.getElementById('prompt-translate').value = prompts.translate || DEFAULT_PROMPTS.translate;
-  document.getElementById('prompt-translate-single').value = prompts.translate_single || DEFAULT_PROMPTS.translate_single;
-}
-
-async function savePromptField(mode) {
-  const el = document.getElementById('prompt-' + mode);
-  const statusId = 'prompt-' + mode + '-status';
-  const result = await goCall('savePrompt', mode, el.value.trim());
-  if (result && result.startsWith('ok')) {
-    setStatus(statusId, 'success', 'Saved');
-  } else {
-    setStatus(statusId, 'error', result || 'Save failed');
-  }
-}
-
-async function saveTranslatePrompts() {
-  const pair = document.getElementById('prompt-translate').value.trim();
-  const single = document.getElementById('prompt-translate-single').value.trim();
-  const statusId = 'prompt-translate-status';
-  let ok = true;
-  if (pair) {
-    const r = await goCall('savePrompt', 'translate', pair);
-    if (!r || !r.startsWith('ok')) { setStatus(statusId, 'error', r || 'Save failed'); ok = false; }
-  }
-  if (single && ok) {
-    const r = await goCall('savePrompt', 'translate_single', single);
-    if (!r || !r.startsWith('ok')) { setStatus(statusId, 'error', r || 'Save failed'); ok = false; }
-  }
-  if (ok) setStatus(statusId, 'success', 'Saved');
-}
-
-async function resetPromptField(mode) {
-  if (mode === 'correct') {
-    document.getElementById('prompt-correct').value = DEFAULT_PROMPTS.correct;
-    await goCall('savePrompt', 'correct', DEFAULT_PROMPTS.correct);
-    setStatus('prompt-correct-status', 'success', 'Reset to default');
-  } else if (mode === 'translate') {
-    document.getElementById('prompt-translate').value = DEFAULT_PROMPTS.translate;
-    document.getElementById('prompt-translate-single').value = DEFAULT_PROMPTS.translate_single;
-    await goCall('savePrompt', 'translate', DEFAULT_PROMPTS.translate);
-    await goCall('savePrompt', 'translate_single', DEFAULT_PROMPTS.translate_single);
-    setStatus('prompt-translate-status', 'success', 'Reset to default');
-  }
-}
-
-// ===========================================================================
-// TEMPLATES TAB — Rewrite Templates
-// ===========================================================================
-
-async function renderTemplates() {
-  await reloadConfig();
-  const container = document.getElementById('template-list');
-  const templates = (configData.prompts && configData.prompts.rewrite_templates) || [];
-  if (templates.length === 0) {
-    container.innerHTML = '<div class="empty-state">No rewrite templates configured.</div>';
+  const container = document.getElementById('prompt-list');
+  const prompts = configData.prompts || [];
+  if (prompts.length === 0) {
+    container.innerHTML = '<div class="empty-state">No prompts configured.</div>';
     return;
   }
   let html = '';
-  templates.forEach((t, i) => {
-    const preview = t.prompt.length > 80 ? t.prompt.slice(0, 80) + '...' : t.prompt;
+  prompts.forEach((p, i) => {
+    const preview = p.prompt.length > 80 ? p.prompt.slice(0, 80) + '...' : p.prompt;
     html += `
       <div class="template-card" draggable="true" data-idx="${i}"
-           ondragstart="tmplDragStart(event, ${i})" ondragover="tmplDragOver(event)" ondrop="tmplDrop(event, ${i})">
+           ondragstart="promptDragStart(event, ${i})" ondragover="promptDragOver(event)" ondrop="promptDrop(event, ${i})">
         <div class="top-row">
           <div>
-            <span class="name">${esc(t.name)}</span>
-            ${t.llm ? '<span class="llm-badge">' + esc(t.llm) + '</span>' : ''}
+            <span class="name">${esc(p.name)}</span>
+            ${p.llm ? '<span class="llm-badge">' + esc(p.llm) + '</span>' : ''}
           </div>
           <div class="actions">
-            <button class="btn btn-secondary btn-sm" onclick="editTemplate(${i})">Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${i})">Delete</button>
+            <button class="btn btn-secondary btn-sm" onclick="editPrompt(${i})">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deletePrompt(${i})">Delete</button>
           </div>
         </div>
         <div class="preview">${esc(preview)}</div>
@@ -1100,30 +950,30 @@ async function renderTemplates() {
   container.innerHTML = html;
 }
 
-function showAddTemplate() {
-  document.getElementById('template-form').style.display = 'block';
-  document.getElementById('tmpl-form-title').textContent = 'Add Template';
-  document.getElementById('tmpl-edit-index').value = '-1';
-  document.getElementById('tmpl-name').value = '';
-  document.getElementById('tmpl-prompt').value = '';
-  populateTmplLLM('');
-  clearStatus('tmpl-status');
+function showAddPrompt() {
+  document.getElementById('prompt-form').style.display = 'block';
+  document.getElementById('prompt-form-title').textContent = 'Add Prompt';
+  document.getElementById('prompt-edit-index').value = '-1';
+  document.getElementById('prompt-name').value = '';
+  document.getElementById('prompt-text').value = '';
+  populatePromptLLM('');
+  clearStatus('prompt-status');
 }
 
-function editTemplate(idx) {
-  const t = configData.prompts.rewrite_templates[idx];
-  if (!t) return;
-  document.getElementById('template-form').style.display = 'block';
-  document.getElementById('tmpl-form-title').textContent = 'Edit Template';
-  document.getElementById('tmpl-edit-index').value = idx;
-  document.getElementById('tmpl-name').value = t.name;
-  document.getElementById('tmpl-prompt').value = t.prompt;
-  populateTmplLLM(t.llm || '');
-  clearStatus('tmpl-status');
+function editPrompt(idx) {
+  const p = (configData.prompts || [])[idx];
+  if (!p) return;
+  document.getElementById('prompt-form').style.display = 'block';
+  document.getElementById('prompt-form-title').textContent = 'Edit Prompt';
+  document.getElementById('prompt-edit-index').value = idx;
+  document.getElementById('prompt-name').value = p.name;
+  document.getElementById('prompt-text').value = p.prompt;
+  populatePromptLLM(p.llm || '');
+  clearStatus('prompt-status');
 }
 
-function populateTmplLLM(selected) {
-  const sel = document.getElementById('tmpl-llm');
+function populatePromptLLM(selected) {
+  const sel = document.getElementById('prompt-llm');
   sel.innerHTML = '<option value="">Use default</option>';
   const providers = configData.llm_providers || {};
   for (const label of Object.keys(providers)) {
@@ -1133,212 +983,39 @@ function populateTmplLLM(selected) {
   }
 }
 
-async function saveTemplate() {
-  const idx = parseInt(document.getElementById('tmpl-edit-index').value);
-  const name = document.getElementById('tmpl-name').value.trim();
-  const prompt = document.getElementById('tmpl-prompt').value.trim();
-  const llm = document.getElementById('tmpl-llm').value;
-  if (!name) { setStatus('tmpl-status', 'error', 'Name is required'); return; }
-  if (!prompt) { setStatus('tmpl-status', 'error', 'Prompt is required'); return; }
-  const result = await goCall('saveTemplate', idx, name, prompt, llm);
+async function savePrompt() {
+  const idx = parseInt(document.getElementById('prompt-edit-index').value);
+  const name = document.getElementById('prompt-name').value.trim();
+  const promptText = document.getElementById('prompt-text').value.trim();
+  const llm = document.getElementById('prompt-llm').value;
+  if (!name) { setStatus('prompt-status', 'error', 'Name is required'); return; }
+  if (!promptText) { setStatus('prompt-status', 'error', 'Prompt is required'); return; }
+  const result = await goCall('savePrompt', idx, name, promptText, llm);
   if (result && result.startsWith('ok')) {
-    document.getElementById('template-form').style.display = 'none';
-    renderTemplates();
+    document.getElementById('prompt-form').style.display = 'none';
+    renderPrompts();
   } else {
-    setStatus('tmpl-status', 'error', result || 'Save failed');
+    setStatus('prompt-status', 'error', result || 'Save failed');
   }
 }
 
-async function deleteTemplate(idx) {
-  const result = await goCall('deleteTemplate', idx);
-  if (result && result.startsWith('ok')) renderTemplates();
+async function deletePrompt(idx) {
+  const result = await goCall('deletePrompt', idx);
+  if (result && result.startsWith('ok')) renderPrompts();
 }
 
-function cancelTemplateForm() { document.getElementById('template-form').style.display = 'none'; }
+function cancelPromptForm() { document.getElementById('prompt-form').style.display = 'none'; }
 
 // Drag and drop reorder
-let tmplDragIdx = -1;
-function tmplDragStart(e, idx) { tmplDragIdx = idx; e.dataTransfer.effectAllowed = 'move'; }
-function tmplDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
-async function tmplDrop(e, toIdx) {
+let promptDragIdx = -1;
+function promptDragStart(e, idx) { promptDragIdx = idx; e.dataTransfer.effectAllowed = 'move'; }
+function promptDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+async function promptDrop(e, toIdx) {
   e.preventDefault();
-  if (tmplDragIdx === toIdx || tmplDragIdx < 0) return;
-  await goCall('moveTemplate', tmplDragIdx, toIdx);
-  tmplDragIdx = -1;
-  renderTemplates();
-}
-
-// ===========================================================================
-// LANGUAGES TAB
-// ===========================================================================
-
-const ALL_LANGUAGES = [
-  {code:'af',name:'Afrikaans'},{code:'ar',name:'Arabic'},{code:'bg',name:'Bulgarian'},
-  {code:'bn',name:'Bengali'},{code:'ca',name:'Catalan'},{code:'cs',name:'Czech'},
-  {code:'cy',name:'Welsh'},{code:'da',name:'Danish'},{code:'de',name:'German'},
-  {code:'el',name:'Greek'},{code:'en',name:'English'},{code:'es',name:'Spanish'},
-  {code:'et',name:'Estonian'},{code:'fa',name:'Persian'},{code:'fi',name:'Finnish'},
-  {code:'fr',name:'French'},{code:'ga',name:'Irish'},{code:'he',name:'Hebrew'},
-  {code:'hi',name:'Hindi'},{code:'hr',name:'Croatian'},{code:'hu',name:'Hungarian'},
-  {code:'id',name:'Indonesian'},{code:'is',name:'Icelandic'},{code:'it',name:'Italian'},
-  {code:'ja',name:'Japanese'},{code:'ko',name:'Korean'},{code:'lt',name:'Lithuanian'},
-  {code:'lv',name:'Latvian'},{code:'mk',name:'Macedonian'},{code:'ms',name:'Malay'},
-  {code:'nl',name:'Dutch'},{code:'no',name:'Norwegian'},{code:'pl',name:'Polish'},
-  {code:'pt',name:'Portuguese'},{code:'ro',name:'Romanian'},{code:'ru',name:'Russian'},
-  {code:'sk',name:'Slovak'},{code:'sl',name:'Slovenian'},{code:'sq',name:'Albanian'},
-  {code:'sr',name:'Serbian'},{code:'sv',name:'Swedish'},{code:'sw',name:'Swahili'},
-  {code:'th',name:'Thai'},{code:'tl',name:'Filipino'},{code:'tr',name:'Turkish'},
-  {code:'uk',name:'Ukrainian'},{code:'ur',name:'Urdu'},{code:'vi',name:'Vietnamese'},
-  {code:'zh',name:'Chinese'},
-];
-
-let langDropdownIdx = -1;
-
-async function renderLanguages() {
-  await reloadConfig();
-  const tagsEl = document.getElementById('lang-tags');
-  const langs = configData.languages || [];
-  const names = configData.language_names || {};
-  let html = '';
-  for (const code of langs) {
-    const name = names[code] || code;
-    html += `<span class="lang-tag">${esc(name)} (${esc(code)}) <button class="remove" onclick="removeLanguage('${escJS(code)}')">&times;</button></span>`;
-  }
-  tagsEl.innerHTML = html;
-
-  // Populate target dropdowns
-  const selA = document.getElementById('target-a');
-  const selB = document.getElementById('target-b');
-  selA.innerHTML = '';
-  selB.innerHTML = '<option value="">Single target</option>';
-  for (const code of langs) {
-    const name = names[code] || code;
-    const optA = document.createElement('option'); optA.value = code; optA.textContent = name; selA.appendChild(optA);
-    const optB = document.createElement('option'); optB.value = code; optB.textContent = name; selB.appendChild(optB);
-  }
-
-  // Translate targets list
-  const targetList = document.getElementById('target-list');
-  const targets = configData.translate_targets || [];
-  let thtml = '';
-  targets.forEach((t, i) => {
-    const parts = t.split('|');
-    let label;
-    if (parts.length === 2) {
-      label = (names[parts[0]] || parts[0]) + ' \u2194 ' + (names[parts[1]] || parts[1]);
-    } else {
-      label = names[parts[0]] || parts[0];
-    }
-    thtml += `<div class="target-row"><span>${esc(label)}</span><button class="btn btn-danger btn-sm" onclick="removeTarget(${i})">Remove</button></div>`;
-  });
-  targetList.innerHTML = thtml || '<div class="empty-state" style="padding:12px">No translation targets configured.</div>';
-
-  // Clear search
-  const searchEl = document.getElementById('lang-search');
-  if (searchEl) searchEl.value = '';
-  closeLangDropdown();
-}
-
-function getAvailableLanguages() {
-  const existing = new Set(configData.languages || []);
-  return ALL_LANGUAGES.filter(l => !existing.has(l.code));
-}
-
-function onLangSearch() {
-  const query = document.getElementById('lang-search').value.trim().toLowerCase();
-  const available = getAvailableLanguages();
-  const filtered = query
-    ? available.filter(l => l.name.toLowerCase().includes(query) || l.code.includes(query))
-    : available;
-  const dd = document.getElementById('lang-dropdown');
-  if (filtered.length === 0) {
-    dd.innerHTML = '<div style="padding:10px;color:#6c7086;font-size:0.85em">' + (available.length === 0 ? 'All languages added' : 'No match') + '</div>';
-    dd.style.display = 'block';
-    langDropdownIdx = -1;
-    return;
-  }
-  let html = '';
-  filtered.forEach((l, i) => {
-    html += `<div class="lang-option" data-code="${esc(l.code)}" data-name="${esc(l.name)}" onmousedown="selectLanguage('${escJS(l.code)}','${escJS(l.name)}')" style="padding:8px 12px;cursor:pointer;font-size:0.9em;${i === langDropdownIdx ? 'background:#45475a' : ''}" onmouseenter="this.style.background='#45475a'" onmouseleave="this.style.background=${i === langDropdownIdx ? "'#45475a'" : "''"}">${esc(l.name)} <span style="color:#6c7086">(${esc(l.code)})</span></div>`;
-  });
-  dd.innerHTML = html;
-  dd.style.display = 'block';
-}
-
-function onLangSearchKey(e) {
-  const dd = document.getElementById('lang-dropdown');
-  const items = dd.querySelectorAll('.lang-option');
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    langDropdownIdx = Math.min(langDropdownIdx + 1, items.length - 1);
-    highlightLangOption(items);
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    langDropdownIdx = Math.max(langDropdownIdx - 1, 0);
-    highlightLangOption(items);
-  } else if (e.key === 'Enter') {
-    e.preventDefault();
-    if (langDropdownIdx >= 0 && langDropdownIdx < items.length) {
-      const item = items[langDropdownIdx];
-      selectLanguage(item.dataset.code, item.dataset.name);
-    }
-  } else if (e.key === 'Escape') {
-    closeLangDropdown();
-    document.getElementById('lang-search').blur();
-  } else {
-    langDropdownIdx = -1;
-  }
-}
-
-function highlightLangOption(items) {
-  items.forEach((el, i) => {
-    el.style.background = i === langDropdownIdx ? '#45475a' : '';
-  });
-  if (langDropdownIdx >= 0 && items[langDropdownIdx]) {
-    items[langDropdownIdx].scrollIntoView({ block: 'nearest' });
-  }
-}
-
-function closeLangDropdown() {
-  document.getElementById('lang-dropdown').style.display = 'none';
-  langDropdownIdx = -1;
-}
-
-async function selectLanguage(code, name) {
-  const result = await goCall('addLanguage', code, name);
-  if (result && result.startsWith('ok')) {
-    clearStatus('lang-status');
-    renderLanguages();
-  } else {
-    setStatus('lang-status', 'error', result || 'Failed');
-  }
-}
-
-async function removeLanguage(code) {
-  const result = await goCall('removeLanguage', code);
-  if (result && result.startsWith('ok')) renderLanguages();
-}
-
-// Close dropdown when clicking outside
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('#lang-search') && !e.target.closest('#lang-dropdown')) {
-    closeLangDropdown();
-  }
-});
-
-async function addTarget() {
-  const a = document.getElementById('target-a').value;
-  const b = document.getElementById('target-b').value;
-  if (!a) { setStatus('target-status', 'error', 'Select at least Language A'); return; }
-  const target = b ? a + '|' + b : a;
-  const result = await goCall('addTranslateTarget', target);
-  if (result && result.startsWith('ok')) { clearStatus('target-status'); renderLanguages(); }
-  else setStatus('target-status', 'error', result || 'Failed');
-}
-
-async function removeTarget(idx) {
-  const result = await goCall('removeTranslateTarget', idx);
-  if (result && result.startsWith('ok')) renderLanguages();
+  if (promptDragIdx === toIdx || promptDragIdx < 0) return;
+  await goCall('movePrompt', promptDragIdx, toIdx);
+  promptDragIdx = -1;
+  renderPrompts();
 }
 
 // ===========================================================================
@@ -1352,11 +1029,8 @@ async function renderGeneral() {
 
   // Hotkeys
   const hk = configData.hotkeys || {};
-  document.getElementById('hk-correct').value = hk.correct || '';
-  document.getElementById('hk-translate').value = hk.translate || '';
-  document.getElementById('hk-toggle_language').value = hk.toggle_language || '';
-  document.getElementById('hk-rewrite').value = hk.rewrite || '';
-  document.getElementById('hk-cycle_template').value = hk.cycle_template || '';
+  document.getElementById('hk-action').value = hk.action || '';
+  document.getElementById('hk-cycle_prompt').value = hk.cycle_prompt || '';
 }
 
 async function renderDebug() {
@@ -1495,7 +1169,7 @@ function initHotkeyCapture() {
 }
 
 async function saveHotkeys() {
-  const keys = ['correct', 'translate', 'toggle_language', 'rewrite', 'cycle_template'];
+  const keys = ['action', 'cycle_prompt'];
   let allOk = true;
   for (const name of keys) {
     const val = document.getElementById('hk-' + name).value.trim();

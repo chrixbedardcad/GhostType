@@ -20,10 +20,9 @@ import (
 	"github.com/chrixbedardcad/GhostType/mode"
 )
 
-// TestFullCorrectionPipeline tests the complete F7 correction workflow
+// TestFullCorrectionPipeline tests the complete correction workflow
 // with a mock LLM server.
 func TestFullCorrectionPipeline(t *testing.T) {
-	// 1. Set up mock LLM server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		resp := map[string]interface{}{
 			"content": []map[string]string{
@@ -35,41 +34,28 @@ func TestFullCorrectionPipeline(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// 2. Create config pointing to mock server
 	cfg := &config.Config{
 		LLMProvider: "anthropic",
 		APIKey:      "test-key",
 		Model:       "claude-sonnet-4-5-20250929",
 		APIEndpoint: server.URL,
-		Languages:   []string{"en", "fr"},
-		LanguageNames: map[string]string{
-			"en": "English",
-			"fr": "French",
+		Prompts: []config.PromptEntry{
+			{Name: "Correct", Prompt: "Fix all spelling and grammar errors. Return ONLY the corrected text."},
 		},
-		DefaultTranslateTarget: "en",
-		Prompts: config.Prompts{
-			Correct:   "Fix all spelling and grammar errors. Return ONLY the corrected text.",
-			Translate: "Translate to {target_language}. Return ONLY the translation.",
-			RewriteTemplates: []config.RewriteTemplate{
-				{Name: "funny", Prompt: "Rewrite as funny. Return ONLY the text."},
-			},
-		},
-		MaxTokens: 256,
-		TimeoutMs: 5000,
+		ActivePrompt: 0,
+		MaxTokens:    256,
+		TimeoutMs:    5000,
 	}
 
-	// 3. Create LLM client
 	client, err := llm.NewClient(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create LLM client: %v", err)
 	}
 
-	// 4. Create mode router
 	router := mode.NewRouter(cfg, client)
 
-	// 5. Simulate F7 correction
 	inputText := "Helo, how are yu tday?"
-	result, err := router.Process(context.Background(), mode.ModeCorrect, inputText)
+	result, err := router.Process(context.Background(), 0, inputText)
 	if err != nil {
 		t.Fatalf("Correction failed: %v", err)
 	}
@@ -82,12 +68,12 @@ func TestFullCorrectionPipeline(t *testing.T) {
 	t.Logf("Output: %s", result)
 }
 
-// TestFullTranslationPipeline tests the F8 translation workflow.
-func TestFullTranslationPipeline(t *testing.T) {
+// TestFullPolishPipeline tests the polish prompt workflow.
+func TestFullPolishPipeline(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		resp := map[string]interface{}{
 			"content": []map[string]string{
-				{"type": "text", "text": "Bonjour, comment allez-vous?"},
+				{"type": "text", "text": "This is a polished and refined version."},
 			},
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -100,21 +86,13 @@ func TestFullTranslationPipeline(t *testing.T) {
 		APIKey:      "test-key",
 		Model:       "claude-sonnet-4-5-20250929",
 		APIEndpoint: server.URL,
-		Languages:   []string{"en", "fr"},
-		LanguageNames: map[string]string{
-			"en": "English",
-			"fr": "French",
+		Prompts: []config.PromptEntry{
+			{Name: "Correct", Prompt: "Fix errors."},
+			{Name: "Polish", Prompt: "Improve the text."},
 		},
-		DefaultTranslateTarget: "fr",
-		Prompts: config.Prompts{
-			Correct:   "Fix errors.",
-			Translate: "Translate to {target_language}. Return ONLY the translation.",
-			RewriteTemplates: []config.RewriteTemplate{
-				{Name: "funny", Prompt: "Rewrite as funny."},
-			},
-		},
-		MaxTokens: 256,
-		TimeoutMs: 5000,
+		ActivePrompt: 1,
+		MaxTokens:    256,
+		TimeoutMs:    5000,
 	}
 
 	client, err := llm.NewClient(cfg)
@@ -124,72 +102,15 @@ func TestFullTranslationPipeline(t *testing.T) {
 
 	router := mode.NewRouter(cfg, client)
 
-	result, err := router.Process(context.Background(), mode.ModeTranslate, "Hello, how are you?")
+	result, err := router.Process(context.Background(), 1, "some rough text here")
 	if err != nil {
-		t.Fatalf("Translation failed: %v", err)
+		t.Fatalf("Polish failed: %v", err)
 	}
 
 	if result == "" {
-		t.Fatal("Expected non-empty translation result")
+		t.Fatal("Expected non-empty polish result")
 	}
 
-	t.Logf("Input:  Hello, how are you?")
-	t.Logf("Output: %s", result)
-}
-
-// TestFullRewritePipeline tests the F9 rewrite workflow.
-func TestFullRewritePipeline(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		resp := map[string]interface{}{
-			"content": []map[string]string{
-				{"type": "text", "text": "LOL, you won't believe what just happened!"},
-			},
-		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
-	}))
-	defer server.Close()
-
-	cfg := &config.Config{
-		LLMProvider: "anthropic",
-		APIKey:      "test-key",
-		Model:       "claude-sonnet-4-5-20250929",
-		APIEndpoint: server.URL,
-		Languages:   []string{"en", "fr"},
-		LanguageNames: map[string]string{
-			"en": "English",
-			"fr": "French",
-		},
-		DefaultTranslateTarget: "en",
-		Prompts: config.Prompts{
-			Correct:   "Fix errors.",
-			Translate: "Translate to {target_language}.",
-			RewriteTemplates: []config.RewriteTemplate{
-				{Name: "funny", Prompt: "Rewrite as funny. Return ONLY the text."},
-				{Name: "formal", Prompt: "Rewrite formally. Return ONLY the text."},
-			},
-		},
-		MaxTokens: 256,
-		TimeoutMs: 5000,
-	}
-
-	client, err := llm.NewClient(cfg)
-	if err != nil {
-		t.Fatalf("Failed to create LLM client: %v", err)
-	}
-
-	router := mode.NewRouter(cfg, client)
-
-	result, err := router.Process(context.Background(), mode.ModeRewrite, "Something happened today.")
-	if err != nil {
-		t.Fatalf("Rewrite failed: %v", err)
-	}
-
-	if result == "" {
-		t.Fatal("Expected non-empty rewrite result")
-	}
-
-	t.Logf("Input:  Something happened today.")
 	t.Logf("Output: %s", result)
 }
 
@@ -201,12 +122,10 @@ func TestClipboardPreservation(t *testing.T) {
 		func(text string) error { store = text; return nil },
 	)
 
-	// Save original clipboard
 	if err := cb.Save(); err != nil {
 		t.Fatalf("Failed to save clipboard: %v", err)
 	}
 
-	// Simulate GhostType writing corrected text
 	if err := cb.Write("corrected text from LLM"); err != nil {
 		t.Fatalf("Failed to write clipboard: %v", err)
 	}
@@ -216,7 +135,6 @@ func TestClipboardPreservation(t *testing.T) {
 		t.Errorf("Expected 'corrected text from LLM', got '%s'", current)
 	}
 
-	// Restore original clipboard
 	if err := cb.Restore(); err != nil {
 		t.Fatalf("Failed to restore clipboard: %v", err)
 	}
@@ -233,18 +151,15 @@ func TestConfigLoadAndCreateDefault(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.json")
 
-	// LoadRaw should create a default (Load would fail validation since no provider is configured).
 	cfg, err := config.LoadRaw(path)
 	if err != nil {
 		t.Fatalf("Failed to load/create config: %v", err)
 	}
 
-	// Default config has empty flat fields — wizard populates llm_providers.
-	if cfg.ActiveMode != "correct" {
-		t.Errorf("Expected default active_mode 'correct', got '%s'", cfg.ActiveMode)
+	if len(cfg.Prompts) != 3 {
+		t.Errorf("Expected 3 default prompts, got %d", len(cfg.Prompts))
 	}
 
-	// Verify the file was created and can be read
 	data, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("Failed to read created config: %v", err)
@@ -255,15 +170,14 @@ func TestConfigLoadAndCreateDefault(t *testing.T) {
 		t.Fatalf("Created config is invalid JSON: %v", err)
 	}
 
-	if reloaded.Hotkeys.Correct != "Ctrl+G" {
-		t.Errorf("Expected default hotkey 'Ctrl+G' in file, got '%s'", reloaded.Hotkeys.Correct)
+	if reloaded.Hotkeys.Action != "Ctrl+G" {
+		t.Errorf("Expected default hotkey 'Ctrl+G' in file, got '%s'", reloaded.Hotkeys.Action)
 	}
 }
 
 // TestOpenAIPipeline tests the full pipeline using the OpenAI provider.
 func TestOpenAIPipeline(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Verify OpenAI-style auth header
 		auth := r.Header.Get("Authorization")
 		if auth != "Bearer test-openai-key" {
 			t.Errorf("Expected OpenAI auth header, got '%s'", auth)
@@ -284,21 +198,12 @@ func TestOpenAIPipeline(t *testing.T) {
 		APIKey:      "test-openai-key",
 		Model:       "gpt-4o",
 		APIEndpoint: server.URL,
-		Languages:   []string{"en", "fr"},
-		LanguageNames: map[string]string{
-			"en": "English",
-			"fr": "French",
+		Prompts: []config.PromptEntry{
+			{Name: "Correct", Prompt: "Fix errors. Return ONLY corrected text."},
 		},
-		DefaultTranslateTarget: "en",
-		Prompts: config.Prompts{
-			Correct:   "Fix errors. Return ONLY corrected text.",
-			Translate: "Translate to {target_language}.",
-			RewriteTemplates: []config.RewriteTemplate{
-				{Name: "funny", Prompt: "Rewrite as funny."},
-			},
-		},
-		MaxTokens: 256,
-		TimeoutMs: 5000,
+		ActivePrompt: 0,
+		MaxTokens:    256,
+		TimeoutMs:    5000,
 	}
 
 	client, err := llm.NewClient(cfg)
@@ -308,7 +213,7 @@ func TestOpenAIPipeline(t *testing.T) {
 
 	router := mode.NewRouter(cfg, client)
 
-	result, err := router.Process(context.Background(), mode.ModeCorrect, "Helo wrold")
+	result, err := router.Process(context.Background(), 0, "Helo wrold")
 	if err != nil {
 		t.Fatalf("OpenAI correction failed: %v", err)
 	}
@@ -332,20 +237,12 @@ func TestLLMErrorDoesNotReplaceText(t *testing.T) {
 		APIKey:      "test-key",
 		Model:       "claude-sonnet-4-5-20250929",
 		APIEndpoint: server.URL,
-		Languages:   []string{"en"},
-		LanguageNames: map[string]string{
-			"en": "English",
+		Prompts: []config.PromptEntry{
+			{Name: "Correct", Prompt: "Fix errors."},
 		},
-		DefaultTranslateTarget: "en",
-		Prompts: config.Prompts{
-			Correct:   "Fix errors.",
-			Translate: "Translate.",
-			RewriteTemplates: []config.RewriteTemplate{
-				{Name: "funny", Prompt: "Rewrite."},
-			},
-		},
-		MaxTokens: 256,
-		TimeoutMs: 5000,
+		ActivePrompt: 0,
+		MaxTokens:    256,
+		TimeoutMs:    5000,
 	}
 
 	client, err := llm.NewClient(cfg)
@@ -356,7 +253,7 @@ func TestLLMErrorDoesNotReplaceText(t *testing.T) {
 	router := mode.NewRouter(cfg, client)
 
 	originalText := "This is the original text that should not be replaced"
-	_, err = router.Process(context.Background(), mode.ModeCorrect, originalText)
+	_, err = router.Process(context.Background(), 0, originalText)
 	if err == nil {
 		t.Fatal("Expected error from failing LLM, but got none — text would have been replaced!")
 	}

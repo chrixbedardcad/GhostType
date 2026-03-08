@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -163,12 +164,38 @@ func (m *WindowsManager) Listen() error {
 	// UnregisterHotKey must be called from the same OS thread that called
 	// RegisterHotKey (hwnd=0). The caller locks this goroutine to its thread.
 	defer func() {
+		slog.Debug("Listen() exiting — unregistering hotkeys")
 		m.mu.Lock()
 		for name, reg := range m.hotkeys {
 			procUnregisterHotKey.Call(0, uintptr(reg.id))
 			slog.Debug("Hotkey unregistered on listen exit", "name", name, "id", reg.id)
 		}
 		m.mu.Unlock()
+	}()
+
+	// Heartbeat goroutine — logs listener state every 30s to confirm the
+	// message loop thread is alive and hotkeys are still registered.
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-m.stopChan:
+				return
+			case <-ticker.C:
+				m.mu.Lock()
+				names := make([]string, 0, len(m.hotkeys))
+				for name := range m.hotkeys {
+					names = append(names, name)
+				}
+				m.mu.Unlock()
+				slog.Debug("Hotkey listener heartbeat",
+					"threadID", m.threadID,
+					"registered", len(names),
+					"names", fmt.Sprintf("%v", names),
+				)
+			}
+		}
 	}()
 
 	var message msg
@@ -180,7 +207,13 @@ func (m *WindowsManager) Listen() error {
 		default:
 		}
 
-		ret, _, _ := procGetMessage.Call(uintptr(unsafe.Pointer(&message)), 0, 0, 0)
+		ret, _, err := procGetMessage.Call(uintptr(unsafe.Pointer(&message)), 0, 0, 0)
+
+		// GetMessage returns: >0 = message, 0 = WM_QUIT, -1 = error.
+		if int32(ret) == -1 {
+			slog.Error("GetMessage returned -1 (error)", "error", err, "threadID", m.threadID)
+			return fmt.Errorf("GetMessage failed: %w", err)
+		}
 		if ret == 0 {
 			slog.Debug("GetMessage returned 0 (WM_QUIT) — exiting message loop")
 			return nil

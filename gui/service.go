@@ -61,6 +61,10 @@ func (s *SettingsService) Reset(cfg *config.Config, configPath string, onSaved f
 			cfgCopy.LLMProviders[k] = v
 		}
 	}
+	if cfg.Prompts != nil {
+		cfgCopy.Prompts = make([]config.PromptEntry, len(cfg.Prompts))
+		copy(cfgCopy.Prompts, cfg.Prompts)
+	}
 	s.cfgCopy = &cfgCopy
 	s.configPath = configPath
 	s.onSaved = onSaved
@@ -374,44 +378,19 @@ func (s *SettingsService) OllamaDownloadInstaller() string {
 	return "ok"
 }
 
-// --- Prompt management (correction & translation) --------------------------
+// --- Prompt management -----------------------------------------------------
 
-// SavePrompt updates the system prompt for a given mode.
-// Supported modes: "correct", "translate", "translate_single".
-func (s *SettingsService) SavePrompt(mode, prompt string) string {
-	guiLog("[GUI] JS called: SavePrompt(mode=%s)", mode)
-	if prompt == "" {
-		return "error: prompt cannot be empty"
-	}
-	switch mode {
-	case "correct":
-		s.cfgCopy.Prompts.Correct = prompt
-	case "translate":
-		s.cfgCopy.Prompts.Translate = prompt
-	case "translate_single":
-		s.cfgCopy.Prompts.TranslateSingle = prompt
-	default:
-		return "error: unknown prompt mode"
-	}
-	if err := s.clearLegacyAndSave(); err != nil {
-		return fmt.Sprintf("error: %v", err)
-	}
-	return "ok"
-}
-
-// --- Template management ---------------------------------------------------
-
-// SaveTemplate updates an existing template at the given index, or appends if index == -1.
-func (s *SettingsService) SaveTemplate(index int, name, prompt, llmLabel string) string {
-	guiLog("[GUI] JS called: SaveTemplate(idx=%d, name=%s)", index, name)
+// SavePrompt updates an existing prompt at the given index, or appends if index == -1.
+func (s *SettingsService) SavePrompt(index int, name, prompt, llmLabel string) string {
+	guiLog("[GUI] JS called: SavePrompt(idx=%d, name=%s)", index, name)
 	if name == "" || prompt == "" {
 		return "error: name and prompt are required"
 	}
-	t := config.RewriteTemplate{Name: name, Prompt: prompt, LLM: llmLabel}
-	if index < 0 || index >= len(s.cfgCopy.Prompts.RewriteTemplates) {
-		s.cfgCopy.Prompts.RewriteTemplates = append(s.cfgCopy.Prompts.RewriteTemplates, t)
+	entry := config.PromptEntry{Name: name, Prompt: prompt, LLM: llmLabel}
+	if index < 0 || index >= len(s.cfgCopy.Prompts) {
+		s.cfgCopy.Prompts = append(s.cfgCopy.Prompts, entry)
 	} else {
-		s.cfgCopy.Prompts.RewriteTemplates[index] = t
+		s.cfgCopy.Prompts[index] = entry
 	}
 	if err := s.clearLegacyAndSave(); err != nil {
 		return fmt.Sprintf("error: %v", err)
@@ -419,112 +398,37 @@ func (s *SettingsService) SaveTemplate(index int, name, prompt, llmLabel string)
 	return "ok"
 }
 
-// DeleteTemplate removes the template at the given index.
-func (s *SettingsService) DeleteTemplate(index int) string {
-	guiLog("[GUI] JS called: DeleteTemplate(%d)", index)
-	ts := s.cfgCopy.Prompts.RewriteTemplates
-	if index < 0 || index >= len(ts) {
+// DeletePrompt removes the prompt at the given index.
+func (s *SettingsService) DeletePrompt(index int) string {
+	guiLog("[GUI] JS called: DeletePrompt(%d)", index)
+	if index < 0 || index >= len(s.cfgCopy.Prompts) {
 		return "error: invalid index"
 	}
-	s.cfgCopy.Prompts.RewriteTemplates = append(ts[:index], ts[index+1:]...)
+	s.cfgCopy.Prompts = append(s.cfgCopy.Prompts[:index], s.cfgCopy.Prompts[index+1:]...)
+	// Adjust active_prompt if needed.
+	if s.cfgCopy.ActivePrompt >= len(s.cfgCopy.Prompts) {
+		s.cfgCopy.ActivePrompt = 0
+	}
 	if err := s.clearLegacyAndSave(); err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}
 	return "ok"
 }
 
-// MoveTemplate moves a template from one index to another.
-func (s *SettingsService) MoveTemplate(fromIdx, toIdx int) string {
-	guiLog("[GUI] JS called: MoveTemplate(%d -> %d)", fromIdx, toIdx)
-	ts := s.cfgCopy.Prompts.RewriteTemplates
-	if fromIdx < 0 || fromIdx >= len(ts) || toIdx < 0 || toIdx >= len(ts) {
+// MovePrompt moves a prompt from one index to another.
+func (s *SettingsService) MovePrompt(fromIdx, toIdx int) string {
+	guiLog("[GUI] JS called: MovePrompt(%d -> %d)", fromIdx, toIdx)
+	ps := s.cfgCopy.Prompts
+	if fromIdx < 0 || fromIdx >= len(ps) || toIdx < 0 || toIdx >= len(ps) {
 		return "error: invalid index"
 	}
-	item := ts[fromIdx]
-	ts = append(ts[:fromIdx], ts[fromIdx+1:]...)
-	newTS := make([]config.RewriteTemplate, 0, len(ts)+1)
-	newTS = append(newTS, ts[:toIdx]...)
-	newTS = append(newTS, item)
-	newTS = append(newTS, ts[toIdx:]...)
-	s.cfgCopy.Prompts.RewriteTemplates = newTS
-	if err := s.clearLegacyAndSave(); err != nil {
-		return fmt.Sprintf("error: %v", err)
-	}
-	return "ok"
-}
-
-// --- Language management ---------------------------------------------------
-
-// AddLanguage adds a language code and display name.
-func (s *SettingsService) AddLanguage(code, name string) string {
-	guiLog("[GUI] JS called: AddLanguage(%s, %s)", code, name)
-	if code == "" || name == "" {
-		return "error: code and name are required"
-	}
-	// Check for duplicates.
-	for _, c := range s.cfgCopy.Languages {
-		if c == code {
-			return "error: language already exists"
-		}
-	}
-	s.cfgCopy.Languages = append(s.cfgCopy.Languages, code)
-	if s.cfgCopy.LanguageNames == nil {
-		s.cfgCopy.LanguageNames = make(map[string]string)
-	}
-	s.cfgCopy.LanguageNames[code] = name
-	if err := s.clearLegacyAndSave(); err != nil {
-		return fmt.Sprintf("error: %v", err)
-	}
-	return "ok"
-}
-
-// RemoveLanguage removes a language by code.
-func (s *SettingsService) RemoveLanguage(code string) string {
-	guiLog("[GUI] JS called: RemoveLanguage(%s)", code)
-	newLangs := make([]string, 0, len(s.cfgCopy.Languages))
-	for _, c := range s.cfgCopy.Languages {
-		if c != code {
-			newLangs = append(newLangs, c)
-		}
-	}
-	s.cfgCopy.Languages = newLangs
-	delete(s.cfgCopy.LanguageNames, code)
-	// Clean up translate targets that reference removed language.
-	var newTargets []string
-	for _, t := range s.cfgCopy.TranslateTargets {
-		parts := splitTarget(t)
-		if parts[0] != code && (len(parts) < 2 || parts[1] != code) {
-			newTargets = append(newTargets, t)
-		}
-	}
-	s.cfgCopy.TranslateTargets = newTargets
-	if err := s.clearLegacyAndSave(); err != nil {
-		return fmt.Sprintf("error: %v", err)
-	}
-	return "ok"
-}
-
-// AddTranslateTarget adds a translate target (e.g. "en|fr" or "es").
-func (s *SettingsService) AddTranslateTarget(target string) string {
-	guiLog("[GUI] JS called: AddTranslateTarget(%s)", target)
-	if target == "" {
-		return "error: target is required"
-	}
-	s.cfgCopy.TranslateTargets = append(s.cfgCopy.TranslateTargets, target)
-	if err := s.clearLegacyAndSave(); err != nil {
-		return fmt.Sprintf("error: %v", err)
-	}
-	return "ok"
-}
-
-// RemoveTranslateTarget removes the target at the given index.
-func (s *SettingsService) RemoveTranslateTarget(index int) string {
-	guiLog("[GUI] JS called: RemoveTranslateTarget(%d)", index)
-	ts := s.cfgCopy.TranslateTargets
-	if index < 0 || index >= len(ts) {
-		return "error: invalid index"
-	}
-	s.cfgCopy.TranslateTargets = append(ts[:index], ts[index+1:]...)
+	item := ps[fromIdx]
+	ps = append(ps[:fromIdx], ps[fromIdx+1:]...)
+	newPS := make([]config.PromptEntry, 0, len(ps)+1)
+	newPS = append(newPS, ps[:toIdx]...)
+	newPS = append(newPS, item)
+	newPS = append(newPS, ps[toIdx:]...)
+	s.cfgCopy.Prompts = newPS
 	if err := s.clearLegacyAndSave(); err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}
@@ -557,16 +461,10 @@ func (s *SettingsService) SetPreserveClipboard(enabled bool) string {
 func (s *SettingsService) SetHotkey(name, binding string) string {
 	guiLog("[GUI] JS called: SetHotkey(%s, %s)", name, binding)
 	switch name {
-	case "correct":
-		s.cfgCopy.Hotkeys.Correct = binding
-	case "translate":
-		s.cfgCopy.Hotkeys.Translate = binding
-	case "toggle_language":
-		s.cfgCopy.Hotkeys.ToggleLanguage = binding
-	case "rewrite":
-		s.cfgCopy.Hotkeys.Rewrite = binding
-	case "cycle_template":
-		s.cfgCopy.Hotkeys.CycleTemplate = binding
+	case "action":
+		s.cfgCopy.Hotkeys.Action = binding
+	case "cycle_prompt":
+		s.cfgCopy.Hotkeys.CyclePrompt = binding
 	default:
 		return "error: unknown hotkey name"
 	}
@@ -799,16 +697,6 @@ func (s *SettingsService) OpenInputMonitoringPane() string {
 		s.OpenInputMonitoringPaneFn()
 	}
 	return "ok"
-}
-
-// splitTarget splits "en|fr" into ["en", "fr"] or "es" into ["es"].
-func splitTarget(t string) []string {
-	for i := range t {
-		if t[i] == '|' {
-			return []string{t[:i], t[i+1:]}
-		}
-	}
-	return []string{t}
 }
 
 // OpenFile opens a file using the platform's default handler.

@@ -2,6 +2,6 @@
 
 package config
 
-// defaultCorrectHotkey is the default hotkey for the "correct" action.
+// defaultActionHotkey is the default hotkey for the main action.
 // On macOS, Ctrl maps to Cmd (⌘), so "Ctrl+G" becomes ⌘G.
-const defaultCorrectHotkey = "Ctrl+G"
+const defaultActionHotkey = "Ctrl+G"
