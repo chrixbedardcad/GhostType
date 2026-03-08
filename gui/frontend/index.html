@@ -40,7 +40,13 @@
 
   .tab-content {
     flex: 1; overflow-y: auto; padding: 20px 24px;
+    scrollbar-width: thin;
+    scrollbar-color: #585b70 #1e1e2e;
   }
+  .tab-content::-webkit-scrollbar { width: 8px; }
+  .tab-content::-webkit-scrollbar-track { background: #1e1e2e; }
+  .tab-content::-webkit-scrollbar-thumb { background: #585b70; border-radius: 4px; }
+  .tab-content::-webkit-scrollbar-thumb:hover { background: #6c7086; }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
