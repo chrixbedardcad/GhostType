@@ -92,7 +92,7 @@ func logSysInfo(cfg *config.Config) {
 		"arch", info.Arch,
 		"locale", info.Locale,
 		"keyboard", info.KeyboardLayout,
-		"hotkey", cfg.Hotkeys.Correct,
+		"hotkey", cfg.Hotkeys.Action,
 		"default_llm", cfg.DefaultLLM,
 		"providers", len(cfg.LLMProviders),
 	)

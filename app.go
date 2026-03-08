@@ -697,8 +697,8 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		}
 
 		slog.Info("Hotkey config changed, re-registering",
-			"old_correct", registeredHotkeys.Correct,
-			"new_correct", newHotkeys.Correct)
+			"old_action", registeredHotkeys.Action,
+			"new_action", newHotkeys.Action)
 
 		old := hk
 		hk = newHotkeyManager()
