@@ -48,7 +48,7 @@ const (
 // Returns the captured text, whether the user had an active selection,
 // the capture method used (for paste strategy), and any error.
 func captureText(
-	modeName string,
+	promptName string,
 	cb *clipboard.Clipboard,
 	kb keyboard.Simulator,
 ) (text string, hadSelection bool, method captureMethod, err error) {
