@@ -63,3 +63,27 @@ int unregisterHotKey(EventHotKeyRef ref) {
 	}
 	return 0;
 }
+
+// reregisterHotKey unregisters and re-registers a hotkey WITHOUT installing
+// new event handlers. This avoids handler accumulation when recovering from
+// the macOS NSMenu modal event loop disrupting Carbon event dispatch.
+int reregisterHotKey(int mod, int key, uintptr_t handle, EventHotKeyRef* ref) {
+	__block OSStatus s;
+	dispatch_sync(dispatch_get_main_queue(), ^{
+		// Unregister the old hotkey (ignore errors — may not be registered).
+		if (*ref != NULL) {
+			UnregisterEventHotKey(*ref);
+			*ref = NULL;
+		}
+		// Re-register with the same handle. Event handlers are already installed
+		// from the initial registration, so we skip InstallApplicationEventHandler.
+		EventHotKeyID hkid = {.id = handle};
+		s = RegisterEventHotKey(
+			key, mod, hkid, GetApplicationEventTarget(), 0, ref
+		);
+	});
+	if (s != noErr) {
+		return -1;
+	}
+	return 0;
+}

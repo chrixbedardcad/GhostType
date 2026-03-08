@@ -134,6 +134,11 @@ func (hk *Hotkey) Unregister() error {
 	return nil
 }
 
+// Reregister re-registers the hotkey with the OS without closing channels.
+// On macOS this recovers from the NSMenu modal event loop disrupting Carbon
+// event dispatch. On other platforms this is a no-op.
+func (hk *Hotkey) Reregister() error { return hk.reregister() }
+
 // String returns a string representation of the hotkey.
 func (hk *Hotkey) String() string {
 	s := fmt.Sprintf("%v", hk.key)

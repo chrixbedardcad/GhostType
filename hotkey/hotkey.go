@@ -15,6 +15,11 @@ type Manager interface {
 	// Listen starts listening for hotkey events. Blocks until Stop is called.
 	Listen() error
 
+	// Reregister re-registers all hotkeys with the OS without stopping the
+	// listener or recreating channels. On macOS this recovers from NSMenu
+	// modal event loop disrupting Carbon event dispatch. No-op on other platforms.
+	Reregister() error
+
 	// Stop stops the hotkey listener.
 	Stop()
 }

@@ -103,6 +103,22 @@ func (m *XPlatManager) Listen() error {
 	return nil
 }
 
+// Reregister re-registers all hotkeys with the OS without stopping the
+// listener or recreating channels. On macOS, this recovers from the NSMenu
+// modal event loop disrupting Carbon event dispatch.
+func (m *XPlatManager) Reregister() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for name, entry := range m.hotkeys {
+		if err := entry.hk.Reregister(); err != nil {
+			slog.Error("Failed to re-register hotkey", "name", name, "error", err)
+			return err
+		}
+		slog.Debug("Hotkey re-registered", "name", name)
+	}
+	return nil
+}
+
 func (m *XPlatManager) Stop() {
 	m.stopOnce.Do(func() {
 		close(m.stopChan)

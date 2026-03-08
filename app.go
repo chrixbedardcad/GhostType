@@ -725,17 +725,12 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		}
 
 		slog.Debug("Force re-registering hotkeys (post-menu recovery)")
-
-		old := hk
-		hk = newHotkeyManager()
-		newMgr := hk
+		mgr := hk
 		hkMu.Unlock()
 
-		old.Stop()
-
-		restartHotkeyListener(newMgr, func() error {
-			return doRegister(newMgr)
-		})
+		if err := mgr.Reregister(); err != nil {
+			slog.Error("Failed to re-register hotkeys", "error", err)
+		}
 	}
 
 	// registerHotkeys is called by startMainLoop at the right time for each

@@ -81,6 +81,8 @@ func (hk *Hotkey) unregister() error {
 	return nil
 }
 
+func (hk *Hotkey) reregister() error { return nil }
+
 // handle registers an application global hotkey to the system,
 // and returns a channel that will signal if the hotkey is triggered.
 func (hk *Hotkey) handle() {

@@ -242,6 +242,10 @@ func (m *WindowsManager) Listen() error {
 	}
 }
 
+// Reregister is a no-op on Windows. The Windows hotkey API doesn't suffer from
+// the NSMenu modal event loop issue that affects macOS Carbon hotkeys.
+func (m *WindowsManager) Reregister() error { return nil }
+
 func (m *WindowsManager) Stop() {
 	m.stopOnce.Do(func() {
 		close(m.stopChan)

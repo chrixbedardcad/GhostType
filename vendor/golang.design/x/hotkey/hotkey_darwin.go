@@ -19,6 +19,7 @@ extern void keydownCallback(uintptr_t handle);
 extern void keyupCallback(uintptr_t handle);
 int registerHotKey(int mod, int key, uintptr_t handle, EventHotKeyRef* ref);
 int unregisterHotKey(EventHotKeyRef ref);
+int reregisterHotKey(int mod, int key, uintptr_t handle, EventHotKeyRef* ref);
 */
 import "C"
 import (
@@ -32,6 +33,7 @@ type platformHotkey struct {
 	mu         sync.Mutex
 	registered bool
 	hkref      C.EventHotKeyRef
+	handle     cgo.Handle // saved for reregister()
 }
 
 func (hk *Hotkey) register() error {
@@ -46,6 +48,7 @@ func (hk *Hotkey) register() error {
 	// we won't have that much number of hotkeys. So this should be fine.
 
 	h := cgo.NewHandle(hk)
+	hk.handle = h
 	var mod Modifier
 	for _, m := range hk.mods {
 		mod += m
@@ -72,6 +75,28 @@ func (hk *Hotkey) unregister() error {
 		return errors.New("failed to unregister the current hotkey")
 	}
 	hk.registered = false
+	return nil
+}
+
+// reregister unregisters and re-registers the Carbon hotkey without touching
+// Go channels or installing new event handlers. This is used to recover from
+// the macOS NSMenu modal event loop disrupting Carbon event dispatch.
+func (hk *Hotkey) reregister() error {
+	hk.mu.Lock()
+	defer hk.mu.Unlock()
+	if !hk.registered {
+		return errors.New("hotkey is not registered")
+	}
+
+	var mod Modifier
+	for _, m := range hk.mods {
+		mod += m
+	}
+
+	ret := C.reregisterHotKey(C.int(mod), C.int(hk.key), C.uintptr_t(hk.handle), &hk.hkref)
+	if ret == C.int(-1) {
+		return errors.New("failed to re-register the hotkey")
+	}
 	return nil
 }
 

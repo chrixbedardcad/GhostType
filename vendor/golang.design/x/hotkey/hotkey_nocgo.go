@@ -24,3 +24,7 @@ func (hk *Hotkey) register() error {
 func (hk *Hotkey) unregister() error {
 	panic("hotkey: cannot use when CGO_ENABLED=0")
 }
+
+func (hk *Hotkey) reregister() error {
+	panic("hotkey: cannot use when CGO_ENABLED=0")
+}
