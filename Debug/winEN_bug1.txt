@@ -1,0 +1,199 @@
+time=2026-03-08T14:01:33.434-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-08T14:01:33.434-04:00 level=INFO msg="Correct triggered"
+time=2026-03-08T14:01:33.434-04:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-08T14:01:33.434-04:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-08T14:01:33.434-04:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-08T14:01:33.434-04:00 level=DEBUG msg="Capturing text..."
+time=2026-03-08T14:01:33.434-04:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-08T14:01:33.434-04:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-08T14:01:33.485-04:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-08T14:01:33.597-04:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-08T14:01:33.597-04:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-08T14:01:33.597-04:00 level=DEBUG msg="No selection detected, falling back to select-all" prompt=Correct
+time=2026-03-08T14:01:33.660-04:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-08T14:01:33.772-04:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-08T14:01:33.772-04:00 level=DEBUG msg="captureText: final clipboard read" len=228
+time=2026-03-08T14:01:33.772-04:00 level=INFO msg="Captured text" prompt=Correct len=228 selection=false method=1 text="i would like to have multiple source and traget that all mix together as pair. so can you add a third script that will be use as a hud to handle all UUID and create pairs and send back to the source which one it need to traget\u00a0"
+time=2026-03-08T14:01:33.772-04:00 level=DEBUG msg="Sending to LLM..." prompt=Correct text_len=228
+time=2026-03-08T14:01:33.772-04:00 level=DEBUG msg="processing text" prompt=Correct llm=gemini prompt_text="Fix only spelling and grammar errors. Do not rewrite, rephrase, or restructure t..." input_len=228
+time=2026-03-08T14:01:33.772-04:00 level=DEBUG msg="gemini: sending request" model=gemini-2.5-flash-lite endpoint=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions body_len=651
+time=2026-03-08T14:01:34.283-04:00 level=DEBUG msg="gemini: response received" status=200
+time=2026-03-08T14:01:34.285-04:00 level=DEBUG msg="gemini: raw response body" body="{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"I would like to have multiple source and target that all mix together as a pair. So can you add a third script that will be used as a HUD to handle all UUIDs and create pairs and send back to the source which one it needs to target?\",\"role\":\"assistant\"}}],\"created\":1772992893,\"id\":\"fbmtaZ2vH_Hu-8YP3vaO-Ao\",\"model\":\"gemini-2.5-flash-lite\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":52,\"prompt_tokens\":117,\"total_tokens\":169}}"
+time=2026-03-08T14:01:34.285-04:00 level=DEBUG msg="gemini: parsed response" text_len=232 choices=1
+time=2026-03-08T14:01:34.285-04:00 level=DEBUG msg="LLM response received" provider=gemini model=gemini-2.5-flash-lite llm=gemini response_len=232
+time=2026-03-08T14:01:34.285-04:00 level=DEBUG msg="Result written to clipboard" prompt=Correct result_len=232
+time=2026-03-08T14:01:34.713-04:00 level=INFO msg="Correct complete" result="I would like to have multiple source and target that all mix together as a pair. So can you add a third script that will be used as a HUD to handle all UUIDs and create pairs and send back to the source which one it needs to target?"
+time=2026-03-08T14:01:52.459-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=524 registered=1 names=[action]
+time=2026-03-08T14:02:22.460-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=524 registered=1 names=[action]
+time=2026-03-08T14:02:52.460-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=524 registered=1 names=[action]
+time=2026-03-08T14:03:22.459-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=524 registered=1 names=[action]
+time=2026-03-08T14:03:52.459-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=524 registered=1 names=[action]
+time=2026-03-08T14:04:08.090-04:00 level=DEBUG msg=GetMessage msg=0x0312 wParam=0x1 lParam=0x470002
+time=2026-03-08T14:04:08.090-04:00 level=DEBUG msg="WM_HOTKEY received" id=1
+time=2026-03-08T14:04:08.090-04:00 level=DEBUG msg="Dispatching hotkey handler" name=action id=1
+time=2026-03-08T14:04:08.090-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-08T14:04:08.090-04:00 level=INFO msg="Correct triggered"
+time=2026-03-08T14:04:08.090-04:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-08T14:04:08.090-04:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-08T14:04:08.090-04:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-08T14:04:08.090-04:00 level=DEBUG msg="Capturing text..."
+time=2026-03-08T14:04:08.090-04:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-08T14:04:08.090-04:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-08T14:04:08.141-04:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-08T14:04:08.254-04:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-08T14:04:08.254-04:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-08T14:04:08.254-04:00 level=DEBUG msg="No selection detected, falling back to select-all" prompt=Correct
+time=2026-03-08T14:04:08.317-04:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-08T14:04:08.429-04:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-08T14:04:08.429-04:00 level=DEBUG msg="captureText: final clipboard read" len=129
+time=2026-03-08T14:04:08.429-04:00 level=INFO msg="Captured text" prompt=Correct len=129 selection=false method=1 text="i assume if i click on the hud it call for all the source and target\u00a0 to report and shuffle the pairs to create new connection\u00a0"
+time=2026-03-08T14:04:08.429-04:00 level=DEBUG msg="Sending to LLM..." prompt=Correct text_len=129
+time=2026-03-08T14:04:08.429-04:00 level=DEBUG msg="processing text" prompt=Correct llm=gemini prompt_text="Fix only spelling and grammar errors. Do not rewrite, rephrase, or restructure t..." input_len=129
+time=2026-03-08T14:04:08.429-04:00 level=DEBUG msg="gemini: sending request" model=gemini-2.5-flash-lite endpoint=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions body_len=552
+time=2026-03-08T14:04:08.899-04:00 level=DEBUG msg="gemini: response received" status=200
+time=2026-03-08T14:04:08.905-04:00 level=DEBUG msg="gemini: raw response body" body="{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"I assume if I click on the HUD, it calls for all the source and targets to report and shuffles the pairs to create new connections.\",\"role\":\"assistant\"}}],\"created\":1772993048,\"id\":\"GLqtaayUCPiGjrEPrYipiAk\",\"model\":\"gemini-2.5-flash-lite\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":29,\"prompt_tokens\":94,\"total_tokens\":123}}"
+time=2026-03-08T14:04:08.905-04:00 level=DEBUG msg="gemini: parsed response" text_len=131 choices=1
+time=2026-03-08T14:04:08.905-04:00 level=DEBUG msg="LLM response received" provider=gemini model=gemini-2.5-flash-lite llm=gemini response_len=131
+time=2026-03-08T14:04:08.905-04:00 level=DEBUG msg="Result written to clipboard" prompt=Correct result_len=131
+time=2026-03-08T14:04:09.331-04:00 level=INFO msg="Correct complete" result="I assume if I click on the HUD, it calls for all the source and targets to report and shuffles the pairs to create new connections."
+time=2026-03-08T14:04:22.459-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=524 registered=1 names=[action]
+time=2026-03-08T14:04:52.460-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=524 registered=1 names=[action]
+time=2026-03-08T14:05:22.460-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=524 registered=1 names=[action]
+time=2026-03-08T14:05:52.460-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=524 registered=1 names=[action]
+time=2026-03-08T14:06:22.459-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=524 registered=1 names=[action]
+time=2026-03-08T14:06:52.460-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=524 registered=1 names=[action]
+time=2026-03-08T14:07:22.460-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=524 registered=1 names=[action]
+time=2026-03-08T14:07:52.459-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=524 registered=1 names=[action]
+time=2026-03-08T14:08:22.460-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=524 registered=1 names=[action]
+time=2026-03-08T14:08:52.460-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=524 registered=1 names=[action]
+time=2026-03-08T14:09:22.460-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=524 registered=1 names=[action]
+time=2026-03-08T14:09:27.072-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=0 prompts=3 models=1
+time=2026-03-08T14:09:28.865-04:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-08T14:09:28.865-04:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-08T14:09:28.874-04:00 level=INFO msg="[WebView2] Environment created successfully"
+time=2026-03-08T14:09:29.030-04:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-08T14:09:29.098-04:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-08T14:09:29.100-04:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-08T14:09:29.100-04:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-08T14:09:29.100-04:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-08T14:09:32.240-04:00 level=INFO msg="[GUI] JS called: CheckForUpdate"
+time=2026-03-08T14:09:34.746-04:00 level=INFO msg="[GUI] JS called: UpdateNow"
+time=2026-03-08T14:09:34.758-04:00 level=INFO msg="[GUI] UpdateNow: installer launched (PID 3048), exiting app..."
+time=2026-03-08T14:09:58.459-04:00 level=INFO msg="GhostType starting" version=0.1.183 default_llm=gemini llm_providers=1
+time=2026-03-08T14:09:58.760-04:00 level=INFO msg="=== GhostType Debug Session ===" version=0.1.183 os=windows os_version="Microsoft Windows [Version 10.0.26200.7840]" arch=amd64 locale=unknown keyboard=unknown hotkey=Ctrl+G default_llm=gemini providers=1
+time=2026-03-08T14:09:58.760-04:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=gemini
+time=2026-03-08T14:09:58.770-04:00 level=INFO msg="GhostType launching" version=0.1.183 needs_setup=false
+time=2026-03-08T14:09:58.772-04:00 level=INFO msg="[tray] Start() called" os=windows icon_bytes=6041
+time=2026-03-08T14:09:58.772-04:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-08T14:09:58.772-04:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-08T14:09:58.772-04:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-08T14:09:58.772-04:00 level=INFO msg="[tray] Icon set" bytes=6041
+time=2026-03-08T14:09:58.772-04:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-08T14:09:58.772-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=0 prompts=3 models=1
+time=2026-03-08T14:09:58.772-04:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-08T14:09:58.772-04:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-08T14:09:58.776-04:00 level=DEBUG msg="Event loop ready (ApplicationStarted)"
+time=2026-03-08T14:09:58.776-04:00 level=INFO msg="Permission check" accessibility=true postEventAccess=true
+time=2026-03-08T14:09:58.776-04:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-08T14:09:58.777-04:00 level=DEBUG msg="Hotkey registered" name=action key=Ctrl+G id=1 mod=0x2 vk=0x47
+time=2026-03-08T14:09:58.777-04:00 level=DEBUG msg="Entering message loop" registered_hotkeys=1 threadID=6748
+time=2026-03-08T14:10:06.658-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=0 prompts=3 models=1
+time=2026-03-08T14:10:07.558-04:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-08T14:10:07.558-04:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-08T14:10:07.560-04:00 level=INFO msg="[WebView2] Environment created successfully"
+time=2026-03-08T14:10:07.710-04:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-08T14:10:07.770-04:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-08T14:10:07.772-04:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-08T14:10:07.772-04:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-08T14:10:07.772-04:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-08T14:10:12.402-04:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-08T14:10:13.880-04:00 level=INFO msg="[GUI] JS called: ResetPrompts"
+time=2026-03-08T14:10:13.890-04:00 level=DEBUG msg="LLM client cache reset"
+time=2026-03-08T14:10:13.890-04:00 level=INFO msg="Live config reloaded after settings save"
+time=2026-03-08T14:10:13.892-04:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-08T14:10:18.807-04:00 level=INFO msg="[GUI] Settings window closing event received"
+time=2026-03-08T14:10:28.777-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=6748 registered=1 names=[action]
+time=2026-03-08T14:10:58.777-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=6748 registered=1 names=[action]
+time=2026-03-08T14:11:28.777-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=6748 registered=1 names=[action]
+time=2026-03-08T14:11:58.777-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=6748 registered=1 names=[action]
+time=2026-03-08T14:12:28.777-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=6748 registered=1 names=[action]
+time=2026-03-08T14:12:58.777-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=6748 registered=1 names=[action]
+time=2026-03-08T14:13:28.777-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=6748 registered=1 names=[action]
+time=2026-03-08T14:13:58.777-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=6748 registered=1 names=[action]
+time=2026-03-08T14:14:28.777-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=6748 registered=1 names=[action]
+time=2026-03-08T14:14:40.225-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=0 prompts=3 models=1
+time=2026-03-08T14:14:41.569-04:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-08T14:14:41.569-04:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-08T14:14:41.571-04:00 level=INFO msg="[WebView2] Environment created successfully"
+time=2026-03-08T14:14:41.729-04:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-08T14:14:41.789-04:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-08T14:14:41.793-04:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-08T14:14:41.794-04:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-08T14:14:41.794-04:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-08T14:14:43.143-04:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-08T14:14:45.955-04:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-08T14:14:48.759-04:00 level=INFO msg="[GUI] JS called: TailDebugLog"
+time=2026-03-08T14:14:58.777-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=6748 registered=1 names=[action]
+time=2026-03-08T14:15:06.961-04:00 level=DEBUG msg=GetMessage msg=0x0312 wParam=0x1 lParam=0x470002
+time=2026-03-08T14:15:06.961-04:00 level=DEBUG msg="WM_HOTKEY received" id=1
+time=2026-03-08T14:15:06.961-04:00 level=DEBUG msg="Dispatching hotkey handler" name=action id=1
+time=2026-03-08T14:15:06.961-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-08T14:15:06.961-04:00 level=INFO msg="Correct triggered"
+time=2026-03-08T14:15:06.961-04:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-08T14:15:06.961-04:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-08T14:15:06.962-04:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-08T14:15:06.962-04:00 level=DEBUG msg="Capturing text..."
+time=2026-03-08T14:15:06.962-04:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-08T14:15:06.962-04:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-08T14:15:07.012-04:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-08T14:15:07.126-04:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-08T14:15:07.126-04:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-08T14:15:07.126-04:00 level=DEBUG msg="No selection detected, falling back to select-all" prompt=Correct
+time=2026-03-08T14:15:07.189-04:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-08T14:15:07.301-04:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-08T14:15:07.302-04:00 level=DEBUG msg="captureText: final clipboard read" len=14
+time=2026-03-08T14:15:07.302-04:00 level=INFO msg="Captured text" prompt=Correct len=14 selection=false method=1 text="this is a test"
+time=2026-03-08T14:15:07.302-04:00 level=DEBUG msg="Sending to LLM..." prompt=Correct text_len=14
+time=2026-03-08T14:15:07.303-04:00 level=DEBUG msg="processing text" prompt=Correct llm=gemini prompt_text="Fix only spelling and grammar errors. Do not rewrite, rephrase, or restructure t..." input_len=14
+time=2026-03-08T14:15:07.303-04:00 level=DEBUG msg="gemini: sending request" model=gemini-2.5-flash-lite endpoint=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions body_len=437
+time=2026-03-08T14:15:09.374-04:00 level=DEBUG msg="gemini: response received" status=200
+time=2026-03-08T14:15:09.378-04:00 level=DEBUG msg="gemini: raw response body" body="{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"This is a test\",\"role\":\"assistant\"}}],\"created\":1772993708,\"id\":\"rLytafjLJZbh_uMPnryOqAE\",\"model\":\"gemini-2.5-flash-lite\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":4,\"prompt_tokens\":68,\"total_tokens\":72}}"
+time=2026-03-08T14:15:09.378-04:00 level=DEBUG msg="gemini: parsed response" text_len=14 choices=1
+time=2026-03-08T14:15:09.378-04:00 level=DEBUG msg="LLM response received" provider=gemini model=gemini-2.5-flash-lite llm=gemini response_len=14
+time=2026-03-08T14:15:09.378-04:00 level=DEBUG msg="Result written to clipboard" prompt=Correct result_len=14
+time=2026-03-08T14:15:09.804-04:00 level=INFO msg="Correct complete" result="This is a test"
+time=2026-03-08T14:15:13.600-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=0 prompts=3 models=1
+time=2026-03-08T14:15:14.937-04:00 level=DEBUG msg="OnPromptSelect callback entered" index=2
+time=2026-03-08T14:15:14.937-04:00 level=INFO msg="Active prompt changed" index=2 name=Translate
+time=2026-03-08T14:15:14.937-04:00 level=DEBUG msg="OnPromptSelect callback exiting" index=2
+time=2026-03-08T14:15:14.937-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=2 prompts=3 models=1
+time=2026-03-08T14:15:22.713-04:00 level=DEBUG msg=GetMessage msg=0x0312 wParam=0x1 lParam=0x470002
+time=2026-03-08T14:15:22.713-04:00 level=DEBUG msg="WM_HOTKEY received" id=1
+time=2026-03-08T14:15:22.713-04:00 level=DEBUG msg="Dispatching hotkey handler" name=action id=1
+time=2026-03-08T14:15:22.713-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-08T14:15:22.713-04:00 level=INFO msg="Translate triggered"
+time=2026-03-08T14:15:22.713-04:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-08T14:15:22.714-04:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-08T14:15:22.714-04:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-08T14:15:22.714-04:00 level=DEBUG msg="Capturing text..."
+time=2026-03-08T14:15:22.714-04:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-08T14:15:22.714-04:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-08T14:15:22.764-04:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-08T14:15:22.877-04:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-08T14:15:22.877-04:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-08T14:15:22.877-04:00 level=DEBUG msg="No selection detected, falling back to select-all" prompt=Translate
+time=2026-03-08T14:15:22.940-04:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-08T14:15:23.053-04:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-08T14:15:23.053-04:00 level=DEBUG msg="captureText: final clipboard read" len=13
+time=2026-03-08T14:15:23.053-04:00 level=INFO msg="Captured text" prompt=Translate len=13 selection=false method=1 text="voici un test"
+time=2026-03-08T14:15:23.053-04:00 level=DEBUG msg="Sending to LLM..." prompt=Translate text_len=13
+time=2026-03-08T14:15:23.053-04:00 level=DEBUG msg="processing text" prompt=Translate llm=gemini prompt_text="Translate the following text to English regardless of its source language. Retur..." input_len=13
+time=2026-03-08T14:15:23.053-04:00 level=DEBUG msg="gemini: sending request" model=gemini-2.5-flash-lite endpoint=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions body_len=237
+time=2026-03-08T14:15:23.310-04:00 level=DEBUG msg="gemini: response received" status=200
+time=2026-03-08T14:15:23.314-04:00 level=DEBUG msg="gemini: raw response body" body="{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"This is a test\",\"role\":\"assistant\"}}],\"created\":1772993722,\"id\":\"urytaf2HIo6t_PUPyfq-gQQ\",\"model\":\"gemini-2.5-flash-lite\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":4,\"prompt_tokens\":27,\"total_tokens\":31}}"
+time=2026-03-08T14:15:23.314-04:00 level=DEBUG msg="gemini: parsed response" text_len=14 choices=1
+time=2026-03-08T14:15:23.314-04:00 level=DEBUG msg="LLM response received" provider=gemini model=gemini-2.5-flash-lite llm=gemini response_len=14
+time=2026-03-08T14:15:23.315-04:00 level=DEBUG msg="Result written to clipboard" prompt=Translate result_len=14
+time=2026-03-08T14:15:23.741-04:00 level=INFO msg="Translate complete" result="This is a test"
+time=2026-03-08T14:15:28.777-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=6748 registered=1 names=[action]
+time=2026-03-08T14:15:34.968-04:00 level=INFO msg="[GUI] JS called: TailDebugLog"
