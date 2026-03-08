@@ -435,7 +435,7 @@ func (s *SettingsService) MovePrompt(fromIdx, toIdx int) string {
 	return "ok"
 }
 
-// ResetPrompts restores the default prompts (Correct, Polish, Translate to En).
+// ResetPrompts restores the default prompts (Correct, Polish, Translate).
 func (s *SettingsService) ResetPrompts() string {
 	guiLog("[GUI] JS called: ResetPrompts")
 	s.cfgCopy.Prompts = config.DefaultPrompts()

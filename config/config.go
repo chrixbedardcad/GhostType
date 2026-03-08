@@ -82,7 +82,7 @@ func DefaultPrompts() []PromptEntry {
 	return []PromptEntry{
 		{Name: "Correct", Prompt: DefaultCorrectPrompt},
 		{Name: "Polish", Prompt: DefaultPolishPrompt},
-		{Name: "Translate to En", Prompt: DefaultTranslatePrompt},
+		{Name: "Translate", Prompt: DefaultTranslatePrompt},
 	}
 }
 

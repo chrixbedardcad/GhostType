@@ -33,7 +33,7 @@ func newTestConfig() *config.Config {
 		Prompts: []config.PromptEntry{
 			{Name: "Correct", Prompt: "Fix spelling and grammar. Return ONLY corrected text."},
 			{Name: "Polish", Prompt: "Improve the text. Return ONLY the polished text."},
-			{Name: "Translate to En", Prompt: "Translate to English. Return ONLY the translation."},
+			{Name: "Translate", Prompt: "Translateglish. Return ONLY the translation."},
 		},
 		ActivePrompt: 0,
 		MaxTokens:    256,
@@ -166,10 +166,10 @@ func TestRouter_CyclePrompt(t *testing.T) {
 		t.Errorf("expected 'Polish' at index 1, got '%s' at %d", name, idx)
 	}
 
-	// Cycle to "Translate to En"
+	// Cycle to "Translate"
 	idx, name = router.CyclePrompt()
-	if name != "Translate to En" || idx != 2 {
-		t.Errorf("expected 'Translate to En' at index 2, got '%s' at %d", name, idx)
+	if name != "Translate" || idx != 2 {
+		t.Errorf("expected 'Translate' at index 2, got '%s' at %d", name, idx)
 	}
 
 	// Cycle back to "Correct"
@@ -201,10 +201,10 @@ func TestRouter_SetPrompt(t *testing.T) {
 		t.Errorf("expected 'Polish', got '%s'", router.CurrentPromptName())
 	}
 
-	// Set to index 2 ("Translate to En")
+	// Set to index 2 ("Translate")
 	name = router.SetPrompt(2)
-	if name != "Translate to En" {
-		t.Errorf("expected 'Translate to En', got '%s'", name)
+	if name != "Translate" {
+		t.Errorf("expected 'Translate', got '%s'", name)
 	}
 
 	// Out-of-bounds returns empty

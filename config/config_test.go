@@ -28,8 +28,8 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.Prompts[1].Name != "Polish" {
 		t.Errorf("expected second prompt 'Polish', got '%s'", cfg.Prompts[1].Name)
 	}
-	if cfg.Prompts[2].Name != "Translate to En" {
-		t.Errorf("expected third prompt 'Translate to En', got '%s'", cfg.Prompts[2].Name)
+	if cfg.Prompts[2].Name != "Translate" {
+		t.Errorf("expected third prompt 'Translate', got '%s'", cfg.Prompts[2].Name)
 	}
 	if cfg.ActivePrompt != 0 {
 		t.Errorf("expected default active_prompt 0, got %d", cfg.ActivePrompt)
