@@ -26,4 +26,4 @@ NSRect NSScreen_frame(void* screen);
 void windowSetScreen(void* window, void* screen, int yOffset);
 int statusBarHeight();
 void systemTrayPositionWindow(void* nsStatusItem, void* nsWindow, int offset);
-void dismissTrackingMenu(void* nsStatusItem);
+int dismissTrackingMenu(void* nsStatusItem);

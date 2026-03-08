@@ -31,6 +31,11 @@ type Config struct {
 	OnSettings     func()
 	OnExit         func()
 
+	// IsProcessing returns true when the hotkey handler is actively capturing
+	// or processing text. Used on macOS to suppress menu opening, since the
+	// NSMenu modal event loop blocks keyboard simulation to the target app.
+	IsProcessing func() bool
+
 	// State readers — called to build the menu.
 	GetActivePrompt func() int
 	GetPromptNames  func() []string
@@ -49,7 +54,7 @@ type trayState struct {
 // a stop function that quits the app, and a dismissMenu function that cancels any
 // currently tracking tray menu. The caller decides which goroutine calls run —
 // this is critical on macOS where Cocoa must run on the main thread.
-func Start(cfg Config, app *application.App) (run func() error, stop func(), dismissMenu func()) {
+func Start(cfg Config, app *application.App) (run func() error, stop func(), dismissMenu func() bool) {
 	slog.Info("[tray] Start() called",
 		"os", runtime.GOOS,
 		"icon_bytes", len(cfg.IconPNG),
@@ -91,10 +96,16 @@ func Start(cfg Config, app *application.App) (run func() error, stop func(), dis
 	// handlers emits LayoutUpdated signals that interfere with the DE.
 	if runtime.GOOS != "linux" {
 		ts.systray.OnClick(func() {
+			if ts.cfg.IsProcessing != nil && ts.cfg.IsProcessing() {
+				return // Don't open menu while hotkey is processing
+			}
 			ts.refreshMenu()
 			ts.systray.OpenMenu()
 		})
 		ts.systray.OnRightClick(func() {
+			if ts.cfg.IsProcessing != nil && ts.cfg.IsProcessing() {
+				return
+			}
 			ts.refreshMenu()
 			ts.systray.OpenMenu()
 		})
@@ -115,8 +126,8 @@ func Start(cfg Config, app *application.App) (run func() error, stop func(), dis
 		ts.app.Quit()
 	}
 
-	dismissMenu = func() {
-		ts.systray.DismissMenu()
+	dismissMenu = func() bool {
+		return ts.systray.DismissMenu()
 	}
 
 	return run, stop, dismissMenu

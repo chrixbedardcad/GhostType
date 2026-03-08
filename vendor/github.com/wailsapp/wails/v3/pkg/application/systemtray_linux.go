@@ -459,7 +459,7 @@ func (s *linuxSystemTray) openMenu() {
 	globalApplication.info("systray error: openMenu not implemented on Linux")
 }
 
-func (s *linuxSystemTray) dismissMenu() {}
+func (s *linuxSystemTray) dismissMenu() bool { return false }
 
 func (s *linuxSystemTray) setLabel(label string) {
 	s.label = label

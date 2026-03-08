@@ -207,17 +207,22 @@ void showMenu(void* nsStatusItem, void *nsMenu) {
 }
 
 // dismissTrackingMenu cancels any currently tracking (open) menu on this
-// status item. Safe to call when no menu is open (no-op). Uses dispatch_sync
-// so the caller can be sure the menu is dismissed before returning.
-void dismissTrackingMenu(void* nsStatusItem) {
-	dispatch_async(dispatch_get_main_queue(), ^{
+// status item. Returns 1 if a menu was actually dismissed, 0 otherwise.
+// Uses dispatch_sync so the caller can be sure the menu is fully closed
+// before returning. Safe to call from any non-main thread.
+int dismissTrackingMenu(void* nsStatusItem) {
+	__block int wasDismissed = 0;
+	dispatch_sync(dispatch_get_main_queue(), ^{
 		NSStatusItem *statusItem = (NSStatusItem *)nsStatusItem;
 		StatusItemController *controller = (StatusItemController *)[statusItem target];
-		if (controller.cachedMenu != nil) {
+		if (statusItem.menu != nil) {
+			// Menu is actively tracking — cancel it.
 			[controller.cachedMenu cancelTrackingWithoutAnimation];
+			statusItem.menu = nil;
+			wasDismissed = 1;
 		}
-		statusItem.menu = nil;
 	});
+	return wasDismissed;
 }
 
 void systemTraySetCachedMenu(void* nsStatusItem, void *nsMenu) {

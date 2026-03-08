@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"sort"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -200,6 +201,11 @@ func captureText(
 // TryLock rejects duplicates; Unlock happens when the current call finishes.
 var processingGuard sync.Mutex
 
+// processingActive is set while processMode is running. Used by the tray to
+// suppress menu opening on macOS (the NSMenu modal event loop blocks keyboard
+// simulation to the target app).
+var processingActive atomic.Bool
+
 // processMode captures text from the active window, sends it through the LLM
 // with the given prompt, and pastes the result back.
 func processMode(
@@ -216,7 +222,11 @@ func processMode(
 		slog.Debug("Hotkey ignored (already processing)")
 		return
 	}
-	defer processingGuard.Unlock()
+	processingActive.Store(true)
+	defer func() {
+		processingActive.Store(false)
+		processingGuard.Unlock()
+	}()
 	slog.Info(promptName + " triggered")
 	slog.Debug("Playing working sound...")
 	sound.PlayWorking()
@@ -486,6 +496,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	trayCfg := tray.Config{
 		IconPNG:         assets.TrayIcon64,
 		TemplateIconPNG: assets.TrayIconMacOS,
+		IsProcessing:    func() bool { return processingActive.Load() },
 		OnPromptSelect: func(idx int) {
 			slog.Debug("OnPromptSelect callback entered", "index", idx)
 			setActivePrompt(idx)
@@ -564,7 +575,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		},
 	}
 
-	var dismissTrayMenu func()
+	var dismissTrayMenu func() bool
 	trayRun, stopTrayFn, dismissTrayMenu = tray.Start(trayCfg, wailsApp)
 
 	// When debug auto-disables after 30min, log it.
@@ -649,8 +660,10 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 			// On macOS, the tray menu's NSMenu modal event loop intercepts
 			// all keyboard events (CGEventPost, AX, osascript). Dismiss any
 			// open tray menu before text capture so keystrokes reach the app.
-			dismissTrayMenu()
-			time.Sleep(50 * time.Millisecond)
+			if dismissTrayMenu() {
+				slog.Debug("Dismissed open tray menu before capture")
+				time.Sleep(50 * time.Millisecond)
+			}
 
 			mu.Lock()
 			promptIdx := cfg.ActivePrompt

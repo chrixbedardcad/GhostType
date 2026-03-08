@@ -124,11 +124,11 @@ func systrayPreClickCallback(id C.long, buttonID C.int) C.int {
 	return 0
 }
 
-func (s *macosSystemTray) dismissMenu() {
+func (s *macosSystemTray) dismissMenu() bool {
 	if s.nsStatusItem == nil {
-		return
+		return false
 	}
-	C.dismissTrackingMenu(s.nsStatusItem)
+	return C.dismissTrackingMenu(s.nsStatusItem) != 0
 }
 
 func (s *macosSystemTray) setIconPosition(position IconPosition) {
