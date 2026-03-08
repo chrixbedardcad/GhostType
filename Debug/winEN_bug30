@@ -1,0 +1,37 @@
+time=2026-03-07T23:57:32.744-05:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-07T23:57:37.844-05:00 level=INFO msg="[GUI] JS called: CheckForUpdate"
+time=2026-03-07T23:57:38.812-05:00 level=INFO msg="[GUI] JS called: CheckForUpdate"
+time=2026-03-07T23:57:41.175-05:00 level=INFO msg="[GUI] Settings window closing event received"
+time=2026-03-07T23:57:43.950-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=2 templates=5
+time=2026-03-07T23:57:44.752-05:00 level=INFO msg="Exit requested via tray menu"
+time=2026-03-07T23:57:44.752-05:00 level=DEBUG msg="GetMessage returned 0 (WM_QUIT) — exiting message loop"
+time=2026-03-07T23:57:44.752-05:00 level=DEBUG msg="Hotkey unregistered on listen exit" name=action id=1
+time=2026-03-07T23:57:49.972-05:00 level=INFO msg="GhostType starting" version=0.1.175 default_llm=gemini llm_providers=1
+time=2026-03-07T23:57:50.259-05:00 level=INFO msg="=== GhostType Debug Session ===" version=0.1.175 os=windows os_version="Microsoft Windows [Version 10.0.26200.7840]" arch=amd64 locale=unknown keyboard=unknown hotkey=Ctrl+G default_llm=gemini providers=1
+time=2026-03-07T23:57:50.259-05:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=gemini
+time=2026-03-07T23:57:50.266-05:00 level=INFO msg="GhostType launching" version=0.1.175 needs_setup=false
+time=2026-03-07T23:57:50.267-05:00 level=INFO msg="[tray] Start() called" os=windows icon_bytes=6041
+time=2026-03-07T23:57:50.267-05:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-07T23:57:50.267-05:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-07T23:57:50.267-05:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-07T23:57:50.267-05:00 level=INFO msg="[tray] Icon set" bytes=6041
+time=2026-03-07T23:57:50.267-05:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-07T23:57:50.267-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=2 templates=5
+time=2026-03-07T23:57:50.267-05:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-07T23:57:50.267-05:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-07T23:57:50.275-05:00 level=DEBUG msg="Event loop ready (ApplicationStarted)"
+time=2026-03-07T23:57:50.275-05:00 level=INFO msg="Permission check" accessibility=true postEventAccess=true
+time=2026-03-07T23:57:50.275-05:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-07T23:57:50.276-05:00 level=DEBUG msg="Hotkey registered" name=action key=Ctrl+G id=1 mod=0x2 vk=0x47
+time=2026-03-07T23:57:50.276-05:00 level=DEBUG msg="Entering message loop" registered_hotkeys=1 threadID=23448
+time=2026-03-07T23:58:20.490-05:00 level=INFO msg="[tray] Menu built and set" active_mode=correct models=1 targets=2 templates=5
+time=2026-03-07T23:58:23.258-05:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-07T23:58:23.258-05:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-07T23:58:23.261-05:00 level=INFO msg="[WebView2] Environment created successfully"
+time=2026-03-07T23:58:23.428-05:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-07T23:58:23.494-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T23:58:23.497-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T23:58:23.498-05:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-07T23:58:23.498-05:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-07T23:58:25.837-05:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-07T23:58:27.113-05:00 level=INFO msg="[GUI] JS called: TailDebugLog"
