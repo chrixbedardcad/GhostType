@@ -435,6 +435,17 @@ func (s *SettingsService) MovePrompt(fromIdx, toIdx int) string {
 	return "ok"
 }
 
+// ResetPrompts restores the default prompts (Correct, Polish, Translate to En).
+func (s *SettingsService) ResetPrompts() string {
+	guiLog("[GUI] JS called: ResetPrompts")
+	s.cfgCopy.Prompts = config.DefaultPrompts()
+	s.cfgCopy.ActivePrompt = 0
+	if err := s.clearLegacyAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
 // --- General settings ------------------------------------------------------
 
 // SetSoundEnabled toggles sound.
