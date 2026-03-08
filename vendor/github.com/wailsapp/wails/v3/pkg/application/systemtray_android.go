@@ -77,6 +77,8 @@ func (s *androidSystemTray) openMenu() {
 	// Android doesn't have system tray
 }
 
+func (s *androidSystemTray) dismissMenu() {}
+
 func (s *androidSystemTray) setTooltip(_ string) {
 	// Android doesn't have system tray
 }

@@ -66,6 +66,8 @@ func (s *windowsSystemTray) openMenu() {
 	s.menu.ShowAt(trayBounds.X, trayBounds.Y)
 }
 
+func (s *windowsSystemTray) dismissMenu() {}
+
 func (s *windowsSystemTray) positionWindow(window Window, offset int) error {
 	// Get the current screen trayBounds
 	currentScreen, err := s.getScreen()

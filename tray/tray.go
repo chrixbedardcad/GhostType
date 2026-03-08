@@ -46,9 +46,10 @@ type trayState struct {
 
 // Start configures the system tray icon and menu on the given Wails application.
 // It returns a run function that starts the Cocoa/GTK/Win32 event loop (blocking),
-// and a stop function that quits the app. The caller decides which goroutine
-// calls run — this is critical on macOS where Cocoa must run on the main thread.
-func Start(cfg Config, app *application.App) (run func() error, stop func()) {
+// a stop function that quits the app, and a dismissMenu function that cancels any
+// currently tracking tray menu. The caller decides which goroutine calls run —
+// this is critical on macOS where Cocoa must run on the main thread.
+func Start(cfg Config, app *application.App) (run func() error, stop func(), dismissMenu func()) {
 	slog.Info("[tray] Start() called",
 		"os", runtime.GOOS,
 		"icon_bytes", len(cfg.IconPNG),
@@ -114,7 +115,11 @@ func Start(cfg Config, app *application.App) (run func() error, stop func()) {
 		ts.app.Quit()
 	}
 
-	return run, stop
+	dismissMenu = func() {
+		ts.systray.DismissMenu()
+	}
+
+	return run, stop, dismissMenu
 }
 
 // refreshMenu rebuilds the tray context menu from current state.

@@ -35,6 +35,7 @@ type systemTrayImpl interface {
 	getScreen() (*Screen, error)
 	positionWindow(window Window, offset int) error
 	openMenu()
+	dismissMenu()
 	Show()
 	Hide()
 }
@@ -366,4 +367,13 @@ func (s *SystemTray) OpenMenu() {
 		return
 	}
 	InvokeSync(s.impl.openMenu)
+}
+
+// DismissMenu cancels any currently tracking (open) menu on this system tray.
+// Safe to call when no menu is open (no-op).
+func (s *SystemTray) DismissMenu() {
+	if s.impl == nil {
+		return
+	}
+	s.impl.dismissMenu()
 }

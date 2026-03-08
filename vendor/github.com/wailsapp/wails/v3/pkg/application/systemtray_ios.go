@@ -78,6 +78,8 @@ func (s *iosSystemTray) openMenu() {
 	// iOS doesn't have system tray
 }
 
+func (s *iosSystemTray) dismissMenu() {}
+
 func (s *iosSystemTray) setTooltip(_ string) {
 	// iOS doesn't have system tray
 }

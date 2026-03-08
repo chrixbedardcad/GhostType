@@ -564,7 +564,8 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		},
 	}
 
-	trayRun, stopTrayFn = tray.Start(trayCfg, wailsApp)
+	var dismissTrayMenu func()
+	trayRun, stopTrayFn, dismissTrayMenu = tray.Start(trayCfg, wailsApp)
 
 	// When debug auto-disables after 30min, log it.
 	if debugState != nil {
@@ -644,6 +645,12 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		// Main action hotkey — dispatches based on active prompt.
 		if err := mgr.Register("action", cfg.Hotkeys.Action, func() {
 			slog.Debug("Hotkey callback fired")
+
+			// On macOS, the tray menu's NSMenu modal event loop intercepts
+			// all keyboard events (CGEventPost, AX, osascript). Dismiss any
+			// open tray menu before text capture so keystrokes reach the app.
+			dismissTrayMenu()
+			time.Sleep(50 * time.Millisecond)
 
 			mu.Lock()
 			promptIdx := cfg.ActivePrompt
