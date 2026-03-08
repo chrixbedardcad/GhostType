@@ -1,0 +1,112 @@
+time=2026-03-08T12:37:29.279-04:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-08T12:37:33.757-04:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-08T12:37:37.993-04:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-08T12:37:37.993-04:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-08T12:37:37.996-04:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=false
+time=2026-03-08T12:37:39.399-04:00 level=INFO msg="[GUI] JS called: OpenInputMonitoringPane"
+time=2026-03-08T12:37:57.627-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=0 prompts=3 models=1
+time=2026-03-08T12:37:59.120-04:00 level=INFO msg="Exit requested via tray menu"
+time=2026-03-08T12:37:59.120-04:00 level=DEBUG msg="Hotkey unregistered on stop" name=action
+time=2026-03-08T12:38:05.548-04:00 level=INFO msg="GhostType starting" version=0.1.180 default_llm=gemini llm_providers=1
+time=2026-03-08T12:38:05.735-04:00 level=INFO msg="=== GhostType Debug Session ===" version=0.1.180 os=darwin os_version=13.7.8 arch=arm64 locale=en_CA keyboard=Canadian hotkey=Ctrl+G default_llm=gemini providers=1
+time=2026-03-08T12:38:05.735-04:00 level=INFO msg="First-launch check" needs_setup=false providers=1 default_llm=gemini
+time=2026-03-08T12:38:05.736-04:00 level=INFO msg="GhostType launching" version=0.1.180 needs_setup=false
+time=2026-03-08T12:38:05.740-04:00 level=INFO msg="[tray] Start() called" os=darwin icon_bytes=6041
+time=2026-03-08T12:38:05.740-04:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-08T12:38:05.740-04:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-08T12:38:05.740-04:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-08T12:38:05.740-04:00 level=INFO msg="[tray] macOS template icon set" bytes=1743
+time=2026-03-08T12:38:05.740-04:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-08T12:38:05.740-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=0 prompts=3 models=1
+time=2026-03-08T12:38:05.740-04:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/setIcon"
+time=2026-03-08T12:38:05.740-04:00 level=DEBUG msg="[keyboard] Resolving layout key codes..."
+time=2026-03-08T12:38:05.755-04:00 level=DEBUG msg="[keyboard] Resolved layout key codes" a=0x00 c=0x08 v=0x09
+time=2026-03-08T12:38:05.755-04:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-08T12:38:05.780-04:00 level=DEBUG msg="Event loop ready (ApplicationStarted)"
+time=2026-03-08T12:38:05.787-04:00 level=INFO msg="Permission check" accessibility=true postEventAccess=true
+time=2026-03-08T12:38:05.787-04:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-08T12:38:05.819-04:00 level=DEBUG msg="Hotkey registered" name=action key=Ctrl+G
+time=2026-03-08T12:38:05.819-04:00 level=DEBUG msg="Starting hotkey listener" registered=1
+time=2026-03-08T12:38:12.338-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-08T12:38:12.338-04:00 level=INFO msg="Correct triggered"
+time=2026-03-08T12:38:12.338-04:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-08T12:38:12.338-04:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-08T12:38:12.343-04:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-08T12:38:12.343-04:00 level=DEBUG msg="Capturing text..."
+time=2026-03-08T12:38:12.442-04:00 level=DEBUG msg="[keyboard] Waited for modifier release" ms=85
+time=2026-03-08T12:38:12.455-04:00 level=DEBUG msg="captureText: frontmost app" app=Firestorm
+time=2026-03-08T12:38:12.504-04:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-08T12:38:12.504-04:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-08T12:38:12.555-04:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-08T12:38:12.556-04:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-08T12:38:12.679-04:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-08T12:38:12.679-04:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-08T12:38:12.679-04:00 level=DEBUG msg="No selection detected, falling back to select-all" prompt=Correct
+time=2026-03-08T12:38:12.679-04:00 level=DEBUG msg="[keyboard] SelectAll (Cmd+A, ANSI key code)" keyCode=0x00
+time=2026-03-08T12:38:12.748-04:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-08T12:38:12.748-04:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-08T12:38:12.867-04:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-08T12:38:12.868-04:00 level=DEBUG msg="captureText: final clipboard read" len=43
+time=2026-03-08T12:38:12.868-04:00 level=INFO msg="Captured text" prompt=Correct len=43 selection=false method=1 text="This is a test of accessibility for purpose"
+time=2026-03-08T12:38:12.868-04:00 level=DEBUG msg="Sending to LLM..." prompt=Correct text_len=43
+time=2026-03-08T12:38:12.868-04:00 level=DEBUG msg="processing text" prompt=Correct llm=gemini prompt_text="Fix only spelling and grammar errors. Do not rewrite, rephrase, or restructure t..." input_len=43
+time=2026-03-08T12:38:12.868-04:00 level=DEBUG msg="gemini: sending request" model=gemini-2.5-flash-lite endpoint=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions body_len=466
+time=2026-03-08T12:38:13.437-04:00 level=DEBUG msg="gemini: response received" status=200
+time=2026-03-08T12:38:13.437-04:00 level=DEBUG msg="gemini: raw response body" body="{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"This is a test of accessibility for purpose.\",\"role\":\"assistant\"}}],\"created\":1772987893,\"id\":\"9aWtacnvF-zd_uMPypey0Q4\",\"model\":\"gemini-2.5-flash-lite\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":9,\"prompt_tokens\":72,\"total_tokens\":81}}"
+time=2026-03-08T12:38:13.437-04:00 level=DEBUG msg="gemini: parsed response" text_len=44 choices=1
+time=2026-03-08T12:38:13.437-04:00 level=DEBUG msg="LLM response received" provider=gemini model=gemini-2.5-flash-lite llm=gemini response_len=44
+time=2026-03-08T12:38:13.438-04:00 level=DEBUG msg="Result written to clipboard" prompt=Correct result_len=44
+time=2026-03-08T12:38:13.489-04:00 level=DEBUG msg="[keyboard] SelectAll (Cmd+A, ANSI key code)" keyCode=0x00
+time=2026-03-08T12:38:13.559-04:00 level=DEBUG msg="[keyboard] Paste (Cmd+V)" keyCode=0x09
+time=2026-03-08T12:38:13.880-04:00 level=INFO msg="Correct complete" result="This is a test of accessibility for purpose."
+time=2026-03-08T12:38:19.550-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=0 prompts=3 models=1
+time=2026-03-08T12:38:21.346-04:00 level=DEBUG msg="OnPromptSelect callback entered" index=1
+time=2026-03-08T12:38:21.347-04:00 level=INFO msg="Active prompt changed" index=1 name=Polish
+time=2026-03-08T12:38:21.347-04:00 level=DEBUG msg="OnPromptSelect callback exiting" index=1
+time=2026-03-08T12:38:21.352-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=1 prompts=3 models=1
+time=2026-03-08T12:38:21.548-04:00 level=DEBUG msg="Force re-registering hotkeys (post-menu recovery)"
+time=2026-03-08T12:38:21.548-04:00 level=DEBUG msg="Hotkey re-registered" name=action
+time=2026-03-08T12:38:28.986-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-08T12:38:28.986-04:00 level=INFO msg="Polish triggered"
+time=2026-03-08T12:38:28.986-04:00 level=DEBUG msg="Playing working sound..."
+time=2026-03-08T12:38:28.986-04:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-08T12:38:28.986-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-08T12:38:28.986-04:00 level=DEBUG msg="Hotkey ignored (already processing)"
+time=2026-03-08T12:38:28.986-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-08T12:38:28.986-04:00 level=DEBUG msg="Hotkey ignored (already processing)"
+time=2026-03-08T12:38:28.986-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-08T12:38:28.986-04:00 level=DEBUG msg="Hotkey ignored (already processing)"
+time=2026-03-08T12:38:28.987-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-08T12:38:28.987-04:00 level=DEBUG msg="Hotkey ignored (already processing)"
+time=2026-03-08T12:38:28.988-04:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-08T12:38:28.988-04:00 level=DEBUG msg="Capturing text..."
+time=2026-03-08T12:38:28.992-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=1 prompts=3 models=1
+time=2026-03-08T12:38:29.022-04:00 level=DEBUG msg="captureText: frontmost app" app=Firestorm
+time=2026-03-08T12:38:29.025-04:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-08T12:38:29.025-04:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-08T12:38:29.076-04:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-08T12:38:29.076-04:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-08T12:38:29.196-04:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-08T12:38:29.197-04:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-08T12:38:29.197-04:00 level=DEBUG msg="No selection detected, falling back to select-all" prompt=Polish
+time=2026-03-08T12:38:29.197-04:00 level=DEBUG msg="[keyboard] SelectAll (Cmd+A, ANSI key code)" keyCode=0x00
+time=2026-03-08T12:38:29.266-04:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-08T12:38:29.266-04:00 level=DEBUG msg="[keyboard] Copy (Cmd+C)" keyCode=0x08
+time=2026-03-08T12:38:29.386-04:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-08T12:38:29.386-04:00 level=DEBUG msg="captureText: final clipboard read" len=0
+time=2026-03-08T12:38:29.386-04:00 level=DEBUG msg="captureText: CGEventPost clipboard empty, trying AX keystroke fallback"
+time=2026-03-08T12:38:29.437-04:00 level=DEBUG msg="[keyboard] SelectAllAX (AXUIElementPostKeyboardEvent)" keyCode=0x00
+time=2026-03-08T12:38:29.713-04:00 level=DEBUG msg="[keyboard] CopyAX (AXUIElementPostKeyboardEvent)" keyCode=0x08
+time=2026-03-08T12:38:29.965-04:00 level=DEBUG msg="captureText: AX keystroke fallback also returned empty"
+time=2026-03-08T12:38:29.965-04:00 level=DEBUG msg="captureText: trying osascript fallback"
+time=2026-03-08T12:38:30.016-04:00 level=DEBUG msg="[keyboard] SelectAllScript (osascript)"
+time=2026-03-08T12:38:30.340-04:00 level=DEBUG msg="[keyboard] CopyScript (osascript)"
+time=2026-03-08T12:38:30.702-04:00 level=DEBUG msg="captureText: osascript fallback also returned empty"
+time=2026-03-08T12:38:30.702-04:00 level=WARN msg="Nothing to process (empty text)" prompt=Polish
+time=2026-03-08T12:38:39.080-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=1 prompts=3 models=1
+time=2026-03-08T12:38:41.069-04:00 level=DEBUG msg="OnPromptSelect callback entered" index=0
+time=2026-03-08T12:38:41.069-04:00 level=INFO msg="Active prompt changed" index=0 name=Correct
+time=2026-03-08T12:38:41.070-04:00 level=DEBUG msg="OnPromptSelect callback exiting" index=0
+time=2026-03-08T12:38:41.070-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=0 prompts=3 models=1
+time=2026-03-08T12:38:41.271-04:00 level=DEBUG msg="Force re-registering hotkeys (post-menu recovery)"
+time=2026-03-08T12:38:41.271-04:00 level=DEBUG msg="Hotkey re-registered" name=action
