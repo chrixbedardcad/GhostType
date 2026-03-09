@@ -72,9 +72,12 @@ func boolPtr(v bool) *bool { return &v }
 
 // Default prompt texts.
 const (
-	DefaultCorrectPrompt   = "Fix only spelling and grammar errors. Do not rewrite, rephrase, or restructure the sentence. Keep the text in its original language — never translate it. Preserve slang, abbreviations, acronyms, and informal tone exactly as written. Only fix what is objectively incorrect. Return ONLY the corrected text with no explanation."
-	DefaultPolishPrompt    = "Improve the following text to make it clearer, more natural, and better structured while preserving its original meaning. Use proper grammar, punctuation, and phrasing that best expresses the intent of the sentence. Keep the text in its original language — never translate it. Return ONLY the polished text with no explanation."
-	DefaultTranslatePrompt = "Translate the following text to English regardless of its source language. Return ONLY the translated text with no explanation."
+	DefaultCorrectPrompt    = "Fix only spelling and grammar errors. Do not rewrite, rephrase, or restructure the sentence. Keep the text in its original language — never translate it. Preserve slang, abbreviations, acronyms, and informal tone exactly as written. Only fix what is objectively incorrect. Return ONLY the corrected text with no explanation."
+	DefaultPolishPrompt     = "Improve the following text to make it clearer, more natural, and better structured while preserving its original meaning and tone. Fix grammar, punctuation, and awkward phrasing. Smooth out rough sentences into polished, ready-to-send prose. Keep the text in its original language — never translate it. Return ONLY the improved text with no explanation."
+	DefaultFormalizePrompt  = "Rewrite the following text in a formal, professional tone. Replace casual language, slang, and contractions with their formal equivalents. Use proper business language while preserving the original meaning and all key information. Keep the text in its original language — never translate it. Return ONLY the formalized text with no explanation."
+	DefaultElaboratePrompt  = "Expand the following text by adding relevant detail, context, and completeness while preserving the original meaning and intent. Flesh out terse or incomplete points into well-developed statements. Maintain the same tone and style as the original. Keep the text in its original language — never translate it. Return ONLY the elaborated text with no explanation."
+	DefaultShortenPrompt    = "Condense the following text to be as concise as possible while preserving all essential meaning and key information. Remove redundancy, filler words, and unnecessary qualifiers. Keep the same tone and intent. Keep the text in its original language — never translate it. Return ONLY the shortened text with no explanation."
+	DefaultTranslatePrompt  = "Translate the following text to English regardless of its source language. Return ONLY the translated text with no explanation."
 )
 
 // DefaultPrompts returns the default prompt list.
@@ -82,6 +85,9 @@ func DefaultPrompts() []PromptEntry {
 	return []PromptEntry{
 		{Name: "Correct", Prompt: DefaultCorrectPrompt},
 		{Name: "Polish", Prompt: DefaultPolishPrompt},
+		{Name: "Formalize", Prompt: DefaultFormalizePrompt},
+		{Name: "Elaborate", Prompt: DefaultElaboratePrompt},
+		{Name: "Shorten", Prompt: DefaultShortenPrompt},
 		{Name: "Translate", Prompt: DefaultTranslatePrompt},
 	}
 }
