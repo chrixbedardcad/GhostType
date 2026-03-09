@@ -109,13 +109,17 @@ func StartWorkingLoop() {
 // StopWorkingLoop stops the looping working sound.
 func StopWorkingLoop() {
 	workingMu.Lock()
-	if workingStop != nil {
+	wasRunning := workingStop != nil
+	if wasRunning {
 		close(workingStop)
 		workingStop = nil
 	}
 	workingMu.Unlock()
-	// Stop any currently playing sound.
-	procPlaySound.Call(0, 0, uintptr(sndMemory|sndAsync|sndNoDefault))
+	// Stop any currently playing sound — but only if the loop was actually
+	// running, so we don't kill a success/error sound that started after us.
+	if wasRunning {
+		procPlaySound.Call(0, 0, uintptr(sndMemory|sndAsync|sndNoDefault))
+	}
 }
 
 func SetEnabled(v bool) {

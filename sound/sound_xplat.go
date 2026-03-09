@@ -87,13 +87,17 @@ func StartWorkingLoop() {
 // StopWorkingLoop stops the looping working sound.
 func StopWorkingLoop() {
 	workingMu.Lock()
-	if workingStop != nil {
+	wasRunning := workingStop != nil
+	if wasRunning {
 		close(workingStop)
 		workingStop = nil
 	}
 	workingMu.Unlock()
-	// Kill any lingering playback process.
-	stopPlayback()
+	// Kill any lingering playback process — but only if the loop was actually
+	// running, so we don't kill a success/error sound that started after us.
+	if wasRunning {
+		stopPlayback()
+	}
 }
 
 func SetEnabled(v bool) {

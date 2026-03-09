@@ -520,6 +520,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				mu.Lock()
 				*cfg = *newCfg
 				mu.Unlock()
+				sound.SetEnabled(*cfg.SoundEnabled)
 				if router != nil {
 					router.ResetClients()
 				}
