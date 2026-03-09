@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
@@ -15,35 +14,36 @@ import (
 	"net/url"
 	"os/exec"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 )
 
-// oauthKeyResponse is the response from OpenRouter's key exchange endpoint.
-type oauthKeyResponse struct {
-	Key    string `json:"key"`
-	UserID string `json:"user_id"`
-	Error  *struct {
-		Code    int    `json:"code"`
-		Message string `json:"message"`
-	} `json:"error,omitempty"`
-}
+// OpenAI OAuth constants — uses the public Codex CLI client ID.
+const (
+	openaiClientID = "app_EMoamEEZ73f0CkXaXp7hrann"
+	openaiAuthURL  = "https://auth.openai.com/oauth/authorize"
+	openaiTokenURL = "https://auth.openai.com/oauth/token"
+	openaiScopes   = "openid profile email offline_access"
+	oauthPort      = 1455
+	oauthPath      = "/auth/callback"
+)
 
-// oauthState holds the state of an in-progress OAuth flow so the
-// Wails binding doesn't block the main thread.
+// oauthState holds the async result of the OAuth flow.
 type oauthState struct {
-	mu      sync.Mutex
-	running bool
-	key     string
-	errMsg  string
+	mu           sync.Mutex
+	running      bool
+	apiKey       string
+	refreshToken string
+	errMsg       string
 }
 
 var oauth oauthState
 
-// generatePKCE creates a cryptographically random code_verifier and its
-// S256 code_challenge for the PKCE OAuth flow.
+// generatePKCE creates a PKCE code_verifier (64 random bytes, base64url) and
+// its S256 code_challenge.
 func generatePKCE() (verifier, challenge string) {
-	b := make([]byte, 32)
+	b := make([]byte, 64)
 	if _, err := rand.Read(b); err != nil {
 		panic("crypto/rand failed: " + err.Error())
 	}
@@ -53,9 +53,18 @@ func generatePKCE() (verifier, challenge string) {
 	return
 }
 
+// randomState generates a random state parameter for CSRF protection.
+func randomState() string {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		panic("crypto/rand failed: " + err.Error())
+	}
+	return base64.RawURLEncoding.EncodeToString(b)
+}
+
 // openBrowserURL opens a URL in the user's default browser.
 func openBrowserURL(rawURL string) error {
-	slog.Info("OAuth: opening browser", "url", rawURL)
+	slog.Info("OAuth: opening browser", "url_len", len(rawURL))
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "windows":
@@ -68,76 +77,196 @@ func openBrowserURL(rawURL string) error {
 	return cmd.Start()
 }
 
-// exchangeCodeForKey sends the auth code + PKCE verifier to OpenRouter and
-// returns the permanent API key.
-func exchangeCodeForKey(code, verifier string) (string, error) {
-	body, _ := json.Marshal(map[string]string{
-		"code":                  code,
-		"code_verifier":         verifier,
-		"code_challenge_method": "S256",
-	})
+// tokenResponse represents the response from OpenAI's token endpoint.
+type tokenResponse struct {
+	IDToken      string `json:"id_token"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	Error        string `json:"error,omitempty"`
+	ErrorDesc    string `json:"error_description,omitempty"`
+}
 
-	slog.Info("OAuth: exchanging code for key", "code_len", len(code))
+// exchangeCodeForTokens exchanges the authorization code for tokens.
+func exchangeCodeForTokens(code, verifier, redirectURI string) (*tokenResponse, error) {
+	data := url.Values{
+		"grant_type":    {"authorization_code"},
+		"code":          {code},
+		"redirect_uri":  {redirectURI},
+		"client_id":     {openaiClientID},
+		"code_verifier": {verifier},
+	}
+
+	slog.Info("OAuth: exchanging code for tokens")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
-		"https://openrouter.ai/api/v1/auth/keys",
-		bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, openaiTokenURL,
+		strings.NewReader(data.Encode()))
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("token request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read response: %w", err)
+	}
+
+	slog.Info("OAuth: token response", "status", resp.StatusCode)
+
+	var result tokenResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("parse response: %w (body: %s)", err, string(body))
+	}
+
+	if result.Error != "" {
+		return nil, fmt.Errorf("token error: %s — %s", result.Error, result.ErrorDesc)
+	}
+
+	if result.IDToken == "" {
+		return nil, fmt.Errorf("no id_token in response")
+	}
+
+	return &result, nil
+}
+
+// exchangeIDTokenForAPIKey performs a token-exchange to get a standard sk-... API key.
+func exchangeIDTokenForAPIKey(idToken string) (string, error) {
+	data := url.Values{
+		"grant_type":         {"urn:ietf:params:oauth:grant-type:token-exchange"},
+		"client_id":          {openaiClientID},
+		"requested_token":    {"openai-api-key"},
+		"subject_token":      {idToken},
+		"subject_token_type": {"urn:ietf:params:oauth:token-type:id_token"},
+	}
+
+	slog.Info("OAuth: exchanging id_token for API key")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, openaiTokenURL,
+		strings.NewReader(data.Encode()))
 	if err != nil {
 		return "", fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("API key exchange failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("read response: %w", err)
+	}
+
+	slog.Info("OAuth: API key exchange response", "status", resp.StatusCode)
+
+	var result tokenResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return "", fmt.Errorf("parse response: %w (body: %s)", err, string(body))
+	}
+
+	if result.Error != "" {
+		return "", fmt.Errorf("API key exchange error: %s — %s", result.Error, result.ErrorDesc)
+	}
+
+	if result.AccessToken == "" {
+		return "", fmt.Errorf("no access_token (API key) in response")
+	}
+
+	return result.AccessToken, nil
+}
+
+// RefreshOpenAITokens refreshes an OAuth provider's tokens using the stored
+// refresh_token. Returns the new API key and refresh token.
+func RefreshOpenAITokens(refreshToken string) (apiKey, newRefreshToken string, err error) {
+	slog.Info("OAuth: refreshing tokens")
+
+	// Refresh request uses JSON body (different from initial exchange)
+	payload, _ := json.Marshal(map[string]string{
+		"client_id":     openaiClientID,
+		"grant_type":    "refresh_token",
+		"refresh_token": refreshToken,
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, openaiTokenURL,
+		strings.NewReader(string(payload)))
+	if err != nil {
+		return "", "", fmt.Errorf("create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("key exchange request failed: %w", err)
+		return "", "", fmt.Errorf("refresh request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
-	respBody, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("read response: %w", err)
+		return "", "", fmt.Errorf("read response: %w", err)
 	}
 
-	slog.Info("OAuth: key exchange response", "status", resp.StatusCode, "body", string(respBody))
+	slog.Info("OAuth: refresh response", "status", resp.StatusCode)
 
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("key exchange failed (HTTP %d): %s", resp.StatusCode, string(respBody))
+	var result tokenResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return "", "", fmt.Errorf("parse response: %w", err)
 	}
 
-	var result oauthKeyResponse
-	if err := json.Unmarshal(respBody, &result); err != nil {
-		return "", fmt.Errorf("parse response: %w", err)
+	if result.Error != "" {
+		return "", "", fmt.Errorf("refresh error: %s — %s", result.Error, result.ErrorDesc)
 	}
 
-	if result.Error != nil {
-		return "", fmt.Errorf("OpenRouter error %d: %s", result.Error.Code, result.Error.Message)
+	// Get the new refresh token (may be rotated)
+	newRefreshToken = result.RefreshToken
+	if newRefreshToken == "" {
+		newRefreshToken = refreshToken // keep old if not rotated
 	}
 
-	if result.Key == "" {
-		return "", fmt.Errorf("empty key in response")
+	// Exchange the new id_token for a fresh API key
+	if result.IDToken == "" {
+		return "", "", fmt.Errorf("no id_token in refresh response")
 	}
 
-	return result.Key, nil
+	apiKey, err = exchangeIDTokenForAPIKey(result.IDToken)
+	if err != nil {
+		return "", "", fmt.Errorf("API key exchange after refresh: %w", err)
+	}
+
+	slog.Info("OAuth: tokens refreshed successfully")
+	return apiKey, newRefreshToken, nil
 }
 
-// startOpenRouterOAuthAsync runs the OAuth flow in a background goroutine.
-// The result can be polled via getOAuthResult().
-func startOpenRouterOAuthAsync() {
+// startOpenAIOAuthAsync runs the OAuth flow in a background goroutine.
+func startOpenAIOAuthAsync() {
 	oauth.mu.Lock()
 	if oauth.running {
 		oauth.mu.Unlock()
 		return
 	}
 	oauth.running = true
-	oauth.key = ""
+	oauth.apiKey = ""
+	oauth.refreshToken = ""
 	oauth.errMsg = ""
 	oauth.mu.Unlock()
 
 	go func() {
-		key, err := runOAuthFlow()
+		apiKey, refreshToken, err := runOpenAIOAuthFlow()
 
 		oauth.mu.Lock()
 		defer oauth.mu.Unlock()
@@ -146,14 +275,14 @@ func startOpenRouterOAuthAsync() {
 			oauth.errMsg = err.Error()
 			slog.Error("OAuth flow failed", "error", err)
 		} else {
-			oauth.key = key
+			oauth.apiKey = apiKey
+			oauth.refreshToken = refreshToken
 			slog.Info("OAuth flow succeeded")
 		}
 	}()
 }
 
 // getOAuthResult returns the current state of the OAuth flow.
-// Returns: "pending", "error: ...", or "ok:sk-or-v1-..."
 func getOAuthResult() string {
 	oauth.mu.Lock()
 	defer oauth.mu.Unlock()
@@ -162,40 +291,42 @@ func getOAuthResult() string {
 	}
 	if oauth.errMsg != "" {
 		msg := oauth.errMsg
-		oauth.errMsg = "" // clear for next attempt
+		oauth.errMsg = ""
 		return "error: " + msg
 	}
-	if oauth.key != "" {
-		key := oauth.key
-		oauth.key = "" // clear for security
-		return "ok:" + key
+	if oauth.apiKey != "" {
+		result, _ := json.Marshal(map[string]string{
+			"api_key":       oauth.apiKey,
+			"refresh_token": oauth.refreshToken,
+		})
+		oauth.apiKey = ""
+		oauth.refreshToken = ""
+		return "ok:" + string(result)
 	}
 	return "error: no OAuth flow started"
 }
 
-// runOAuthFlow executes the full PKCE flow synchronously.
-func runOAuthFlow() (string, error) {
-	// OpenRouter only allows callback URLs on port 443 (HTTPS) or 3000 (localhost).
-	const port = 3000
-	addr := fmt.Sprintf("127.0.0.1:%d", port)
-	callbackURL := fmt.Sprintf("http://localhost:%d/callback", port)
+// runOpenAIOAuthFlow executes the full OpenAI OAuth PKCE flow.
+func runOpenAIOAuthFlow() (apiKey, refreshToken string, err error) {
+	addr := fmt.Sprintf("127.0.0.1:%d", oauthPort)
+	redirectURI := fmt.Sprintf("http://localhost:%d%s", oauthPort, oauthPath)
 
-	slog.Info("OAuth: starting flow", "callback", callbackURL)
+	slog.Info("OAuth: starting OpenAI flow", "redirect", redirectURI)
 
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
-		// Port might be in use — try a random port as fallback
-		slog.Warn("OAuth: fixed port unavailable, trying random", "error", err)
+		slog.Warn("OAuth: port unavailable, trying random", "port", oauthPort, "error", err)
 		listener, err = net.Listen("tcp", "127.0.0.1:0")
 		if err != nil {
-			return "", fmt.Errorf("start listener: %w", err)
+			return "", "", fmt.Errorf("start listener: %w", err)
 		}
 		actualPort := listener.Addr().(*net.TCPAddr).Port
-		callbackURL = fmt.Sprintf("http://localhost:%d/callback", actualPort)
-		slog.Info("OAuth: using random port", "port", actualPort)
+		redirectURI = fmt.Sprintf("http://localhost:%d%s", actualPort, oauthPath)
+		slog.Info("OAuth: using fallback port", "port", actualPort)
 	}
 
 	verifier, challenge := generatePKCE()
+	state := randomState()
 
 	type callbackResult struct {
 		code string
@@ -204,36 +335,46 @@ func runOAuthFlow() (string, error) {
 	resultCh := make(chan callbackResult, 1)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("OAuth: callback received", "url", r.URL.String())
+	mux.HandleFunc(oauthPath, func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("OAuth: callback received", "query_keys", len(r.URL.Query()))
 
-		// Check for error response from OpenRouter
+		// Verify state
+		if gotState := r.URL.Query().Get("state"); gotState != state {
+			slog.Error("OAuth: state mismatch", "expected_len", len(state), "got_len", len(gotState))
+			w.Header().Set("Content-Type", "text/html")
+			w.WriteHeader(400)
+			fmt.Fprint(w, oauthPage(false, "Security error: state mismatch. Please try again."))
+			resultCh <- callbackResult{err: fmt.Errorf("state mismatch")}
+			return
+		}
+
+		// Check for error
 		if errMsg := r.URL.Query().Get("error"); errMsg != "" {
 			desc := r.URL.Query().Get("error_description")
 			if desc == "" {
 				desc = errMsg
 			}
-			slog.Error("OAuth callback: error from provider", "error", errMsg, "description", desc)
+			slog.Error("OAuth: error from provider", "error", errMsg, "desc", desc)
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(400)
-			fmt.Fprint(w, oauthErrorPage(desc))
+			fmt.Fprint(w, oauthPage(false, desc))
 			resultCh <- callbackResult{err: fmt.Errorf("%s", desc)}
 			return
 		}
 
 		code := r.URL.Query().Get("code")
 		if code == "" {
-			slog.Error("OAuth callback: no code parameter", "query", r.URL.RawQuery)
+			slog.Error("OAuth: no code in callback")
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(400)
-			fmt.Fprint(w, oauthErrorPage("No authorization code received. Please try again."))
-			resultCh <- callbackResult{err: fmt.Errorf("no code in callback (query: %s)", r.URL.RawQuery)}
+			fmt.Fprint(w, oauthPage(false, "No authorization code received."))
+			resultCh <- callbackResult{err: fmt.Errorf("no code in callback")}
 			return
 		}
 
-		slog.Info("OAuth callback: received code", "code_len", len(code))
+		slog.Info("OAuth: received authorization code", "code_len", len(code))
 		w.Header().Set("Content-Type", "text/html")
-		fmt.Fprint(w, oauthSuccessPage())
+		fmt.Fprint(w, oauthPage(true, ""))
 		resultCh <- callbackResult{code: code}
 	})
 
@@ -249,12 +390,20 @@ func runOAuthFlow() (string, error) {
 		server.Shutdown(shutCtx)
 	}()
 
-	// Build auth URL
-	authURL := fmt.Sprintf("https://openrouter.ai/auth?callback_url=%s&code_challenge=%s&code_challenge_method=S256",
-		url.QueryEscape(callbackURL), url.QueryEscape(challenge))
+	// Build authorization URL
+	params := url.Values{
+		"response_type":       {"code"},
+		"client_id":           {openaiClientID},
+		"redirect_uri":        {redirectURI},
+		"scope":               {openaiScopes},
+		"code_challenge":      {challenge},
+		"code_challenge_method": {"S256"},
+		"state":               {state},
+	}
+	authURL := openaiAuthURL + "?" + params.Encode()
 
 	if err := openBrowserURL(authURL); err != nil {
-		return "", fmt.Errorf("failed to open browser: %w", err)
+		return "", "", fmt.Errorf("failed to open browser: %w", err)
 	}
 
 	slog.Info("OAuth: browser opened, waiting for callback...")
@@ -266,25 +415,37 @@ func runOAuthFlow() (string, error) {
 	select {
 	case res := <-resultCh:
 		if res.err != nil {
-			return "", res.err
+			return "", "", res.err
 		}
-		key, err := exchangeCodeForKey(res.code, verifier)
+
+		// Step 1: Exchange code for tokens
+		tokens, err := exchangeCodeForTokens(res.code, verifier, redirectURI)
 		if err != nil {
-			return "", err
+			return "", "", err
 		}
-		prefix := key
+
+		// Step 2: Exchange id_token for API key
+		apiKey, err := exchangeIDTokenForAPIKey(tokens.IDToken)
+		if err != nil {
+			return "", "", err
+		}
+
+		prefix := apiKey
 		if len(prefix) > 12 {
 			prefix = prefix[:12]
 		}
-		slog.Info("OAuth: API key received", "key_prefix", prefix+"...")
-		return key, nil
+		slog.Info("OAuth: complete", "key_prefix", prefix+"...", "has_refresh", tokens.RefreshToken != "")
+
+		return apiKey, tokens.RefreshToken, nil
+
 	case <-ctx.Done():
-		return "", fmt.Errorf("timed out waiting for authorization (5 minutes)")
+		return "", "", fmt.Errorf("timed out waiting for authorization (5 minutes)")
 	}
 }
 
-func oauthSuccessPage() string {
-	return `<!DOCTYPE html>
+func oauthPage(success bool, errMsg string) string {
+	if success {
+		return `<!DOCTYPE html>
 <html><head><style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#1e1e2e;color:#cdd6f4;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
 .box{text-align:center;padding:40px;background:#313244;border-radius:12px;max-width:400px}
@@ -296,9 +457,7 @@ p{color:#a6adc8;font-size:0.9em}
 <p>You can close this tab and return to GhostType.</p>
 </div>
 </body></html>`
-}
-
-func oauthErrorPage(msg string) string {
+	}
 	return fmt.Sprintf(`<!DOCTYPE html>
 <html><head><style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#1e1e2e;color:#cdd6f4;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
@@ -310,5 +469,5 @@ p{color:#a6adc8;font-size:0.9em}
 <h2>&#10060; Authorization Failed</h2>
 <p>%s</p>
 </div>
-</body></html>`, msg)
+</body></html>`, errMsg)
 }

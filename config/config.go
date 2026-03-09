@@ -19,12 +19,13 @@ type PromptEntry struct {
 
 // LLMProviderDef defines a named LLM provider configuration.
 type LLMProviderDef struct {
-	Provider    string `json:"provider"`
-	APIKey      string `json:"api_key,omitempty"`
-	Model       string `json:"model"`
-	APIEndpoint string `json:"api_endpoint,omitempty"`
-	MaxTokens   int    `json:"max_tokens,omitempty"`
-	TimeoutMs   int    `json:"timeout_ms,omitempty"`
+	Provider     string `json:"provider"`
+	APIKey       string `json:"api_key,omitempty"`
+	Model        string `json:"model"`
+	APIEndpoint  string `json:"api_endpoint,omitempty"`
+	MaxTokens    int    `json:"max_tokens,omitempty"`
+	TimeoutMs    int    `json:"timeout_ms,omitempty"`
+	RefreshToken string `json:"refresh_token,omitempty"` // OAuth: used to auto-refresh API key
 }
 
 // Hotkeys defines the configurable hotkey bindings.
@@ -386,9 +387,8 @@ func Validate(cfg *Config) error {
 		"openai":    true,
 		"gemini":    true,
 		"xai":       true,
-		"deepseek":    true,
-		"openrouter": true,
-		"ollama":      true,
+		"deepseek": true,
+		"ollama":   true,
 	}
 
 	// Flat-field validation only when llm_providers was not provided directly.
@@ -416,7 +416,7 @@ func Validate(cfg *Config) error {
 		if !validProviders[def.Provider] {
 			return fmt.Errorf("llm_providers[%s]: unsupported provider %q (valid: anthropic, openai, gemini, xai, ollama)", label, def.Provider)
 		}
-		if def.Provider != "ollama" && def.APIKey == "" {
+		if def.Provider != "ollama" && def.APIKey == "" && def.RefreshToken == "" {
 			return fmt.Errorf("llm_providers[%s]: api_key is required for provider %s", label, def.Provider)
 		}
 		if def.Model == "" {

@@ -93,9 +93,7 @@ func NewClientFromDef(def config.LLMProviderDef) (Client, error) {
 		return newDeepSeekFromDef(def), nil
 	case "ollama":
 		return newOllamaFromDef(def), nil
-	case "openrouter":
-		return newOpenRouterFromDef(def), nil
-	default:
+default:
 		return nil, fmt.Errorf("unsupported LLM provider: %s", def.Provider)
 	}
 }

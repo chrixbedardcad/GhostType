@@ -13,7 +13,6 @@ var cheapModels = map[string]string{
 	"gemini":    "gemini-2.5-flash-lite",
 	"xai":       "grok-3-mini",
 	"deepseek":    "deepseek-chat",
-	"openrouter": "openrouter/auto",
 }
 
 // ResolveModelTag checks if the model string is a known tag (e.g. "cheap")

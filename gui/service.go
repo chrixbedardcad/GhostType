@@ -84,7 +84,7 @@ func (s *SettingsService) clearLegacyAndSave() error {
 
 	// Remove invalid provider entries (e.g. phantom "default" from legacy synthesis).
 	for label, def := range s.cfgCopy.LLMProviders {
-		if def.Provider != "ollama" && def.APIKey == "" {
+		if def.Provider != "ollama" && def.APIKey == "" && def.RefreshToken == "" {
 			delete(s.cfgCopy.LLMProviders, label)
 			if s.cfgCopy.DefaultLLM == label {
 				s.cfgCopy.DefaultLLM = ""
@@ -380,20 +380,35 @@ func (s *SettingsService) OllamaDownloadInstaller() string {
 	return "ok"
 }
 
-// --- OpenRouter OAuth -------------------------------------------------------
+// --- ChatGPT OAuth ----------------------------------------------------------
 
-// StartOpenRouterOAuth initiates the OpenRouter PKCE OAuth flow in the background.
+// StartChatGPTOAuth initiates the OpenAI OAuth PKCE flow in the background.
 // Returns "started" immediately. Use PollOAuthResult to check for completion.
-func (s *SettingsService) StartOpenRouterOAuth() string {
-	guiLog("[GUI] JS called: StartOpenRouterOAuth")
-	startOpenRouterOAuthAsync()
+func (s *SettingsService) StartChatGPTOAuth() string {
+	guiLog("[GUI] JS called: StartChatGPTOAuth")
+	startOpenAIOAuthAsync()
 	return "started"
 }
 
 // PollOAuthResult checks the status of the OAuth flow.
-// Returns "pending", "error: ...", or "ok:sk-or-v1-..."
+// Returns "pending", "error: ...", or "ok:{...json...}"
 func (s *SettingsService) PollOAuthResult() string {
 	return getOAuthResult()
+}
+
+// SetRefreshToken stores an OAuth refresh token for a saved provider.
+func (s *SettingsService) SetRefreshToken(label, token string) string {
+	guiLog("[GUI] JS called: SetRefreshToken(%s)", label)
+	def, ok := s.cfgCopy.LLMProviders[label]
+	if !ok {
+		return "error: provider not found"
+	}
+	def.RefreshToken = token
+	s.cfgCopy.LLMProviders[label] = def
+	if err := s.clearLegacyAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
 }
 
 // --- Prompt management -----------------------------------------------------
