@@ -19,17 +19,14 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.Hotkeys.Action != "Ctrl+G" {
 		t.Errorf("expected default action hotkey 'Ctrl+G', got '%s'", cfg.Hotkeys.Action)
 	}
-	if len(cfg.Prompts) != 3 {
-		t.Errorf("expected 3 default prompts, got %d", len(cfg.Prompts))
+	if len(cfg.Prompts) != 6 {
+		t.Errorf("expected 6 default prompts, got %d", len(cfg.Prompts))
 	}
-	if cfg.Prompts[0].Name != "Correct" {
-		t.Errorf("expected first prompt 'Correct', got '%s'", cfg.Prompts[0].Name)
-	}
-	if cfg.Prompts[1].Name != "Polish" {
-		t.Errorf("expected second prompt 'Polish', got '%s'", cfg.Prompts[1].Name)
-	}
-	if cfg.Prompts[2].Name != "Translate" {
-		t.Errorf("expected third prompt 'Translate', got '%s'", cfg.Prompts[2].Name)
+	expectedNames := []string{"Correct", "Polish", "Formalize", "Elaborate", "Shorten", "Translate"}
+	for i, name := range expectedNames {
+		if i < len(cfg.Prompts) && cfg.Prompts[i].Name != name {
+			t.Errorf("expected prompt %d '%s', got '%s'", i, name, cfg.Prompts[i].Name)
+		}
 	}
 	if cfg.ActivePrompt != 0 {
 		t.Errorf("expected default active_prompt 0, got %d", cfg.ActivePrompt)
@@ -48,8 +45,8 @@ func TestLoadCreatesDefaultWhenMissing(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(cfg.Prompts) != 3 {
-		t.Errorf("expected 3 default prompts, got %d", len(cfg.Prompts))
+	if len(cfg.Prompts) != 6 {
+		t.Errorf("expected 6 default prompts, got %d", len(cfg.Prompts))
 	}
 
 	// Verify file was created
@@ -331,8 +328,8 @@ func TestWriteDefault(t *testing.T) {
 	if loaded.Hotkeys.Action != "Ctrl+G" {
 		t.Errorf("expected hotkey 'Ctrl+G' in written file, got '%s'", loaded.Hotkeys.Action)
 	}
-	if len(loaded.Prompts) != 3 {
-		t.Errorf("expected 3 prompts in written file, got %d", len(loaded.Prompts))
+	if len(loaded.Prompts) != 6 {
+		t.Errorf("expected 6 prompts in written file, got %d", len(loaded.Prompts))
 	}
 }
 

@@ -156,8 +156,8 @@ func TestConfigLoadAndCreateDefault(t *testing.T) {
 		t.Fatalf("Failed to load/create config: %v", err)
 	}
 
-	if len(cfg.Prompts) != 3 {
-		t.Errorf("Expected 3 default prompts, got %d", len(cfg.Prompts))
+	if len(cfg.Prompts) != 6 {
+		t.Errorf("Expected 6 default prompts, got %d", len(cfg.Prompts))
 	}
 
 	data, err := os.ReadFile(path)
