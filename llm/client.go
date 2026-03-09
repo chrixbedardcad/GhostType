@@ -63,7 +63,11 @@ func NewClient(cfg *config.Config) (Client, error) {
 }
 
 // NewClientFromDef creates an LLM client from a provider definition.
+// Model tags like "cheap" are resolved to actual model names before
+// creating the client.
 func NewClientFromDef(def config.LLMProviderDef) (Client, error) {
+	def.Model = ResolveModelTag(def.Provider, def.Model)
+
 	switch def.Provider {
 	case "anthropic":
 		return newAnthropicFromDef(def), nil
