@@ -568,6 +568,7 @@ func (s *SettingsService) UpdateNow() string {
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 	cmd.Stdin = nil
+	detachProcess(cmd)
 
 	if err := cmd.Start(); err != nil {
 		guiLog("[GUI] UpdateNow: failed to start installer: %v", err)

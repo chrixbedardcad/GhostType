@@ -279,7 +279,9 @@ func processMode(
 		slog.Error("LLM processing failed", "prompt", promptName, "error", err)
 		// Paste error indicator so the user sees something went wrong
 		// directly in their text. They can Ctrl+Z to undo.
-		cb.Write("\U0001F47B\u274C") // 👻❌
+		if werr := cb.Write("\U0001F47B\u274C"); werr != nil { // 👻❌
+			slog.Error("Failed to write error indicator to clipboard", "error", werr)
+		}
 		kb.Paste()
 		time.Sleep(300 * time.Millisecond)
 		cb.Restore()

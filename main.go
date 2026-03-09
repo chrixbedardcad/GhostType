@@ -43,6 +43,7 @@ func migrateConfigFromExeDir(newConfigPath string) {
 
 	execPath, err := os.Executable()
 	if err != nil {
+		slog.Debug("Config migration: cannot resolve executable path", "error", err)
 		return
 	}
 	oldPath := filepath.Join(filepath.Dir(execPath), "config.json")
@@ -52,6 +53,7 @@ func migrateConfigFromExeDir(newConfigPath string) {
 
 	data, err := os.ReadFile(oldPath)
 	if err != nil {
+		slog.Warn("Config migration: failed to read old config", "path", oldPath, "error", err)
 		return
 	}
 	if err := os.WriteFile(newConfigPath, data, 0644); err != nil {
@@ -60,7 +62,9 @@ func migrateConfigFromExeDir(newConfigPath string) {
 	}
 
 	// Rename old file so it won't be picked up again.
-	os.Rename(oldPath, oldPath+".bak")
+	if err := os.Rename(oldPath, oldPath+".bak"); err != nil {
+		slog.Warn("Config migration: failed to rename old config", "path", oldPath, "error", err)
+	}
 	fmt.Printf("Migrated config from %s to %s\n", oldPath, newConfigPath)
 }
 

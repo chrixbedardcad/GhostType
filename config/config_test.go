@@ -22,7 +22,7 @@ func TestDefaultConfig(t *testing.T) {
 	if len(cfg.Prompts) != 6 {
 		t.Errorf("expected 6 default prompts, got %d", len(cfg.Prompts))
 	}
-	expectedNames := []string{"Correct", "Polish", "Formalize", "Elaborate", "Shorten", "Translate"}
+	expectedNames := []string{"Correct", "Polish", "Funny", "Elaborate", "Shorten", "Translate"}
 	for i, name := range expectedNames {
 		if i < len(cfg.Prompts) && cfg.Prompts[i].Name != name {
 			t.Errorf("expected prompt %d '%s', got '%s'", i, name, cfg.Prompts[i].Name)

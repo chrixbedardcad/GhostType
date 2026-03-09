@@ -112,12 +112,15 @@ func (r *Router) resolveClient(label string) (llm.Client, error) {
 		r.mu.Unlock()
 		return c, nil
 	}
+	// Read provider definition while holding the lock to avoid racing
+	// with ResetClients / config reload.
+	def, ok := r.cfg.LLMProviders[label]
+	fallback := r.defaultClient
 	r.mu.Unlock()
 
-	def, ok := r.cfg.LLMProviders[label]
 	if !ok {
 		slog.Warn("LLM label not found in llm_providers, falling back to default", "label", label)
-		return r.defaultClient, nil
+		return fallback, nil
 	}
 
 	c, err := llm.NewClientFromDef(def)
@@ -128,6 +131,7 @@ func (r *Router) resolveClient(label string) (llm.Client, error) {
 	r.mu.Lock()
 	if existing, ok := r.clients[label]; ok {
 		r.mu.Unlock()
+		c.Close()
 		return existing, nil
 	}
 	r.clients[label] = c

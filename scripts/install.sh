@@ -88,13 +88,6 @@ install_macos() {
     killall GhostType 2>/dev/null || true
     sleep 1
 
-    # Clear stale TCC entries. When the binary is replaced, macOS invalidates
-    # the old code-signature-based permission but may leave checkboxes looking
-    # "on" in System Settings. AXIsProcessTrusted() can return true while
-    # CGEventPost silently fails. Resetting forces fresh prompts for both.
-    tccutil reset Accessibility com.ghosttype.app 2>/dev/null || true
-    tccutil reset ListenEvent com.ghosttype.app 2>/dev/null || true
-
     info "Installing GhostType.app to /Applications..."
     # Remove old version if present, then copy.
     if [ -w /Applications ] || [ ! -d /Applications/GhostType.app ]; then
@@ -114,6 +107,10 @@ install_macos() {
 
     # Remove quarantine so Gatekeeper doesn't block the unsigned app.
     xattr -dr com.apple.quarantine /Applications/GhostType.app 2>/dev/null || true
+
+    # Force macOS to refresh the app icon (clears Launch Services cache).
+    touch /Applications/GhostType.app
+    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f /Applications/GhostType.app 2>/dev/null || true
 
     rm -rf "$tmpdir"
 
