@@ -289,6 +289,19 @@
   .badge-paid { background: #f9e2af; color: #1e1e2e; }
   .badge-fast { background: #f5c2e7; color: #1e1e2e; }
 
+  /* --- Help --- */
+  .help-section { margin-bottom: 20px; }
+  .help-section h2 { font-size: 1em; font-weight: 600; margin-bottom: 10px; color: #89b4fa; }
+  .help-section p { font-size: 0.85em; color: #a6adc8; line-height: 1.6; margin-bottom: 8px; }
+  .help-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+  .help-table td { padding: 6px 10px; font-size: 0.85em; border-bottom: 1px solid #313244; vertical-align: top; }
+  .help-table td:first-child { white-space: nowrap; font-size: 1.1em; width: 60px; text-align: center; }
+  .help-table td:last-child { color: #a6adc8; }
+  .help-step { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .help-step-num { background: #89b4fa; color: #1e1e2e; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75em; font-weight: 700; flex-shrink: 0; }
+  .help-step-text { font-size: 0.85em; color: #a6adc8; line-height: 1.5; }
+  .help-kbd { background: #313244; border: 1px solid #45475a; border-radius: 4px; padding: 1px 6px; font-size: 0.82em; font-family: monospace; color: #cdd6f4; }
+
   /* --- About --- */
   .about-block { text-align: center; padding: 30px 0; }
   .about-block .logo-big { font-size: 3em; margin-bottom: 8px; }
@@ -317,6 +330,7 @@
   <button onclick="switchTab('hotkeys')">Hotkeys</button>
   <button onclick="switchTab('general')">General</button>
   <button onclick="switchTab('debug')">Debug</button>
+  <button onclick="switchTab('help')">Help</button>
   <button onclick="switchTab('about')">About</button>
 </div>
 
@@ -553,6 +567,85 @@
   </div>
 
   <!-- ============ ABOUT TAB ============ -->
+  <!-- ============ HELP TAB ============ -->
+  <div id="tab-help" class="tab-panel">
+
+    <div class="help-section">
+      <h2>How It Works</h2>
+      <div class="help-step">
+        <span class="help-step-num">1</span>
+        <span class="help-step-text">Select text in any application (or place your cursor in a text field to process all text).</span>
+      </div>
+      <div class="help-step">
+        <span class="help-step-num">2</span>
+        <span class="help-step-text">Press the action hotkey (default: <span class="help-kbd">Ctrl+G</span> on Windows/Linux, <span class="help-kbd">Cmd+G</span> on macOS).</span>
+      </div>
+      <div class="help-step">
+        <span class="help-step-num">3</span>
+        <span class="help-step-text">GhostType captures the text, sends it to the active AI model with the selected prompt, and replaces it with the result.</span>
+      </div>
+      <div class="help-step">
+        <span class="help-step-num">4</span>
+        <span class="help-step-text">Press <span class="help-kbd">Ctrl+Z</span> to undo and restore the original text.</span>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <h2>Status Indicators</h2>
+      <p>GhostType appends emoji indicators in your text to let you know what happened:</p>
+      <table class="help-table">
+        <tr><td>👻✅</td><td><strong>No changes needed</strong> — the AI returned the same text. Your text is already good!</td></tr>
+        <tr><td>👻❌</td><td><strong>Error</strong> — the AI provider returned an error (bad API key, network issue, etc.).</td></tr>
+        <tr><td>👻⏳</td><td><strong>Timeout</strong> — the request took too long. Try again or check your connection.</td></tr>
+        <tr><td>👻⚠️</td><td><strong>Text too long</strong> — the selected text exceeds the max input character limit. Reduce your selection or increase the limit in General settings.</td></tr>
+        <tr><td>👻🫥</td><td><strong>Empty text</strong> — no text was captured. Make sure text is selected or the cursor is in a text field.</td></tr>
+      </table>
+      <p>All indicators can be removed with <span class="help-kbd">Ctrl+Z</span> (undo).</p>
+    </div>
+
+    <div class="help-section">
+      <h2>Sound Feedback</h2>
+      <table class="help-table">
+        <tr><td>🔊</td><td><strong>Working loop</strong> — plays while the AI is processing your text.</td></tr>
+        <tr><td>🎵</td><td><strong>Success</strong> — the text was processed and replaced successfully.</td></tr>
+        <tr><td>🔇</td><td><strong>Error</strong> — something went wrong (see indicators above).</td></tr>
+      </table>
+      <p>Toggle sounds on/off in the General tab.</p>
+    </div>
+
+    <div class="help-section">
+      <h2>Default Prompts</h2>
+      <table class="help-table">
+        <tr><td>✏️</td><td><strong>Correct</strong> — fixes spelling and grammar only, preserves tone and style.</td></tr>
+        <tr><td>💎</td><td><strong>Polish</strong> — improves clarity, structure, and flow while keeping the meaning.</td></tr>
+        <tr><td>😄</td><td><strong>Funny</strong> — rewrites the text to be witty and entertaining.</td></tr>
+        <tr><td>📝</td><td><strong>Elaborate</strong> — expands terse text with more detail and context.</td></tr>
+        <tr><td>✂️</td><td><strong>Shorten</strong> — condenses the text, removes filler and redundancy.</td></tr>
+        <tr><td>🌐</td><td><strong>Translate</strong> — translates the text to English.</td></tr>
+      </table>
+      <p>Add, edit, reorder, or delete prompts in the Prompts tab. Each prompt can use a different AI provider.</p>
+    </div>
+
+    <div class="help-section">
+      <h2>Hotkeys</h2>
+      <table class="help-table">
+        <tr><td>⌨️</td><td><strong>Action</strong> (default: <span class="help-kbd">Ctrl+G</span>) — process selected text with the active prompt.</td></tr>
+        <tr><td>🔄</td><td><strong>Cycle Prompt</strong> — switch to the next prompt without opening settings.</td></tr>
+      </table>
+      <p>Configure hotkeys in the Hotkeys tab. Right-click the tray icon to see and switch the active prompt.</p>
+    </div>
+
+    <div class="help-section">
+      <h2>Tips</h2>
+      <p>• GhostType works in any application — browsers, editors, chat apps, email.</p>
+      <p>• The text is always processed in its original language (except the Translate prompt).</p>
+      <p>• Clipboard contents are preserved and restored after processing.</p>
+      <p>• You can set up multiple AI providers (OpenAI, Anthropic, Gemini, xAI, Ollama) in the Models tab.</p>
+      <p>• For local/private processing, set up Ollama with a local model — your text never leaves your machine.</p>
+    </div>
+
+  </div>
+
   <div id="tab-about" class="tab-panel">
     <div class="about-block">
       <img src="/ghost-icon.png" alt="GhostType" style="width:64px;height:64px;margin-bottom:8px">
