@@ -26,6 +26,16 @@ func TestOpenAIClient_Send_Success(t *testing.T) {
 		if reqBody.Model != "gpt-4o" {
 			t.Errorf("expected model 'gpt-4o', got '%s'", reqBody.Model)
 		}
+		// Verify system/user message separation
+		if len(reqBody.Messages) != 2 {
+			t.Fatalf("expected 2 messages (system+user), got %d", len(reqBody.Messages))
+		}
+		if reqBody.Messages[0].Role != "system" {
+			t.Errorf("expected first message role 'system', got '%s'", reqBody.Messages[0].Role)
+		}
+		if reqBody.Messages[1].Role != "user" {
+			t.Errorf("expected second message role 'user', got '%s'", reqBody.Messages[1].Role)
+		}
 
 		// Return success response
 		resp := openaiResponse{

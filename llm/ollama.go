@@ -92,6 +92,7 @@ func (c *OllamaClient) Close() {
 // ollamaRequest is the request body for the Ollama generate API.
 type ollamaRequest struct {
 	Model   string         `json:"model"`
+	System  string         `json:"system,omitempty"`
 	Prompt  string         `json:"prompt"`
 	Stream  bool           `json:"stream"`
 	Options ollamaOptions  `json:"options,omitempty"`
@@ -109,20 +110,18 @@ type ollamaResponse struct {
 }
 
 func (c *OllamaClient) Send(ctx context.Context, req Request) (*Response, error) {
-	// Prepend /no_think to suppress chain-of-thought on thinking models
-	// (qwen3, deepseek-r1, etc.). Without this, thinking models generate
-	// thousands of internal reasoning tokens before the actual answer,
-	// causing requests to hang for minutes on modest hardware.
-	fullPrompt := "/no_think\n" + req.Prompt + "\n\n" + req.Text
-
 	maxTok := c.maxTokens
 	if req.MaxTokens > 0 {
 		maxTok = req.MaxTokens
 	}
 
+	// Use the system field for instructions, user text as prompt.
+	// Prepend /no_think to suppress chain-of-thought on thinking models
+	// (qwen3, deepseek-r1, etc.).
 	body := ollamaRequest{
 		Model:  c.model,
-		Prompt: fullPrompt,
+		System: "/no_think\n" + req.Prompt,
+		Prompt: req.Text,
 		Stream: false,
 		Options: ollamaOptions{
 			NumPredict: maxTok,

@@ -114,8 +114,6 @@ type openaiResponse struct {
 }
 
 func (c *OpenAIClient) Send(ctx context.Context, req Request) (*Response, error) {
-	fullPrompt := req.Prompt + "\n\n" + req.Text
-
 	maxTokens := req.MaxTokens
 	if maxTokens == 0 {
 		maxTokens = c.maxTokens
@@ -124,7 +122,8 @@ func (c *OpenAIClient) Send(ctx context.Context, req Request) (*Response, error)
 	body := openaiRequest{
 		Model: c.model,
 		Messages: []openaiMessage{
-			{Role: "user", Content: fullPrompt},
+			{Role: "system", Content: req.Prompt},
+			{Role: "user", Content: req.Text},
 		},
 	}
 	// OpenAI uses max_completion_tokens (required for reasoning models).

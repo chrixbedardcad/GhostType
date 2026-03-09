@@ -79,6 +79,7 @@ func (c *AnthropicClient) Close() {
 type anthropicRequest struct {
 	Model     string             `json:"model"`
 	MaxTokens int                `json:"max_tokens"`
+	System    string             `json:"system,omitempty"`
 	Messages  []anthropicMessage `json:"messages"`
 }
 
@@ -100,9 +101,6 @@ type anthropicResponse struct {
 }
 
 func (c *AnthropicClient) Send(ctx context.Context, req Request) (*Response, error) {
-	// Build the full prompt: system instruction + user text
-	fullPrompt := req.Prompt + "\n\n" + req.Text
-
 	maxTokens := req.MaxTokens
 	if maxTokens == 0 {
 		maxTokens = c.maxTokens
@@ -111,8 +109,9 @@ func (c *AnthropicClient) Send(ctx context.Context, req Request) (*Response, err
 	body := anthropicRequest{
 		Model:     c.model,
 		MaxTokens: maxTokens,
+		System:    req.Prompt,
 		Messages: []anthropicMessage{
-			{Role: "user", Content: fullPrompt},
+			{Role: "user", Content: req.Text},
 		},
 	}
 
