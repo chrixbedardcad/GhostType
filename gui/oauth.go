@@ -175,8 +175,8 @@ func getOAuthResult() string {
 
 // runOAuthFlow executes the full PKCE flow synchronously.
 func runOAuthFlow() (string, error) {
-	// Use a fixed port so the callback URL is predictable
-	const port = 18923
+	// OpenRouter only allows callback URLs on port 443 (HTTPS) or 3000 (localhost).
+	const port = 3000
 	addr := fmt.Sprintf("127.0.0.1:%d", port)
 	callbackURL := fmt.Sprintf("http://localhost:%d/callback", port)
 
