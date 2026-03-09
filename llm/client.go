@@ -58,6 +58,15 @@ func NewClient(cfg *config.Config) (Client, error) {
 			MaxTokens:   cfg.MaxTokens,
 			TimeoutMs:   cfg.TimeoutMs,
 		})
+	case "deepseek":
+		return NewClientFromDef(config.LLMProviderDef{
+			Provider:    "deepseek",
+			APIKey:      cfg.APIKey,
+			Model:       cfg.Model,
+			APIEndpoint: cfg.APIEndpoint,
+			MaxTokens:   cfg.MaxTokens,
+			TimeoutMs:   cfg.TimeoutMs,
+		})
 	case "ollama":
 		return NewOllamaClient(cfg), nil
 	default:
@@ -80,6 +89,8 @@ func NewClientFromDef(def config.LLMProviderDef) (Client, error) {
 		return newGeminiFromDef(def), nil
 	case "xai":
 		return newXAIFromDef(def), nil
+	case "deepseek":
+		return newDeepSeekFromDef(def), nil
 	case "ollama":
 		return newOllamaFromDef(def), nil
 	default:

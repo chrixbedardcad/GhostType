@@ -50,6 +50,11 @@ func KnownModels(provider string) []ModelInfo {
 			{Name: "grok-4-1-fast-non-reasoning", Tag: "fast"},
 			{Name: "grok-3"},
 		}
+	case "deepseek":
+		return []ModelInfo{
+			{Name: "deepseek-chat", Tag: "recommended"},
+			{Name: "deepseek-reasoner", Tag: "best"},
+		}
 	case "ollama":
 		return []ModelInfo{
 			{Name: "mistral", Tag: "recommended"},

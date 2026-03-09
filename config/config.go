@@ -386,6 +386,7 @@ func Validate(cfg *Config) error {
 		"openai":    true,
 		"gemini":    true,
 		"xai":       true,
+		"deepseek":  true,
 		"ollama":    true,
 	}
 
