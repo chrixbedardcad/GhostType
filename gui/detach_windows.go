@@ -2,8 +2,16 @@
 
 package gui
 
-import "os/exec"
+import (
+	"os/exec"
+	"syscall"
+)
 
-// detachProcess is a no-op on Windows — child processes already
-// survive parent exit by default.
-func detachProcess(cmd *exec.Cmd) {}
+// detachProcess gives the child its own console on Windows.
+// ghosttype.exe is built with -H windowsgui (no console), so child
+// processes like PowerShell need CREATE_NEW_CONSOLE to function.
+func detachProcess(cmd *exec.Cmd) {
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP | 0x00000010, // CREATE_NEW_CONSOLE
+	}
+}
