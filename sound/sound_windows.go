@@ -3,17 +3,20 @@
 package sound
 
 import (
-	"embed"
-	"io/fs"
-	"math/rand/v2"
-	"strings"
+	_ "embed"
 	"sync"
 	"syscall"
 	"unsafe"
 )
 
-//go:embed *.wav
-var soundFS embed.FS
+//go:embed working.wav
+var workingWAV []byte
+
+//go:embed success.wav
+var successWAV []byte
+
+//go:embed error.wav
+var errorWAV []byte
 
 const (
 	sndMemory    = 0x0004
@@ -26,67 +29,37 @@ var (
 	procPlaySound = winmm.NewProc("PlaySoundW")
 )
 
-type soundGroup struct {
-	variants [][]byte
+var (
+	enabled bool
+	mu      sync.Mutex
+)
+
+// Init enables or disables sound playback.
+func Init(soundEnabled bool) {
+	mu.Lock()
+	enabled = soundEnabled
+	mu.Unlock()
 }
 
-func (sg *soundGroup) play() {
-	if len(sg.variants) == 0 {
+func play(data []byte) {
+	mu.Lock()
+	e := enabled
+	mu.Unlock()
+	if !e || len(data) == 0 {
 		return
 	}
-	wav := sg.variants[rand.IntN(len(sg.variants))]
 	procPlaySound.Call(
-		uintptr(unsafe.Pointer(&wav[0])),
+		uintptr(unsafe.Pointer(&data[0])),
 		0,
 		uintptr(sndMemory|sndAsync|sndNoDefault),
 	)
 }
 
-var (
-	enabled bool
-	mu      sync.Mutex
-	groups  map[string]*soundGroup
-)
-
-// Init loads all embedded WAV files and groups them by prefix.
-func Init(soundEnabled bool) {
-	enabled = soundEnabled
-	groups = make(map[string]*soundGroup)
-
-	entries, _ := fs.Glob(soundFS, "*.wav")
-	for _, name := range entries {
-		prefix := extractPrefix(name)
-		data, _ := soundFS.ReadFile(name)
-		if groups[prefix] == nil {
-			groups[prefix] = &soundGroup{}
-		}
-		groups[prefix].variants = append(groups[prefix].variants, data)
-	}
-}
-
-// extractPrefix strips .wav and trailing digits: "toggle3.wav" → "toggle".
-func extractPrefix(filename string) string {
-	name := strings.TrimSuffix(filename, ".wav")
-	return strings.TrimRight(name, "0123456789")
-}
-
-func playGroup(name string) {
-	mu.Lock()
-	e := enabled
-	mu.Unlock()
-	if !e {
-		return
-	}
-	if g, ok := groups[name]; ok {
-		g.play()
-	}
-}
-
-func PlayStart()   { playGroup("start") }
-func PlaySuccess() { playGroup("sucess") } // matches filename spelling
-func PlayError()   { playGroup("error") }
-func PlayToggle()  { playGroup("toggle") }
-func PlayWorking() { playGroup("working") }
+func PlayStart()   {}
+func PlaySuccess() { play(successWAV) }
+func PlayError()   { play(errorWAV) }
+func PlayToggle()  {}
+func PlayWorking() { play(workingWAV) }
 
 func SetEnabled(v bool) {
 	mu.Lock()

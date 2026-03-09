@@ -2,15 +2,31 @@
 
 package sound
 
-import "os/exec"
+import (
+	"os"
+	"os/exec"
+)
 
 func playWAV(data []byte) {
-	playWAVWithCommand(data, "afplay")
-}
-
-func findPlayer() string {
-	if path, err := exec.LookPath("afplay"); err == nil {
-		return path
+	f, err := os.CreateTemp("", "ghosttype-*.wav")
+	if err != nil {
+		return
 	}
-	return ""
+	tmpPath := f.Name()
+	if _, err := f.Write(data); err != nil {
+		f.Close()
+		os.Remove(tmpPath)
+		return
+	}
+	f.Close()
+
+	cmd := exec.Command("afplay", tmpPath)
+	if err := cmd.Start(); err != nil {
+		os.Remove(tmpPath)
+		return
+	}
+	go func() {
+		cmd.Wait()
+		os.Remove(tmpPath)
+	}()
 }
