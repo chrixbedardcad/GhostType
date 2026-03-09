@@ -15,11 +15,12 @@ import (
 	"net/url"
 	"os/exec"
 	"runtime"
+	"sync"
 	"time"
 )
 
-// oauthResult is the response from OpenRouter's key exchange endpoint.
-type oauthResult struct {
+// oauthKeyResponse is the response from OpenRouter's key exchange endpoint.
+type oauthKeyResponse struct {
 	Key    string `json:"key"`
 	UserID string `json:"user_id"`
 	Error  *struct {
@@ -27,6 +28,17 @@ type oauthResult struct {
 		Message string `json:"message"`
 	} `json:"error,omitempty"`
 }
+
+// oauthState holds the state of an in-progress OAuth flow so the
+// Wails binding doesn't block the main thread.
+type oauthState struct {
+	mu      sync.Mutex
+	running bool
+	key     string
+	errMsg  string
+}
+
+var oauth oauthState
 
 // generatePKCE creates a cryptographically random code_verifier and its
 // S256 code_challenge for the PKCE OAuth flow.
@@ -41,8 +53,9 @@ func generatePKCE() (verifier, challenge string) {
 	return
 }
 
-// openBrowser opens a URL in the user's default browser.
-func openBrowser(rawURL string) error {
+// openBrowserURL opens a URL in the user's default browser.
+func openBrowserURL(rawURL string) error {
+	slog.Info("OAuth: opening browser", "url", rawURL)
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "windows":
@@ -63,6 +76,8 @@ func exchangeCodeForKey(code, verifier string) (string, error) {
 		"code_verifier":         verifier,
 		"code_challenge_method": "S256",
 	})
+
+	slog.Info("OAuth: exchanging code for key", "code_len", len(code))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
@@ -86,9 +101,13 @@ func exchangeCodeForKey(code, verifier string) (string, error) {
 		return "", fmt.Errorf("read response: %w", err)
 	}
 
-	slog.Debug("OpenRouter key exchange response", "status", resp.StatusCode, "body", string(respBody))
+	slog.Info("OAuth: key exchange response", "status", resp.StatusCode, "body", string(respBody))
 
-	var result oauthResult
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("key exchange failed (HTTP %d): %s", resp.StatusCode, string(respBody))
+	}
+
+	var result oauthKeyResponse
 	if err := json.Unmarshal(respBody, &result); err != nil {
 		return "", fmt.Errorf("parse response: %w", err)
 	}
@@ -98,53 +117,120 @@ func exchangeCodeForKey(code, verifier string) (string, error) {
 	}
 
 	if result.Key == "" {
-		return "", fmt.Errorf("empty key in response (HTTP %d)", resp.StatusCode)
+		return "", fmt.Errorf("empty key in response")
 	}
 
 	return result.Key, nil
 }
 
-// startOpenRouterOAuth runs the full OAuth PKCE flow:
-//  1. Starts a localhost HTTP server on a random port
-//  2. Opens the user's browser to OpenRouter's auth page
-//  3. Waits for the callback with the auth code
-//  4. Exchanges the code for a permanent API key
-//  5. Returns the API key or an error
-//
-// The flow times out after 5 minutes.
-func startOpenRouterOAuth() (string, error) {
-	// 1. Find a free port
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		return "", fmt.Errorf("start listener: %w", err)
+// startOpenRouterOAuthAsync runs the OAuth flow in a background goroutine.
+// The result can be polled via getOAuthResult().
+func startOpenRouterOAuthAsync() {
+	oauth.mu.Lock()
+	if oauth.running {
+		oauth.mu.Unlock()
+		return
 	}
-	port := listener.Addr().(*net.TCPAddr).Port
+	oauth.running = true
+	oauth.key = ""
+	oauth.errMsg = ""
+	oauth.mu.Unlock()
+
+	go func() {
+		key, err := runOAuthFlow()
+
+		oauth.mu.Lock()
+		defer oauth.mu.Unlock()
+		oauth.running = false
+		if err != nil {
+			oauth.errMsg = err.Error()
+			slog.Error("OAuth flow failed", "error", err)
+		} else {
+			oauth.key = key
+			slog.Info("OAuth flow succeeded")
+		}
+	}()
+}
+
+// getOAuthResult returns the current state of the OAuth flow.
+// Returns: "pending", "error: ...", or "ok:sk-or-v1-..."
+func getOAuthResult() string {
+	oauth.mu.Lock()
+	defer oauth.mu.Unlock()
+	if oauth.running {
+		return "pending"
+	}
+	if oauth.errMsg != "" {
+		msg := oauth.errMsg
+		oauth.errMsg = "" // clear for next attempt
+		return "error: " + msg
+	}
+	if oauth.key != "" {
+		key := oauth.key
+		oauth.key = "" // clear for security
+		return "ok:" + key
+	}
+	return "error: no OAuth flow started"
+}
+
+// runOAuthFlow executes the full PKCE flow synchronously.
+func runOAuthFlow() (string, error) {
+	// Use a fixed port so the callback URL is predictable
+	const port = 18923
+	addr := fmt.Sprintf("127.0.0.1:%d", port)
 	callbackURL := fmt.Sprintf("http://localhost:%d/callback", port)
 
 	slog.Info("OAuth: starting flow", "callback", callbackURL)
 
-	// 2. Generate PKCE
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		// Port might be in use — try a random port as fallback
+		slog.Warn("OAuth: fixed port unavailable, trying random", "error", err)
+		listener, err = net.Listen("tcp", "127.0.0.1:0")
+		if err != nil {
+			return "", fmt.Errorf("start listener: %w", err)
+		}
+		actualPort := listener.Addr().(*net.TCPAddr).Port
+		callbackURL = fmt.Sprintf("http://localhost:%d/callback", actualPort)
+		slog.Info("OAuth: using random port", "port", actualPort)
+	}
+
 	verifier, challenge := generatePKCE()
 
-	// 3. Channels for result
 	type callbackResult struct {
 		code string
 		err  error
 	}
 	resultCh := make(chan callbackResult, 1)
 
-	// 4. HTTP server to receive the callback
 	mux := http.NewServeMux()
 	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("OAuth: callback received", "url", r.URL.String())
+
+		// Check for error response from OpenRouter
+		if errMsg := r.URL.Query().Get("error"); errMsg != "" {
+			desc := r.URL.Query().Get("error_description")
+			if desc == "" {
+				desc = errMsg
+			}
+			slog.Error("OAuth callback: error from provider", "error", errMsg, "description", desc)
+			w.Header().Set("Content-Type", "text/html")
+			w.WriteHeader(400)
+			fmt.Fprint(w, oauthErrorPage(desc))
+			resultCh <- callbackResult{err: fmt.Errorf("%s", desc)}
+			return
+		}
+
 		code := r.URL.Query().Get("code")
 		if code == "" {
-			slog.Error("OAuth callback: no code parameter")
+			slog.Error("OAuth callback: no code parameter", "query", r.URL.RawQuery)
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(400)
 			fmt.Fprint(w, oauthErrorPage("No authorization code received. Please try again."))
-			resultCh <- callbackResult{err: fmt.Errorf("no code in callback")}
+			resultCh <- callbackResult{err: fmt.Errorf("no code in callback (query: %s)", r.URL.RawQuery)}
 			return
 		}
+
 		slog.Info("OAuth callback: received code", "code_len", len(code))
 		w.Header().Set("Content-Type", "text/html")
 		fmt.Fprint(w, oauthSuccessPage())
@@ -153,27 +239,27 @@ func startOpenRouterOAuth() (string, error) {
 
 	server := &http.Server{Handler: mux}
 	go func() {
-		if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
-			slog.Error("OAuth server error", "error", err)
+		if serveErr := server.Serve(listener); serveErr != nil && serveErr != http.ErrServerClosed {
+			slog.Error("OAuth server error", "error", serveErr)
 		}
 	}()
 	defer func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-		defer cancel()
-		server.Shutdown(ctx)
+		shutCtx, shutCancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer shutCancel()
+		server.Shutdown(shutCtx)
 	}()
 
-	// 5. Open browser
+	// Build auth URL
 	authURL := fmt.Sprintf("https://openrouter.ai/auth?callback_url=%s&code_challenge=%s&code_challenge_method=S256",
 		url.QueryEscape(callbackURL), url.QueryEscape(challenge))
 
-	if err := openBrowser(authURL); err != nil {
-		return "", fmt.Errorf("open browser: %w", err)
+	if err := openBrowserURL(authURL); err != nil {
+		return "", fmt.Errorf("failed to open browser: %w", err)
 	}
 
 	slog.Info("OAuth: browser opened, waiting for callback...")
 
-	// 6. Wait for callback (5 minute timeout)
+	// Wait for callback (5 minute timeout)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
@@ -182,16 +268,18 @@ func startOpenRouterOAuth() (string, error) {
 		if res.err != nil {
 			return "", res.err
 		}
-		// 7. Exchange code for key
-		slog.Info("OAuth: exchanging code for API key...")
 		key, err := exchangeCodeForKey(res.code, verifier)
 		if err != nil {
 			return "", err
 		}
-		slog.Info("OAuth: API key received", "key_prefix", key[:min(12, len(key))]+"...")
+		prefix := key
+		if len(prefix) > 12 {
+			prefix = prefix[:12]
+		}
+		slog.Info("OAuth: API key received", "key_prefix", prefix+"...")
 		return key, nil
 	case <-ctx.Done():
-		return "", fmt.Errorf("OAuth flow timed out (5 minutes)")
+		return "", fmt.Errorf("timed out waiting for authorization (5 minutes)")
 	}
 }
 

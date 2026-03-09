@@ -511,26 +511,44 @@ async function doOAuth() {
   spinner.style.display = 'block';
   clearStatus('oauth-status');
 
-  const result = await goCall('startOpenRouterOAuth');
+  // Start the flow (non-blocking — opens browser immediately)
+  await goCall('startOpenRouterOAuth');
 
+  // Poll for result every second (up to 5 minutes)
+  let attempts = 0;
+  const maxAttempts = 300;
+  while (attempts < maxAttempts) {
+    await new Promise(r => setTimeout(r, 1000));
+    attempts++;
+    const result = await goCall('pollOAuthResult');
+
+    if (result === 'pending') continue;
+
+    btn.disabled = false;
+    btn.textContent = 'Open Browser to Connect';
+    spinner.style.display = 'none';
+
+    if (result && result.startsWith('ok:')) {
+      const apiKey = result.substring(3);
+      const saveResult = await goCall('saveProvider', 'openrouter', 'openrouter', apiKey, 'openrouter/auto', '', '');
+      if (saveResult && saveResult.startsWith('ok')) {
+        showDone('openrouter', 'openrouter', 'openrouter/auto');
+        goToStep(4);
+      } else {
+        setStatus('oauth-status', 'error', saveResult || 'Failed to save provider');
+      }
+    } else {
+      const msg = result ? result.replace(/^error:\s*/, '') : 'Authorization failed';
+      setStatus('oauth-status', 'error', msg);
+    }
+    return;
+  }
+
+  // Timeout
   btn.disabled = false;
   btn.textContent = 'Open Browser to Connect';
   spinner.style.display = 'none';
-
-  if (result && result.startsWith('ok:')) {
-    const apiKey = result.substring(3);
-    // Save as openrouter provider with auto model
-    const saveResult = await goCall('saveProvider', 'openrouter', 'openrouter', apiKey, 'openrouter/auto', '', '');
-    if (saveResult && saveResult.startsWith('ok')) {
-      showDone('openrouter', 'openrouter', 'openrouter/auto');
-      goToStep(4);
-    } else {
-      setStatus('oauth-status', 'error', saveResult || 'Failed to save provider');
-    }
-  } else {
-    const msg = result ? result.replace(/^error:\s*/, '') : 'Authorization failed';
-    setStatus('oauth-status', 'error', msg);
-  }
+  setStatus('oauth-status', 'error', 'Timed out waiting for authorization.');
 }
 
 // ==================== STEP 2a: CLOUD PROVIDER ====================
