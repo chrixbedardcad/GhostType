@@ -9,6 +9,9 @@ import (
 	"unsafe"
 )
 
+//go:embed start.wav
+var startWAV []byte
+
 //go:embed working.wav
 var workingWAV []byte
 
@@ -17,6 +20,9 @@ var successWAV []byte
 
 //go:embed error.wav
 var errorWAV []byte
+
+//go:embed toggle.wav
+var toggleWAV []byte
 
 const (
 	sndMemory    = 0x0004
@@ -55,10 +61,10 @@ func play(data []byte) {
 	)
 }
 
-func PlayStart()   {}
+func PlayStart()   { play(startWAV) }
 func PlaySuccess() { play(successWAV) }
 func PlayError()   { play(errorWAV) }
-func PlayToggle()  {}
+func PlayToggle()  { play(toggleWAV) }
 func PlayWorking() { play(workingWAV) }
 
 func SetEnabled(v bool) {

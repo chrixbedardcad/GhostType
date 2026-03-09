@@ -7,6 +7,9 @@ import (
 	"sync"
 )
 
+//go:embed start.wav
+var startWAV []byte
+
 //go:embed working.wav
 var workingWAV []byte
 
@@ -15,6 +18,9 @@ var successWAV []byte
 
 //go:embed error.wav
 var errorWAV []byte
+
+//go:embed toggle.wav
+var toggleWAV []byte
 
 var (
 	enabled bool
@@ -38,10 +44,10 @@ func play(data []byte) {
 	go playWAV(data)
 }
 
-func PlayStart()   {}
+func PlayStart()   { play(startWAV) }
 func PlaySuccess() { play(successWAV) }
 func PlayError()   { play(errorWAV) }
-func PlayToggle()  {}
+func PlayToggle()  { play(toggleWAV) }
 func PlayWorking() { play(workingWAV) }
 
 func SetEnabled(v bool) {
