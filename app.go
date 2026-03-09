@@ -257,11 +257,6 @@ func processMode(
 	// Check input length limit.
 	if cfg.MaxInputChars > 0 && len([]rune(text)) > cfg.MaxInputChars {
 		slog.Warn("Text exceeds max input limit", "prompt", promptName, "chars", len([]rune(text)), "limit", cfg.MaxInputChars)
-		if werr := cb.Write("\U0001F47B\u26A0\uFE0F"); werr != nil { // 👻⚠️
-			slog.Error("Failed to write warning indicator to clipboard", "error", werr)
-		}
-		kb.Paste()
-		time.Sleep(300 * time.Millisecond)
 		cb.Restore()
 		sound.PlayError()
 		return
