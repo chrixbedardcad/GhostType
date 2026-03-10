@@ -69,20 +69,25 @@ Scripts only download from official GitHub releases — inspect them at [`script
 ## Quick Start
 
 1. **Install** GhostType using the one-liner above
-2. **Add a provider** — the setup wizard opens on first launch. Pick a provider (Anthropic, OpenAI, Ollama, etc.), paste your API key, choose a model, test, save.
+2. **Add a provider** — the setup wizard opens on first launch. You can **Log in with ChatGPT** (one click, no API key needed) or pick any provider and paste an API key.
 3. **Use it** — type something in any app, press **Ctrl+G**
 
 That's the whole workflow. GhostType auto-detects the language and fixes spelling, grammar, and syntax.
 
-### Modes
+### Prompts
 
-| Mode | What it does |
-|------|-------------|
+GhostType ships with 6 built-in prompts. Switch between them from the tray menu or press your **Cycle Prompt** hotkey.
+
+| Prompt | What it does |
+|--------|-------------|
 | **Correct** | Fix spelling, grammar, and syntax (default) |
+| **Polish** | Improve clarity and flow without changing meaning |
+| **Funny** | Rewrite with humor |
+| **Elaborate** | Expand on the text with more detail |
+| **Shorten** | Make it more concise |
 | **Translate** | Translate between configured language pairs |
-| **Rewrite** | Rewrite using a template (funny, formal, sarcastic, etc.) |
 
-Switch modes from the system tray icon. **Ctrl+G** always performs the active mode.
+You can create custom prompts and assign per-prompt LLM overrides in **Settings > Templates**.
 
 ### Local AI (Ollama)
 
@@ -92,14 +97,15 @@ No API key needed. Select **Ollama** in the setup wizard — GhostType detects y
 
 ## Features
 
-- **One hotkey** — Ctrl+G does everything. Optional dedicated hotkeys for power users.
-- **Multi-provider** — Anthropic, OpenAI, Gemini, xAI, Ollama. Use different models per mode.
-- **Settings GUI** — 6-tab settings panel: Models, Templates, Languages, Hotkeys, General, About. No JSON editing required.
+- **One hotkey** — Ctrl+G does everything. Optional Cycle Prompt hotkey for power users.
+- **Multi-provider** — Anthropic, OpenAI, Gemini, xAI, DeepSeek, Ollama. Use different models per prompt.
+- **ChatGPT OAuth** — Log in with your ChatGPT account, no API key needed.
+- **Settings GUI** — 5-tab settings panel: Models, Templates, General, About, Debug. No JSON editing required.
 - **One-click updates** — Check for updates and install from Settings > About.
 - **Ollama integration** — Detect, install, pull models from the GUI.
-- **Custom templates** — Add your own rewrite styles (pirate, professional, poetic, etc.).
+- **Custom prompts** — Add your own prompt templates with optional per-prompt LLM overrides.
 - **Sound effects** — Audio feedback for every action. Toggleable.
-- **System tray** — Switch modes, models, languages, templates from the tray icon.
+- **System tray** — Switch prompts, models, languages from the tray icon.
 - **Single instance** — Prevents duplicate processes across all platforms.
 - **Lightweight** — Single binary, under 50 MB memory, near-zero CPU at idle.
 - **Cross-platform** — Windows, macOS, Linux.
@@ -110,17 +116,14 @@ No API key needed. Select **Ollama** in the setup wizard — GhostType detects y
 
 | Hotkey | Action |
 |--------|--------|
-| **Ctrl+G** | Perform active mode (correct, translate, or rewrite) |
+| **Ctrl+G** | Perform active prompt (correct, translate, etc.) |
 | **Ctrl+Z** | Undo replacement (native) |
 
-Configure additional hotkeys in **Settings > Hotkeys** (click the field, press your key combo):
+Configure an additional hotkey in **Settings > General**:
 
 | Hotkey | Action |
 |--------|--------|
-| Translate | Translate directly |
-| Toggle Language | Cycle translation target |
-| Rewrite | Rewrite directly |
-| Cycle Template | Cycle rewrite template |
+| Cycle Prompt | Cycle through prompt templates |
 
 > **macOS:** `Ctrl` maps to Command, `Alt` maps to Option.
 
@@ -130,10 +133,11 @@ Configure additional hotkeys in **Settings > Hotkeys** (click the field, press y
 
 | Provider | Notes |
 |----------|-------|
-| **Anthropic Claude** | Recommended. Excellent multilingual support. |
-| **OpenAI GPT** | GPT-4o or GPT-4 Turbo recommended. |
-| **Google Gemini** | Good for multilingual tasks. |
-| **xAI Grok** | Fast inference. |
+| **OpenAI GPT** | GPT-5.4, GPT-5-mini, GPT-5.3-Codex, and more. ChatGPT OAuth login available. |
+| **Anthropic Claude** | Claude Opus 4.6, Sonnet 4.6, Haiku 4.5. Excellent multilingual support. |
+| **Google Gemini** | Gemini 2.5 Flash/Pro, 3.1 Pro preview. Good for multilingual tasks. |
+| **xAI Grok** | Grok 4.1 Fast, Grok 4, Grok 3. Fast inference. |
+| **DeepSeek** | DeepSeek Chat (V3.2) and Reasoner. Affordable and capable. |
 | **Ollama** | Free, private, local. No API key needed. |
 
 ---
@@ -157,31 +161,29 @@ Most users only need the **Settings GUI**. For power users, everything is stored
     "claude": {
       "provider": "anthropic",
       "api_key": "sk-ant-xxxxx",
-      "model": "claude-sonnet-4-5-20250929"
+      "model": "claude-sonnet-4-6"
+    },
+    "chatgpt": {
+      "provider": "openai",
+      "api_key": "sk-xxxxx",
+      "model": "gpt-5-mini",
+      "refresh_token": "v1-xxxxx"
     }
   },
   "default_llm": "claude",
-  "languages": ["en", "fr"],
-  "language_names": { "en": "English", "fr": "French" },
-  "translate_targets": ["en|fr"],
-  "active_mode": "correct",
+  "active_prompt": 0,
+  "prompts": [
+    { "name": "Correct", "prompt": "Detect the language. Fix spelling and grammar. Return ONLY the corrected text." },
+    { "name": "Polish", "prompt": "Improve clarity and flow. Return ONLY the improved text." },
+    { "name": "Translate", "prompt": "Translate to {target_language}. Return ONLY the translation.", "llm": "chatgpt" }
+  ],
   "hotkeys": {
-    "correct": "Ctrl+G",
-    "translate": "",
-    "toggle_language": "",
-    "rewrite": "",
-    "cycle_template": ""
-  },
-  "prompts": {
-    "correct": "Detect the language. Fix spelling and grammar. Return ONLY corrected text.",
-    "translate": "Translate to {target_language}. Return ONLY the translation.",
-    "rewrite_templates": [
-      { "name": "funny", "prompt": "Rewrite as a funny, witty reply. Return ONLY the text." },
-      { "name": "formal", "prompt": "Rewrite in a formal tone. Return ONLY the text." }
-    ]
+    "action": "Ctrl+G",
+    "cycle_prompt": ""
   },
   "preserve_clipboard": true,
   "sound_enabled": true,
+  "max_input_chars": 2000,
   "log_level": ""
 }
 ```
@@ -232,7 +234,7 @@ Sound requires PulseAudio (`paplay`) or ALSA (`aplay`).
 
 1. GhostType runs in the system tray, watching for hotkey presses.
 2. Press **Ctrl+G** — it detects selected text (or selects all if nothing selected).
-3. Text is sent to your LLM provider with the appropriate prompt.
+3. Text is sent to your LLM provider with the active prompt.
 4. The result replaces the original text. **Ctrl+Z** to undo.
 5. Your clipboard is preserved and restored.
 
