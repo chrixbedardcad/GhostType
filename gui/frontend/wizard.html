@@ -214,26 +214,37 @@
 
   <!-- ============ STEP 1: WELCOME ============ -->
   <div class="step-section" id="step-1">
-    <h2 style="font-size:1.1em;margin-bottom:14px;color:#bac2de">Choose your AI source</h2>
+    <h2 style="font-size:1.1em;margin-bottom:14px;color:#bac2de">How do you want to connect?</h2>
+
+    <div class="card" onclick="startOAuth()" style="border-color:#10A37F">
+      <div class="card-header">
+        <svg class="card-icon" width="28" height="28" viewBox="0 0 24 24"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z" fill="#10A37F"/></svg>
+        <span class="card-title">Log in with ChatGPT <span class="badge badge-rec">EASIEST</span></span>
+      </div>
+      <div class="card-desc">
+        Sign in with your OpenAI / ChatGPT account &mdash; no API key needed.<br>
+        Works with any ChatGPT plan (free or paid).
+      </div>
+    </div>
 
     <div class="card" onclick="selectCategory('cloud')">
       <div class="card-header">
-        <span class="card-icon">&#9729;&#65039;</span>
-        <span class="card-title">Cloud AI <span class="badge badge-rec">RECOMMENDED</span></span>
+        <span class="card-icon">&#128273;</span>
+        <span class="card-title">API Key <span class="badge badge-rec">RECOMMENDED</span></span>
       </div>
       <div class="card-desc">
-        Use an API from Google Gemini, Anthropic, or OpenAI.<br>
-        Free tiers available &mdash; no credit card required!
+        Connect with an API key from Gemini, OpenAI, Anthropic, xAI, or DeepSeek.<br>
+        For developers or users who want full control. Free tiers available.
       </div>
     </div>
 
     <div class="card" onclick="selectCategory('ollama')">
       <div class="card-header">
         <span class="card-icon">&#128187;</span>
-        <span class="card-title">Local AI (Ollama)</span>
+        <span class="card-title">Local AI (Ollama) <span class="badge badge-free">FREE</span></span>
       </div>
       <div class="card-desc">
-        Run AI on your computer. Free, private, no API key needed.<br>
+        Run AI privately on your computer. No account, no API key, no internet.<br>
         Requires ~4 GB disk space for a model.
       </div>
     </div>
@@ -246,18 +257,7 @@
   <!-- ============ STEP 2a: CLOUD PROVIDER SELECTION ============ -->
   <div class="step-section" id="step-2a">
     <h2 style="font-size:1.1em;margin-bottom:14px;color:#bac2de">Pick a provider</h2>
-
-    <div class="card" onclick="startOAuth()" style="border-color:#10A37F">
-      <div class="card-header">
-        <svg class="card-icon" width="28" height="28" viewBox="0 0 24 24"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z" fill="#10A37F"/></svg>
-        <span class="card-title">Log in with ChatGPT <span class="badge badge-rec">EASIEST</span></span>
-      </div>
-      <div class="card-desc">
-        <strong>One-click login</strong> — sign in with your OpenAI/ChatGPT account. No API key to copy-paste.
-      </div>
-    </div>
-
-    <div style="text-align:center;font-size:0.78em;color:#6c7086;margin:8px 0 4px">— or pick a direct provider (requires API key) —</div>
+    <div style="font-size:0.82em;color:#6c7086;margin-bottom:12px">Each provider requires an API key. Most offer a free tier to get started.</div>
 
     <div class="card" onclick="selectCloudProvider('gemini')">
       <div class="card-header">
@@ -311,18 +311,13 @@
 
     <div style="background:#313244;border-radius:8px;padding:16px;margin-bottom:14px">
       <div style="font-size:0.88em;color:#bac2de;line-height:1.6">
-        <strong>How does this work?</strong><br>
-        Sign in with your existing OpenAI / ChatGPT account.
-        GhostType receives API access automatically — no API key to copy-paste.<br><br>
-        <strong>How is this different from an API key?</strong><br>
-        With an API key, you go to OpenAI's developer console, create a key, and paste it here.
-        With this option, you simply <strong>log in with your browser</strong> and GhostType connects automatically.<br><br>
-        <strong>Requirements:</strong> An OpenAI / ChatGPT account (free or paid).
+        Your browser will open to sign in with OpenAI.<br>
+        GhostType receives API access automatically &mdash; nothing to copy-paste.
       </div>
     </div>
 
     <div style="text-align:center;padding:12px 0">
-      <button class="btn btn-primary" onclick="doOAuth()" id="oauth-btn" style="padding:14px 32px;font-size:1em">
+      <button class="btn btn-primary" onclick="doOAuth()" id="oauth-btn" style="padding:14px 32px;font-size:1em;background:#10A37F;color:#fff">
         Log in with ChatGPT
       </button>
       <div id="oauth-spinner" style="display:none;margin-top:12px">
@@ -331,10 +326,14 @@
       </div>
     </div>
 
+    <div style="font-size:0.78em;color:#6c7086;text-align:center;margin-top:4px">
+      Works with any ChatGPT plan (free or paid). Uses GPT-5-mini by default &mdash; you can change the model later in Settings.
+    </div>
+
     <div class="status" id="oauth-status"></div>
 
     <div class="btn-row">
-      <button class="btn btn-secondary" onclick="goToStep(2)">Back</button>
+      <button class="btn btn-secondary" onclick="goToStep(1)">Back</button>
       <span></span>
     </div>
   </div>
