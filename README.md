@@ -287,6 +287,65 @@ powershell -c "irm https://raw.githubusercontent.com/chrixbedardcad/GhostSpell/m
 
 > Back up `config.json` first if you want to keep your settings.
 
+### Migrating from GhostType (pre-v0.2.0)
+
+GhostSpell was previously named GhostType. If you have the old version installed, uninstall it first, then install GhostSpell.
+
+**Migrate your config (optional — do this before uninstalling):**
+
+macOS:
+```bash
+mkdir -p ~/Library/Application\ Support/GhostSpell
+cp ~/Library/Application\ Support/GhostType/config.json ~/Library/Application\ Support/GhostSpell/config.json
+```
+
+Windows (PowerShell):
+```powershell
+New-Item -ItemType Directory -Force "$env:APPDATA\GhostSpell"
+Copy-Item "$env:APPDATA\GhostType\config.json" "$env:APPDATA\GhostSpell\config.json"
+```
+
+Linux:
+```bash
+mkdir -p ~/.config/GhostSpell
+cp ~/.config/GhostType/config.json ~/.config/GhostSpell/config.json
+```
+
+**Uninstall old GhostType:**
+
+macOS:
+```bash
+pkill -f GhostType 2>/dev/null || true; sleep 1
+rm -rf /Applications/GhostType.app 2>/dev/null || sudo rm -rf /Applications/GhostType.app
+rm -rf "$HOME/Library/Application Support/GhostType"
+echo "GhostType removed. Remove GhostType from System Settings > Privacy & Security > Accessibility + Input Monitoring."
+```
+
+Windows (PowerShell):
+```powershell
+Get-Process -Name "ghosttype*" -ErrorAction SilentlyContinue | Stop-Process -Force
+Start-Sleep 1
+Remove-Item -Recurse -Force "$env:LOCALAPPDATA\GhostType" -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force "$env:APPDATA\GhostType" -ErrorAction SilentlyContinue
+Remove-Item -Force "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\GhostType.lnk" -ErrorAction SilentlyContinue
+Remove-Item -Force "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\GhostType.lnk" -ErrorAction SilentlyContinue
+$p = [Environment]::GetEnvironmentVariable("PATH", "User")
+if ($p -like "*GhostType*") {
+    [Environment]::SetEnvironmentVariable("PATH", ($p -split ";" | Where-Object { $_ -notlike "*GhostType*" }) -join ";", "User")
+}
+Write-Host "GhostType removed." -ForegroundColor Green
+```
+
+Linux:
+```bash
+pkill -f ghosttype 2>/dev/null || true; sleep 1
+sudo rm -f /usr/local/bin/ghosttype
+rm -rf "$HOME/.config/GhostType"
+echo "GhostType removed."
+```
+
+Then install GhostSpell using the [install instructions](#install) above.
+
 ---
 
 ## Troubleshooting
