@@ -711,7 +711,7 @@ async function ollamaRefresh() {
     if (models.length > 0) {
       renderOllamaDropdown(body, models);
     } else {
-      renderOllamaRecommend(body);
+      await renderOllamaRecommend(body);
     }
   } else if (status === 'installed') {
     bar.className = 'ollama-status-bar installed';
@@ -748,22 +748,29 @@ function renderOllamaServeHint(container) {
     </div>`;
 }
 
-function renderOllamaRecommend(container) {
-  const models = [
-    { name: 'qwen3.5:4b', desc: 'Recommended \u2014 fast & light (~2.5 GB)', rec: true },
-    { name: 'qwen3.5:2b', desc: 'Ultra-light, runs on anything (~1.5 GB)' },
-    { name: 'qwen3.5:9b', desc: 'Best quality, needs 6 GB RAM (~5 GB)' },
-    { name: 'mistral',    desc: 'Proven all-rounder (~4 GB)' },
-    { name: 'llama3.2',   desc: 'Good multilingual support (~4.7 GB)' },
-  ];
+const TAG_BADGES = {
+  recommended: '<span class="badge badge-rec" style="margin-left:6px">RECOMMENDED</span>',
+  best:        '<span class="badge badge-paid" style="margin-left:6px">BEST</span>',
+  fast:        '<span class="badge badge-fast" style="margin-left:6px">FAST</span>',
+  cheap:       '<span class="badge badge-free" style="margin-left:6px">LIGHT</span>',
+};
+
+async function renderOllamaRecommend(container) {
+  let models = [];
+  const raw = await goCall('getKnownModels', 'ollama');
+  if (raw) { try { models = JSON.parse(raw); } catch(e) {} }
+  if (!models.length) {
+    container.innerHTML = '<div style="font-size:0.88em;color:#bac2de;padding:8px 0">No models installed. Run <code style="background:#313244;padding:2px 6px;border-radius:4px;color:#f9e2af">ollama pull qwen3.5:4b</code> in a terminal, then click <strong>Refresh</strong>.</div>';
+    return;
+  }
 
   let html = '<div style="font-size:0.88em;color:#bac2de;line-height:1.6;padding:8px 0"><strong>No models installed yet.</strong> Pick one to download:</div>';
   for (const m of models) {
+    const badge = m.tag ? (TAG_BADGES[m.tag] || '') : '';
     html += `
       <div class="model-card">
         <div class="model-info">
-          <div class="model-name">${esc(m.name)}${m.rec ? '<span class="badge badge-rec" style="margin-left:6px">RECOMMENDED</span>' : ''}</div>
-          <div class="model-meta">${esc(m.desc)}</div>
+          <div class="model-name">${esc(m.name)}${badge}</div>
         </div>
         <button class="btn btn-primary btn-sm" onclick="ollamaOpenPull('${escJS(m.name)}')">Pull</button>
       </div>`;
