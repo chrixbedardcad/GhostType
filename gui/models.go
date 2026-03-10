@@ -65,14 +65,18 @@ func KnownModels(provider string) []ModelInfo {
 		}
 case "ollama":
 		return []ModelInfo{
-			{Name: "mistral", Tag: "recommended"},
+			{Name: "qwen3.5:4b", Tag: "recommended"},
 			{Name: "llama3.3", Tag: "best"},
+			{Name: "qwen3.5:9b"},
+			{Name: "qwen3.5:2b", Tag: "fast"},
+			{Name: "qwen3.5:0.8b"},
+			{Name: "mistral"},
 			{Name: "llama3.2"},
 			{Name: "llama3"},
 			{Name: "qwen2.5"},
 			{Name: "deepseek-r1"},
 			{Name: "gemma2"},
-			{Name: "phi3", Tag: "fast"},
+			{Name: "phi3"},
 		}
 	default:
 		return nil
