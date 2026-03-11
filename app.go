@@ -220,7 +220,15 @@ func processMode(
 	cancelLLM *context.CancelFunc,
 ) {
 	if !processingGuard.TryLock() {
-		slog.Debug("Hotkey ignored (already processing)")
+		// Second press while processing — cancel the active LLM request.
+		slog.Info("Hotkey pressed again — cancelling active request")
+		mu.Lock()
+		if *cancelLLM != nil {
+			(*cancelLLM)()
+		}
+		mu.Unlock()
+		sound.StopWorkingLoop()
+		sound.PlayCancel()
 		return
 	}
 	processingActive.Store(true)
@@ -310,6 +318,14 @@ func processMode(
 	if err != nil {
 		slog.Error("LLM processing failed", "prompt", promptName, "error", err)
 		sound.StopWorkingLoop()
+
+		// User cancelled with second Ctrl+G — restore silently, no error paste.
+		if ctx.Err() == context.Canceled && !strings.Contains(err.Error(), "deadline exceeded") {
+			slog.Info("Request cancelled by user", "prompt", promptName)
+			cb.Restore()
+			return
+		}
+
 		// Distinguish timeout from other errors.
 		indicator := "\U0001F47B\u274C" // 👻❌ (generic error)
 		if ctx.Err() == context.DeadlineExceeded || strings.Contains(err.Error(), "deadline exceeded") {

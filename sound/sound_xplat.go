@@ -23,6 +23,9 @@ var errorWAV []byte
 //go:embed toggle.wav
 var toggleWAV []byte
 
+//go:embed cancel.wav
+var cancelWAV []byte
+
 var (
 	enabled bool
 	mu      sync.Mutex
@@ -52,6 +55,7 @@ func PlayStart()   { play(startWAV) }
 func PlaySuccess() { play(successWAV) }
 func PlayError()   { play(errorWAV) }
 func PlayToggle()  { play(toggleWAV) }
+func PlayCancel()  { play(cancelWAV) }
 func PlayWorking() { play(workingWAV) }
 
 // StartWorkingLoop plays working.wav in a loop until StopWorkingLoop is called.
