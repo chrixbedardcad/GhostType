@@ -4,6 +4,7 @@ package keyboard
 
 /*
 #cgo LDFLAGS: -framework CoreGraphics -framework CoreFoundation -framework Carbon -framework ApplicationServices
+#cgo CFLAGS: -Wno-deprecated-declarations
 #include <CoreGraphics/CoreGraphics.h>
 #include <Carbon/Carbon.h>
 #include <ApplicationServices/ApplicationServices.h>
