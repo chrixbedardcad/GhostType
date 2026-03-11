@@ -5,5 +5,8 @@
     <!-- Allow posting synthetic keyboard/mouse events (CGEventPost). -->
     <key>com.apple.security.automation.apple-events</key>
     <true/>
+    <!-- Allow outbound network connections (LLM API calls). -->
+    <key>com.apple.security.network.client</key>
+    <true/>
 </dict>
 </plist>

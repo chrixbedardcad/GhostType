@@ -105,7 +105,8 @@ install_macos() {
     info "Unmounting disk image..."
     hdiutil detach "$mount_point" -quiet 2>/dev/null || true
 
-    # Remove quarantine so Gatekeeper doesn't block the unsigned app.
+    # Remove quarantine flag — not needed for notarized builds, but kept
+    # as a safety net for users who download manually without notarization.
     xattr -dr com.apple.quarantine /Applications/GhostSpell.app 2>/dev/null || true
 
     # Force macOS to refresh the app icon (clears Launch Services cache).

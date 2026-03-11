@@ -119,6 +119,13 @@ hdiutil create -volname "GhostSpell" \
     -ov -format UDZO \
     "${DMG_NAME}"
 
+# Sign the DMG itself (required for notarization).
+if [ "$SIGN_ID" != "-" ]; then
+    echo "Signing DMG with: ${SIGN_ID}"
+    codesign --force --sign "${SIGN_ID}" "${DMG_NAME}"
+    echo "DMG signed"
+fi
+
 echo "Bundle complete: ${DMG_NAME}"
 
 # Clean up staging files.

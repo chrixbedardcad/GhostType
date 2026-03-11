@@ -200,27 +200,18 @@ No dependencies. The installer creates a Start Menu shortcut. Two exe variants: 
 
 ### macOS
 
-No dependencies to install. Runs as a menu bar app (no Dock icon). The curl installer handles everything, but macOS requires two manual permission grants:
+No dependencies to install. Runs as a menu bar app (no Dock icon). The curl installer handles everything.
 
-**1. Allow the app to run (Gatekeeper)**
+GhostSpell is **signed and notarized** by Apple — no Gatekeeper warnings. Just install and run.
 
-GhostSpell is not signed with an Apple Developer certificate, so macOS blocks it by default. The curl installer removes the quarantine flag automatically. If you install manually:
-
-Right-click `GhostSpell.app` > **Open** > click **Open** in the security dialog. Or from Terminal:
-```bash
-xattr -d com.apple.quarantine /Applications/GhostSpell.app
-```
-
-**2. Grant permissions**
+**Grant permissions**
 
 GhostSpell needs two macOS permissions — these cannot be bypassed, even by signed apps:
 
 - **Accessibility** (System Settings > Privacy & Security > Accessibility) — required for keyboard simulation (Ctrl+A, Ctrl+C, Ctrl+V). [Apple's guide](https://support.apple.com/guide/mac-help/allow-accessibility-apps-to-access-your-mac-mh43185/mac)
 - **Input Monitoring** (System Settings > Privacy & Security > Input Monitoring) — required for global hotkeys (Ctrl+G). [Apple's guide](https://support.apple.com/guide/mac-help/control-access-to-input-monitoring-on-mac-mchl4cedafb6/mac)
 
-The installer opens both settings panes automatically. Toggle GhostSpell **ON** in each, then press Enter in the terminal to relaunch.
-
-> **Note:** An Apple Developer account ($99/year) would eliminate the Gatekeeper warning and allow notarization, but Accessibility and Input Monitoring prompts are always required by macOS for any app that simulates keystrokes or listens to global hotkeys.
+The app will prompt you to grant these on first launch. Toggle GhostSpell **ON** in each.
 
 ### Linux
 
