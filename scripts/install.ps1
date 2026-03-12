@@ -36,23 +36,14 @@ if (-not (Test-Path $InstallDir)) {
 
 $Assets = @(
     @{ Name = "ghostspell.exe";        File = "ghostspell-windows-amd64.exe" },
-    @{ Name = "ghostspell-window.exe"; File = "ghostspell-windows-amd64-window.exe" },
-    @{ Name = "llama-server.exe";      File = "llama-server.exe" }
+    @{ Name = "ghostspell-window.exe"; File = "ghostspell-windows-amd64-window.exe" }
 )
 
 foreach ($Asset in $Assets) {
     $Url = "https://github.com/$Repo/releases/download/$Version/$($Asset.File)"
     $Dest = Join-Path $InstallDir $Asset.Name
     Write-Info "Downloading $($Asset.File)..."
-    try {
-        Invoke-WebRequest -Uri $Url -OutFile $Dest -UseBasicParsing
-    } catch {
-        if ($Asset.Name -eq "llama-server.exe") {
-            Write-Warn "llama-server download failed (local AI will need manual setup)"
-        } else {
-            throw
-        }
-    }
+    Invoke-WebRequest -Uri $Url -OutFile $Dest -UseBasicParsing
 }
 
 # --- Add to PATH ------------------------------------------------------------

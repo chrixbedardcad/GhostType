@@ -28,15 +28,6 @@ mkdir -p "${MACOS_DIR}" "${RESOURCES_DIR}"
 cp "${BINARY}" "${MACOS_DIR}/GhostSpell"
 chmod +x "${MACOS_DIR}/GhostSpell"
 
-# Copy bundled llama-server into the .app bundle (if present in working dir).
-if [ -f "llama-server" ]; then
-    cp "llama-server" "${MACOS_DIR}/llama-server"
-    chmod +x "${MACOS_DIR}/llama-server"
-    echo "Bundled llama-server into ${MACOS_DIR}/"
-else
-    echo "Warning: llama-server not found in working dir — .app will not include bundled engine"
-fi
-
 # Generate .icns from the 1024px PNG icon using macOS built-in tools.
 ICONSET_DIR="GhostSpell.iconset"
 rm -rf "${ICONSET_DIR}"

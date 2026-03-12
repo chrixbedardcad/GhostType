@@ -8,5 +8,11 @@
     <!-- Allow outbound network connections (LLM API calls). -->
     <key>com.apple.security.network.client</key>
     <true/>
+    <!-- Hardened runtime: allow unsigned executable memory (llama.cpp JIT/CGo). -->
+    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+    <true/>
+    <!-- Hardened runtime: disable library validation (CGo shared libs). -->
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
 </dict>
 </plist>

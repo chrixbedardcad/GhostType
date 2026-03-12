@@ -165,20 +165,11 @@ install_linux() {
     curl -fsSL -o "${tmpdir}/ghostspell" "$url" || fail "Download failed. Check your internet connection."
     chmod +x "${tmpdir}/ghostspell"
 
-    # Download bundled llama-server.
-    local llama_asset="llama-server-linux-amd64"
-    local llama_url="https://github.com/${REPO}/releases/download/${version}/${llama_asset}"
-    info "Downloading ${llama_asset}..."
-    curl -fsSL -o "${tmpdir}/llama-server" "$llama_url" || warn "llama-server download failed (local AI will need manual setup)"
-    chmod +x "${tmpdir}/llama-server" 2>/dev/null || true
-
     info "Installing to ${INSTALL_DIR}/ghostspell..."
     if [ -w "$INSTALL_DIR" ]; then
         mv "${tmpdir}/ghostspell" "${INSTALL_DIR}/ghostspell"
-        [ -f "${tmpdir}/llama-server" ] && mv "${tmpdir}/llama-server" "${INSTALL_DIR}/llama-server"
     else
         sudo mv "${tmpdir}/ghostspell" "${INSTALL_DIR}/ghostspell"
-        [ -f "${tmpdir}/llama-server" ] && sudo mv "${tmpdir}/llama-server" "${INSTALL_DIR}/llama-server"
     fi
 
     rm -rf "$tmpdir"

@@ -102,66 +102,6 @@ jobs:
           else
             go build -tags "$TAGS" -o ghostspell-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
           fi
-      - name: Download bundled llama-server
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # Read pinned version from source of truth.
-          LLAMA_VER=$(grep 'BundledLlamaCppVersion =' llm/local.go | sed 's/.*"\(.*\)".*/\1/')
-          echo "Downloading llama-server from llama.cpp release ${LLAMA_VER}"
-
-          # Determine asset pattern.
-          case "${{ matrix.goos }}/${{ matrix.goarch }}" in
-            darwin/arm64)   PATTERN="macos-arm64" ;;
-            darwin/amd64)   PATTERN="macos-x64"   ;;
-            windows/amd64)  PATTERN="win-cpu-x64" ;;
-            linux/amd64)    PATTERN="ubuntu-x64"  ;;
-          esac
-
-          # Fetch release assets JSON.
-          ASSETS_JSON=$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" "https://api.github.com/repos/ggml-org/llama.cpp/releases/tags/${LLAMA_VER}")
-          ASSET_URL=$(echo "$ASSETS_JSON" | python3 -c "
-          import sys, json
-          data = json.load(sys.stdin)
-          for a in data['assets']:
-              name = a['name']
-              if '${PATTERN}' in name and not any(x in name for x in ['cuda','vulkan','rocm','sycl','opencl','hip']) and (name.endswith('.zip') or name.endswith('.tar.gz')):
-                  print(a['browser_download_url'])
-                  break
-          ")
-
-          echo "Downloading: ${ASSET_URL}"
-          ARCHIVE_NAME=$(basename "$ASSET_URL")
-          curl -fsSL -o "$ARCHIVE_NAME" "$ASSET_URL"
-
-          # Extract llama-server from archive.
-          if echo "$ARCHIVE_NAME" | grep -q '.tar.gz'; then
-            tar xzf "$ARCHIVE_NAME"
-          else
-            unzip -o "$ARCHIVE_NAME"
-          fi
-
-          # Find the binary (may be in a subdirectory, or flat in current dir).
-          if [ "${{ matrix.goos }}" = "windows" ]; then
-            FOUND=$(find . -name 'llama-server.exe' -type f | head -1)
-            TARGET="llama-server.exe"
-          elif [ "${{ matrix.goos }}" = "linux" ]; then
-            FOUND=$(find . -name 'llama-server' -type f | head -1)
-            TARGET="llama-server-linux-amd64"
-          else
-            FOUND=$(find . -name 'llama-server' -type f | head -1)
-            TARGET="llama-server"
-          fi
-
-          # Only copy if source != destination (zip may extract flat).
-          if [ "$(realpath "$FOUND")" != "$(realpath "$TARGET" 2>/dev/null || echo none)" ]; then
-            cp "$FOUND" "$TARGET"
-          fi
-          chmod +x "$TARGET" 2>/dev/null || true
-          echo "Found: $FOUND -> $TARGET"
-
-          # Clean up archive and extracted dirs.
-          rm -f "$ARCHIVE_NAME"
       - name: Import signing certificate
         if: matrix.goos == 'darwin' && env.APPLE_CERTIFICATE_BASE64 != ''
         env:
@@ -237,9 +177,7 @@ jobs:
         if: matrix.goos != 'darwin'
         with:
           name: release-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: |
-            ghostspell-*
-            llama-server*
+          path: ghostspell-*
       - uses: actions/upload-artifact@v4
         if: matrix.goos == 'darwin'
         with:
