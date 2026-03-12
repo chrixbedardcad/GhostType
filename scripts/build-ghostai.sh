@@ -76,9 +76,12 @@ if [ "$(uname)" = "Darwin" ]; then
 fi
 
 # Windows (MSYS2/MinGW): use Ninja with MinGW GCC.
+# Set _WIN32_WINNT=0x0A00 (Win10) so MinGW headers expose CreateFile2 etc.
 case "$(uname -s)" in
     MINGW*|MSYS*)
+        WIN_FLAGS="-D_WIN32_WINNT=0x0A00"
         CMAKE_ARGS+=(-G Ninja -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++)
+        CMAKE_ARGS+=(-DCMAKE_C_FLAGS="$WIN_FLAGS" -DCMAKE_CXX_FLAGS="$WIN_FLAGS")
         ;;
 esac
 
