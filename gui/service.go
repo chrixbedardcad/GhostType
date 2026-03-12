@@ -48,6 +48,10 @@ type SettingsService struct {
 	OpenPermissionsFn         func()
 	OpenAccessibilityPaneFn   func()
 	OpenInputMonitoringPaneFn func()
+
+	// Restarting is set when the user requests a restart for permissions.
+	// Prevents the onCancel handler from treating this as a user-cancelled wizard.
+	Restarting bool
 }
 
 // Reset reinitializes the service for a new settings session. Called each time
@@ -768,6 +772,38 @@ func (s *SettingsService) OpenInputMonitoringPane() string {
 	if s.OpenInputMonitoringPaneFn != nil {
 		s.OpenInputMonitoringPaneFn()
 	}
+	return "ok"
+}
+
+// QuitForRestart closes the app and relaunches it so macOS permissions take effect.
+func (s *SettingsService) QuitForRestart() string {
+	guiLog("[GUI] JS called: QuitForRestart")
+	s.Restarting = true
+
+	execPath, err := os.Executable()
+	if err != nil {
+		guiLog("[GUI] QuitForRestart: could not get executable path: %v", err)
+		// Fall back to just quitting — user will reopen manually.
+		go func() {
+			time.Sleep(300 * time.Millisecond)
+			os.Exit(0)
+		}()
+		return "ok"
+	}
+
+	// Launch a new instance after a short delay to allow this one to exit.
+	go func() {
+		time.Sleep(800 * time.Millisecond)
+		cmd := exec.Command(execPath)
+		cmd.Start()
+	}()
+
+	// Quit the current instance.
+	go func() {
+		time.Sleep(300 * time.Millisecond)
+		os.Exit(0)
+	}()
+
 	return "ok"
 }
 

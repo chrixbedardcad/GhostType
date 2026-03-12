@@ -744,6 +744,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 			},
 			func() {
 				// onCancel — user closed wizard without saving.
+				if settingsSvc.Restarting {
+					return // restart is handling the exit
+				}
 				os.Exit(1)
 			},
 		)
