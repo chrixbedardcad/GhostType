@@ -668,6 +668,20 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	var trayStopAnim func()
 	trayRun, stopTrayFn, dismissTrayMenu, trayStartAnim, trayStopAnim = tray.Start(trayCfg, wailsApp)
 
+	// Floating ghost overlay — provides a visible working indicator even when
+	// the tray icon is hidden in the Windows overflow area.
+	gui.CreateIndicator(wailsApp)
+	origStartAnim := trayStartAnim
+	origStopAnim := trayStopAnim
+	trayStartAnim = func() {
+		origStartAnim()
+		gui.ShowIndicator()
+	}
+	trayStopAnim = func() {
+		origStopAnim()
+		gui.HideIndicator()
+	}
+
 	// When debug auto-disables after 30min, log it.
 	if debugState != nil {
 		debugState.SetOnAutoStop(func() {

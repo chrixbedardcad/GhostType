@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; }
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ghost-wrap {
+    animation: float 1.6s ease-in-out infinite;
+    filter: drop-shadow(0 0 18px rgba(139, 92, 246, 0.7))
+            drop-shadow(0 0 40px rgba(139, 92, 246, 0.3));
+  }
+  @keyframes float {
+    0%   { transform: translateY(0px);  opacity: 0.85; }
+    50%  { transform: translateY(-14px); opacity: 1; }
+    100% { transform: translateY(0px);  opacity: 0.85; }
+  }
+  .ghost-wrap svg {
+    width: 80px;
+    height: 96px;
+  }
+  .dots {
+    text-align: center;
+    margin-top: 2px;
+    font-family: -apple-system, "Segoe UI", sans-serif;
+    font-size: 13px;
+    color: rgba(139, 92, 246, 0.9);
+    letter-spacing: 3px;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+<div>
+  <div class="ghost-wrap">
+    <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="g" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#c084fc"/>
+          <stop offset="100%" stop-color="#7c3aed"/>
+        </linearGradient>
+      </defs>
+      <!-- Body -->
+      <path d="M20,55 C20,22 35,10 50,10 C65,10 80,22 80,55
+               L80,105 L72,95 L64,105 L56,95 L48,105 L40,95 L32,105 L20,105 Z"
+            fill="url(#g)" opacity="0.95"/>
+      <!-- Eyes -->
+      <ellipse cx="38" cy="48" rx="8" ry="10" fill="white"/>
+      <ellipse cx="62" cy="48" rx="8" ry="10" fill="white"/>
+      <ellipse cx="40" cy="49" rx="4.5" ry="5.5" fill="#1e1b4b"/>
+      <ellipse cx="64" cy="49" rx="4.5" ry="5.5" fill="#1e1b4b"/>
+      <!-- Pupils (light reflections) -->
+      <circle cx="42" cy="47" r="1.5" fill="white" opacity="0.8"/>
+      <circle cx="66" cy="47" r="1.5" fill="white" opacity="0.8"/>
+      <!-- Blush -->
+      <ellipse cx="30" cy="60" rx="6" ry="3" fill="#f0abfc" opacity="0.35"/>
+      <ellipse cx="70" cy="60" rx="6" ry="3" fill="#f0abfc" opacity="0.35"/>
+    </svg>
+  </div>
+  <div class="dots">&bull; &bull; &bull;</div>
+</div>
+</body>
+</html>
