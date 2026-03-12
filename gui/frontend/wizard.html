@@ -327,8 +327,13 @@
   <div class="step-section" id="step-1">
     <div style="text-align:center;margin-bottom:16px">
       <h2 style="font-size:1.2em;color:#a6e3a1;margin-bottom:6px">GhostSpell is ready to go!</h2>
-      <div style="font-size:0.85em;color:#a6adc8;line-height:1.5">
-        Local AI is built in &mdash; works offline, no account needed.
+      <div style="font-size:0.85em;color:#a6adc8;line-height:1.5;max-width:380px;margin:0 auto">
+        Ghost-AI runs <strong style="color:#cdd6f4">100% on your machine</strong> &mdash; your text never leaves your computer.
+      </div>
+      <div style="display:flex;justify-content:center;gap:16px;margin-top:10px">
+        <span style="font-size:0.78em;color:#89b4fa">&#128274; Private</span>
+        <span style="font-size:0.78em;color:#a6e3a1">&#9889; Offline</span>
+        <span style="font-size:0.78em;color:#f9e2af">&#127873; Free forever</span>
       </div>
     </div>
 
@@ -395,7 +400,7 @@
     </div>
 
     <div class="btn-row">
-      <button class="btn btn-secondary" onclick="goToStep(1)">Back</button>
+      <button class="btn btn-secondary" onclick="backFromCloudChoice()">Back</button>
       <span></span>
     </div>
   </div>
@@ -504,8 +509,13 @@
   <!-- ============ STEP 2d: LOCAL AI SETUP ============ -->
   <div class="step-section" id="step-2d">
     <h2 style="font-size:1.1em;margin-bottom:6px;color:#bac2de">Ghost-AI Setup</h2>
-    <div style="font-size:0.82em;color:#6c7086;margin-bottom:14px;line-height:1.5">
-      Ghost-AI is built into GhostSpell. Just download a grammar model to run entirely on your computer.
+    <div style="font-size:0.82em;color:#6c7086;margin-bottom:10px;line-height:1.5">
+      Ghost-AI runs locally on your machine &mdash; private, offline, no account needed.<br>
+      Just download a grammar model to get started.
+    </div>
+    <div style="display:flex;gap:12px;margin-bottom:14px">
+      <span style="font-size:0.75em;color:#89b4fa">&#128274; Your text stays on your device</span>
+      <span style="font-size:0.75em;color:#a6e3a1">&#9889; Works without internet</span>
     </div>
 
     <div id="local-status-bar" class="ollama-status-bar checking">
@@ -749,6 +759,14 @@ function selectWelcomeModel(name) {
 
 function switchToCloud() {
   goToStep('1.5');
+}
+
+function backFromCloudChoice() {
+  if (returnTo === 'settings') {
+    cancelWizard();
+  } else {
+    goToStep(1);
+  }
 }
 
 function skipWizard() {
