@@ -325,3 +325,46 @@ time=2026-03-12T10:08:50.760-04:00 level=INFO msg="[GUI] TestProvider FAILED aft
 time=2026-03-12T10:09:08.244-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=0 prompts=6 models=2
 time=2026-03-12T10:09:14.683-04:00 level=INFO msg="[GUI] JS called: GetConfig"
 time=2026-03-12T10:09:16.912-04:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-12T10:10:07.054-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=0 prompts=6 models=2
+time=2026-03-12T10:10:08.619-04:00 level=INFO msg="Exit requested via tray menu"
+time=2026-03-12T10:10:08.619-04:00 level=DEBUG msg="Hotkey unregistered on stop" name=action
+time=2026-03-12T10:10:13.653-04:00 level=INFO msg="GhostSpell starting" version=0.5.6 default_llm=chatgpt llm_providers=2
+time=2026-03-12T10:10:13.869-04:00 level=INFO msg="=== GhostSpell Debug Session ===" version=0.5.6 os=darwin os_version=13.7.8 arch=arm64 locale=en_CA keyboard=Canadian hotkey=Ctrl+G default_llm=chatgpt providers=2
+time=2026-03-12T10:10:13.869-04:00 level=INFO msg="First-launch check" needs_setup=false providers=2 default_llm=chatgpt
+time=2026-03-12T10:10:13.869-04:00 level=INFO msg="GhostSpell launching" version=0.5.6 needs_setup=false
+time=2026-03-12T10:10:13.872-04:00 level=INFO msg="[tray] Start() called" os=darwin icon_bytes=6041
+time=2026-03-12T10:10:13.872-04:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-12T10:10:13.872-04:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-12T10:10:13.872-04:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-12T10:10:13.872-04:00 level=INFO msg="[tray] macOS template icon set" bytes=1743
+time=2026-03-12T10:10:13.872-04:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-12T10:10:13.872-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=0 prompts=6 models=2
+time=2026-03-12T10:10:13.872-04:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/anim"
+time=2026-03-12T10:10:13.872-04:00 level=DEBUG msg="[keyboard] Resolving layout key codes..."
+time=2026-03-12T10:10:13.890-04:00 level=DEBUG msg="[keyboard] Resolved layout key codes" a=0x00 c=0x08 v=0x09
+time=2026-03-12T10:10:13.890-04:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-12T10:10:13.915-04:00 level=DEBUG msg="Event loop ready (ApplicationStarted)"
+time=2026-03-12T10:10:13.925-04:00 level=INFO msg="Permission check" accessibility=true postEventAccess=true
+time=2026-03-12T10:10:13.925-04:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-12T10:10:13.955-04:00 level=DEBUG msg="Hotkey registered" name=action key=Ctrl+G
+time=2026-03-12T10:10:13.955-04:00 level=DEBUG msg="Starting hotkey listener" registered=1
+time=2026-03-12T10:10:28.379-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-12T10:10:28.379-04:00 level=INFO msg="Correct triggered"
+time=2026-03-12T10:10:28.379-04:00 level=DEBUG msg="Playing working sound loop..."
+time=2026-03-12T10:10:28.379-04:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-12T10:10:28.389-04:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-12T10:10:28.389-04:00 level=DEBUG msg="Capturing text..."
+time=2026-03-12T10:10:28.536-04:00 level=DEBUG msg="[keyboard] Waited for modifier release" ms=120
+time=2026-03-12T10:10:28.553-04:00 level=DEBUG msg="captureText: frontmost app" app=Notes
+time=2026-03-12T10:10:28.553-04:00 level=INFO msg="captureText: got all text via Accessibility API" len=49
+time=2026-03-12T10:10:28.553-04:00 level=INFO msg="Captured text" prompt=Correct len=49 selection=false method=0 text="This is a test with an error to fix with enhancrc"
+time=2026-03-12T10:10:28.553-04:00 level=DEBUG msg="Sending to LLM..." prompt=Correct text_len=49
+time=2026-03-12T10:10:28.553-04:00 level=DEBUG msg="processing text" prompt=Correct llm=chatgpt prompt_text="Fix only spelling and grammar errors. Do not rewrite, rephrase, or restructure t..." input_len=49
+time=2026-03-12T10:10:28.553-04:00 level=DEBUG msg="openai: sending request" model=gpt-5-nano endpoint=https://api.openai.com/v1/chat/completions body_len=499
+time=2026-03-12T10:10:37.392-04:00 level=DEBUG msg="openai: response received" status=200
+time=2026-03-12T10:10:37.392-04:00 level=DEBUG msg="openai: raw response body" body="{\n  \"id\": \"chatcmpl-DIb24bH8WokySyj4Wc4PeHu7r8zwL\",\n  \"object\": \"chat.completion\",\n  \"created\": 1773324628,\n  \"model\": \"gpt-5-nano-2025-08-07\",\n  \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\": \"assistant\",\n        \"content\": \"This is a test with an error to fix with enhancer\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 86,\n    \"completion_tokens\": 853,\n    \"total_tokens\": 939,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\": {\n      \"reasoning_tokens\": 832,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\": 0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\": \"default\",\n  \"system_fingerprint\": null\n}\n"
+time=2026-03-12T10:10:37.393-04:00 level=DEBUG msg="openai: parsed response" text_len=49 choices=1
+time=2026-03-12T10:10:37.393-04:00 level=DEBUG msg="LLM response received" provider=openai model=gpt-5-nano llm=chatgpt response_len=49
+time=2026-03-12T10:10:37.405-04:00 level=INFO msg="Wrote result via AX API (all text)" prompt=Correct
+time=2026-03-12T10:10:37.407-04:00 level=INFO msg="Correct complete" result="This is a test with an error to fix with enhancer"
+
