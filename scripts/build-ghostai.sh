@@ -66,6 +66,14 @@ CMAKE_ARGS=(
     -DLLAMA_BUILD_EXAMPLES=OFF
     -DLLAMA_BUILD_SERVER=OFF
     -DBUILD_SHARED_LIBS=OFF
+    # CPU compatibility: don't use host CPU features (CI runners have AVX-512).
+    # Keep AVX (available since ~2011) but disable AVX2/FMA/F16C for broad compat.
+    -DGGML_NATIVE=OFF
+    -DGGML_AVX=ON
+    -DGGML_AVX2=OFF
+    -DGGML_AVX512=OFF
+    -DGGML_FMA=OFF
+    -DGGML_F16C=OFF
 )
 
 # macOS: enable Accelerate framework for faster BLAS operations.
