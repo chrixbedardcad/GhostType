@@ -1,7 +1,9 @@
 package llm
 
 import (
+	"archive/tar"
 	"archive/zip"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -220,6 +222,10 @@ func LlamaServerInstalled() bool {
 // from the ggml-org/llama.cpp GitHub releases (CPU-only build).
 func DownloadLlamaServer(progressCb func(DownloadProgress)) error {
 	// Determine the right asset name based on OS/arch.
+	// As of b8281, llama.cpp uses names like:
+	//   llama-b8281-bin-win-cpu-x64.zip
+	//   llama-b8281-bin-macos-arm64.tar.gz
+	//   llama-b8281-bin-ubuntu-x64.tar.gz
 	assetPattern := ""
 	switch runtime.GOOS + "/" + runtime.GOARCH {
 	case "darwin/arm64":
@@ -227,7 +233,7 @@ func DownloadLlamaServer(progressCb func(DownloadProgress)) error {
 	case "darwin/amd64":
 		assetPattern = "macos-x64"
 	case "windows/amd64":
-		assetPattern = "win-x64"
+		assetPattern = "win-cpu-x64"
 	case "linux/amd64":
 		assetPattern = "ubuntu-x64"
 	default:
@@ -261,13 +267,18 @@ func DownloadLlamaServer(progressCb func(DownloadProgress)) error {
 		return fmt.Errorf("parse release: %w", err)
 	}
 
-	// Find the matching asset (CPU-only, no CUDA/Vulkan).
+	// Find the matching asset (CPU-only, no CUDA/Vulkan/ROCm/SYCL/OpenCL/HIP).
 	var downloadAsset *ghAsset
 	for _, a := range release.Assets {
+		isArchive := strings.HasSuffix(a.Name, ".zip") || strings.HasSuffix(a.Name, ".tar.gz")
 		if strings.Contains(a.Name, assetPattern) &&
 			!strings.Contains(a.Name, "cuda") &&
 			!strings.Contains(a.Name, "vulkan") &&
-			strings.HasSuffix(a.Name, ".zip") {
+			!strings.Contains(a.Name, "rocm") &&
+			!strings.Contains(a.Name, "sycl") &&
+			!strings.Contains(a.Name, "opencl") &&
+			!strings.Contains(a.Name, "hip") &&
+			isArchive {
 			asset := a
 			downloadAsset = &asset
 			break
@@ -338,10 +349,16 @@ func DownloadLlamaServer(progressCb func(DownloadProgress)) error {
 	}
 	f.Close()
 
-	// Extract llama-server from the zip.
-	if err := extractLlamaServerFromZip(tmpZip, dir); err != nil {
+	// Extract llama-server from the archive.
+	var extractErr error
+	if strings.HasSuffix(downloadAsset.Name, ".tar.gz") {
+		extractErr = extractLlamaServerFromTarGz(tmpZip, dir)
+	} else {
+		extractErr = extractLlamaServerFromZip(tmpZip, dir)
+	}
+	if extractErr != nil {
 		os.Remove(tmpZip)
-		return fmt.Errorf("extract: %w", err)
+		return fmt.Errorf("extract: %w", extractErr)
 	}
 
 	os.Remove(tmpZip)
@@ -394,4 +411,54 @@ func extractLlamaServerFromZip(zipPath, destDir string) error {
 	}
 
 	return fmt.Errorf("llama-server binary not found in zip archive")
+}
+
+// extractLlamaServerFromTarGz extracts the llama-server binary from a .tar.gz archive.
+func extractLlamaServerFromTarGz(archivePath, destDir string) error {
+	f, err := os.Open(archivePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	gz, err := gzip.NewReader(f)
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
+
+	tr := tar.NewReader(gz)
+	targetName := "llama-server"
+
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		baseName := filepath.Base(hdr.Name)
+		if baseName != targetName {
+			continue
+		}
+
+		destPath := filepath.Join(destDir, targetName)
+		out, err := os.OpenFile(destPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+		if err != nil {
+			return err
+		}
+
+		_, err = io.Copy(out, tr)
+		out.Close()
+		if err != nil {
+			return err
+		}
+
+		slog.Info("[local] extracted llama-server", "path", destPath)
+		return nil
+	}
+
+	return fmt.Errorf("llama-server binary not found in tar.gz archive")
 }
