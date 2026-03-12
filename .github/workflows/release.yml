@@ -126,23 +126,24 @@ jobs:
             unzip -o "$ARCHIVE_NAME"
           fi
 
-          # Find the binary (may be in a subdirectory).
+          # Find the binary (may be in a subdirectory, or flat in current dir).
           if [ "${{ matrix.goos }}" = "windows" ]; then
             FOUND=$(find . -name 'llama-server.exe' -type f | head -1)
-            cp "$FOUND" llama-server.exe
-            echo "Found: $FOUND -> llama-server.exe"
+            TARGET="llama-server.exe"
+          elif [ "${{ matrix.goos }}" = "linux" ]; then
+            FOUND=$(find . -name 'llama-server' -type f | head -1)
+            TARGET="llama-server-linux-amd64"
           else
             FOUND=$(find . -name 'llama-server' -type f | head -1)
-            if [ "${{ matrix.goos }}" = "linux" ]; then
-              cp "$FOUND" llama-server-linux-amd64
-              chmod +x llama-server-linux-amd64
-              echo "Found: $FOUND -> llama-server-linux-amd64"
-            else
-              cp "$FOUND" llama-server
-              chmod +x llama-server
-              echo "Found: $FOUND -> llama-server (macOS)"
-            fi
+            TARGET="llama-server"
           fi
+
+          # Only copy if source != destination (zip may extract flat).
+          if [ "$(realpath "$FOUND")" != "$(realpath "$TARGET" 2>/dev/null || echo none)" ]; then
+            cp "$FOUND" "$TARGET"
+          fi
+          chmod +x "$TARGET" 2>/dev/null || true
+          echo "Found: $FOUND -> $TARGET"
 
           # Clean up archive and extracted dirs.
           rm -f "$ARCHIVE_NAME"
