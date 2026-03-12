@@ -92,7 +92,7 @@ jobs:
       - name: Download bundled llama-server
         run: |
           # Read pinned version from source of truth.
-          LLAMA_VER=$(grep 'BundledLlamaCppVersion' llm/local.go | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          LLAMA_VER=$(grep 'BundledLlamaCppVersion =' llm/local.go | sed 's/.*"\(.*\)".*/\1/')
           echo "Downloading llama-server from llama.cpp release ${LLAMA_VER}"
 
           # Determine asset pattern.
