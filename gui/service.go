@@ -810,6 +810,16 @@ func (s *SettingsService) QuitForRestart() string {
 
 // --- Local AI management ---------------------------------------------------
 
+// GhostAIStatus returns JSON with Ghost-AI engine availability and status.
+func (s *SettingsService) GhostAIStatus() string {
+	guiLog("[GUI] JS called: GhostAIStatus")
+	result := map[string]interface{}{
+		"available": llm.GhostAIAvailable(),
+	}
+	data, _ := json.Marshal(result)
+	return string(data)
+}
+
 // LocalStatus returns JSON with llama-server installed status, source, version, and installed models.
 func (s *SettingsService) LocalStatus() string {
 	guiLog("[GUI] JS called: LocalStatus")

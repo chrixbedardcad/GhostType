@@ -70,7 +70,7 @@ func NewClient(cfg *config.Config) (Client, error) {
 	case "ollama":
 		return NewOllamaClient(cfg), nil
 	case "local":
-		return newLocalFromDef(LLMProviderDefCompat{
+		return newLocalClient(LLMProviderDefCompat{
 			Model:     cfg.Model,
 			MaxTokens: cfg.MaxTokens,
 			TimeoutMs: cfg.TimeoutMs,
@@ -100,7 +100,7 @@ func NewClientFromDef(def config.LLMProviderDef) (Client, error) {
 	case "ollama":
 		return newOllamaFromDef(def), nil
 	case "local":
-		return newLocalFromDef(LLMProviderDefCompat{
+		return newLocalClient(LLMProviderDefCompat{
 			Model:     def.Model,
 			MaxTokens: def.MaxTokens,
 			TimeoutMs: def.TimeoutMs,

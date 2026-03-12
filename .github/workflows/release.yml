@@ -71,6 +71,11 @@ jobs:
           sed -i "s/\"FileVersion\": \"\"/\"FileVersion\": \"$VER.0\"/" versioninfo.json
           sed -i "s/\"ProductVersion\": \"\"/\"ProductVersion\": \"$VER.0\"/" versioninfo.json
           goversioninfo -64
+      - name: Build Ghost-AI static libraries
+        if: matrix.goos != 'windows'
+        run: |
+          chmod +x scripts/build-ghostai.sh
+          ./scripts/build-ghostai.sh
       - name: Build
         env:
           GOOS: ${{ matrix.goos }}
@@ -79,7 +84,9 @@ jobs:
         run: |
           TAGS="production"
           if [ "${{ matrix.goos }}" = "linux" ]; then
-            TAGS="webkit2_41 production"
+            TAGS="webkit2_41 production ghostai"
+          elif [ "${{ matrix.goos }}" = "darwin" ]; then
+            TAGS="production ghostai"
           fi
           if [ "${{ matrix.goos }}" = "windows" ]; then
             # Default exe is windowless (tray only, no console) — recommended for daily use.
