@@ -147,8 +147,8 @@ func (s *State) InitFromConfig(logLevel string) {
 
 	logLevel = strings.ToLower(strings.TrimSpace(logLevel))
 	if logLevel == "" {
-		slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelError + 1})))
-		return
+		// Default to debug logging during development — always have a log file.
+		logLevel = "debug"
 	}
 
 	level := slog.LevelInfo
