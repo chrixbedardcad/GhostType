@@ -1,0 +1,167 @@
+time=2026-03-12T10:16:51.528-04:00 level=INFO msg="[GUI] JS called: OpenLogFile"
+time=2026-03-12T10:16:54.197-04:00 level=INFO msg="[GUI] Settings window closing event received"
+time=2026-03-12T10:16:55.518-04:00 level=INFO msg="[local] killing llama-server" pid=1672
+time=2026-03-12T10:16:55.518-04:00 level=INFO msg="[GUI] TestProvider FAILED after 1m0.1646751s: local LLM not ready: llama-server failed to start: timeout after 1m0s waiting for llama-server health"
+time=2026-03-12T10:16:57.115-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=0 prompts=6 models=7
+time=2026-03-12T10:16:57.783-04:00 level=INFO msg="Exit requested via tray menu"
+time=2026-03-12T10:16:57.783-04:00 level=DEBUG msg="GetMessage returned 0 (WM_QUIT) — exiting message loop"
+time=2026-03-12T10:16:57.784-04:00 level=DEBUG msg="Listen() exiting — unregistering hotkeys"
+time=2026-03-12T10:16:57.784-04:00 level=DEBUG msg="Hotkey unregistered on listen exit" name=action id=1
+time=2026-03-12T10:17:05.048-04:00 level=INFO msg="GhostSpell starting" version=0.5.6 default_llm=local-ai llm_providers=7
+time=2026-03-12T10:17:05.343-04:00 level=INFO msg="=== GhostSpell Debug Session ===" version=0.5.6 os=windows os_version="Microsoft Windows [Version 10.0.26200.8037]" arch=amd64 locale=unknown keyboard=unknown hotkey=Ctrl+G default_llm=local-ai providers=7
+time=2026-03-12T10:17:05.343-04:00 level=INFO msg="First-launch check" needs_setup=false providers=7 default_llm=local-ai
+time=2026-03-12T10:17:05.346-04:00 level=INFO msg="GhostSpell launching" version=0.5.6 needs_setup=false
+time=2026-03-12T10:17:05.347-04:00 level=INFO msg="[tray] Start() called" os=windows icon_bytes=6041
+time=2026-03-12T10:17:05.347-04:00 level=INFO msg="[tray] Using provided Wails application" app_nil=false
+time=2026-03-12T10:17:05.347-04:00 level=INFO msg="[tray] Creating SystemTray..."
+time=2026-03-12T10:17:05.347-04:00 level=INFO msg="[tray] SystemTray created" systray_nil=false
+time=2026-03-12T10:17:05.347-04:00 level=INFO msg="[tray] Icon set" bytes=6041
+time=2026-03-12T10:17:05.347-04:00 level=INFO msg="[tray] Building initial menu..."
+time=2026-03-12T10:17:05.347-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=0 prompts=6 models=7
+time=2026-03-12T10:17:05.347-04:00 level=INFO msg="[tray] Start() setup complete — returning run/stop/anim"
+time=2026-03-12T10:17:05.347-04:00 level=INFO msg="[tray] run: calling app.Run()"
+time=2026-03-12T10:17:05.352-04:00 level=DEBUG msg="Event loop ready (ApplicationStarted)"
+time=2026-03-12T10:17:05.352-04:00 level=INFO msg="Permission check" accessibility=true postEventAccess=true
+time=2026-03-12T10:17:05.352-04:00 level=INFO msg="Registering hotkeys" action=Ctrl+G
+time=2026-03-12T10:17:05.352-04:00 level=DEBUG msg="Hotkey registered" name=action key=Ctrl+G id=1 mod=0x2 vk=0x47
+time=2026-03-12T10:17:05.352-04:00 level=DEBUG msg="Entering message loop" registered_hotkeys=1 threadID=27080
+time=2026-03-12T10:17:35.352-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=27080 registered=1 names=[action]
+time=2026-03-12T10:18:05.353-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=27080 registered=1 names=[action]
+time=2026-03-12T10:18:35.353-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=27080 registered=1 names=[action]
+time=2026-03-12T10:18:43.678-04:00 level=INFO msg="[tray] Menu built and set" active_prompt=0 prompts=6 models=7
+time=2026-03-12T10:18:44.624-04:00 level=INFO msg="[GUI] ShowSettings (async) called"
+time=2026-03-12T10:18:44.624-04:00 level=INFO msg="[GUI] Creating settings window on running tray app..."
+time=2026-03-12T10:18:44.627-04:00 level=INFO msg="[WebView2] Environment created successfully"
+time=2026-03-12T10:18:44.799-04:00 level=INFO msg="[GUI] Settings window created on running app"
+time=2026-03-12T10:18:44.879-04:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-12T10:18:44.882-04:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-12T10:18:44.882-04:00 level=INFO msg="[GUI] JS called: CheckPermissions"
+time=2026-03-12T10:18:44.882-04:00 level=INFO msg="Permission check from GUI" accessibility=true postEvent=true
+time=2026-03-12T10:18:48.499-04:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-12T10:18:53.159-04:00 level=INFO msg="[GUI] JS called: TestProvider(local-ai)"
+time=2026-03-12T10:18:53.159-04:00 level=INFO msg="[GUI] TestProvider: provider=local model=qwen3-0.6b endpoint=\"\""
+time=2026-03-12T10:18:53.159-04:00 level=INFO msg="[GUI] local detected — using 2m0s timeout"
+time=2026-03-12T10:18:53.159-04:00 level=INFO msg="[GUI] TestProvider: sending test request (timeout=2m0s)..."
+time=2026-03-12T10:18:53.160-04:00 level=INFO msg="[local] starting llama-server" path=C:\Users\chrix\AppData\Local\GhostSpell\llama-server.exe model=C:\Users\chrix\AppData\Roaming\GhostSpell\models\Qwen3-0.6B-Q4_K_M.gguf port=52177
+time=2026-03-12T10:18:53.488-04:00 level=DEBUG msg="[local] llama-server exited" error="exit status 0xc0000135"
+time=2026-03-12T10:19:05.353-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=27080 registered=1 names=[action]
+time=2026-03-12T10:19:06.170-04:00 level=INFO msg="[GUI] JS called: GetConfig"
+time=2026-03-12T10:19:20.792-04:00 level=DEBUG msg=GetMessage msg=0x0312 wParam=0x1 lParam=0x470002
+time=2026-03-12T10:19:20.792-04:00 level=DEBUG msg="WM_HOTKEY received" id=1
+time=2026-03-12T10:19:20.792-04:00 level=DEBUG msg="Dispatching hotkey handler" name=action id=1
+time=2026-03-12T10:19:20.792-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-12T10:19:20.792-04:00 level=INFO msg="Correct triggered"
+time=2026-03-12T10:19:20.792-04:00 level=DEBUG msg="Playing working sound loop..."
+time=2026-03-12T10:19:20.792-04:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-12T10:19:20.792-04:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-12T10:19:20.792-04:00 level=DEBUG msg="Capturing text..."
+time=2026-03-12T10:19:20.792-04:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-12T10:19:20.792-04:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-12T10:19:20.843-04:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-12T10:19:20.956-04:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-12T10:19:20.956-04:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-12T10:19:20.956-04:00 level=DEBUG msg="No selection detected, falling back to select-all" prompt=Correct
+time=2026-03-12T10:19:21.019-04:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-12T10:19:21.132-04:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-12T10:19:21.132-04:00 level=DEBUG msg="captureText: final clipboard read" len=0
+time=2026-03-12T10:19:21.132-04:00 level=DEBUG msg="captureText: CGEventPost clipboard empty, trying AX keystroke fallback"
+time=2026-03-12T10:19:21.182-04:00 level=DEBUG msg="captureText: SelectAllAX not available" error="not supported"
+time=2026-03-12T10:19:21.182-04:00 level=WARN msg="Nothing to process (empty text)" prompt=Correct
+time=2026-03-12T10:19:24.511-04:00 level=DEBUG msg=GetMessage msg=0x0312 wParam=0x1 lParam=0x470002
+time=2026-03-12T10:19:24.511-04:00 level=DEBUG msg="WM_HOTKEY received" id=1
+time=2026-03-12T10:19:24.511-04:00 level=DEBUG msg="Dispatching hotkey handler" name=action id=1
+time=2026-03-12T10:19:24.511-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-12T10:19:24.511-04:00 level=INFO msg="Correct triggered"
+time=2026-03-12T10:19:24.511-04:00 level=DEBUG msg="Playing working sound loop..."
+time=2026-03-12T10:19:24.512-04:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-12T10:19:24.512-04:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-12T10:19:24.512-04:00 level=DEBUG msg="Capturing text..."
+time=2026-03-12T10:19:24.512-04:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-12T10:19:24.512-04:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-12T10:19:24.562-04:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-12T10:19:24.675-04:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-12T10:19:24.675-04:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-12T10:19:24.675-04:00 level=DEBUG msg="No selection detected, falling back to select-all" prompt=Correct
+time=2026-03-12T10:19:24.739-04:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-12T10:19:24.852-04:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-12T10:19:24.852-04:00 level=DEBUG msg="captureText: final clipboard read" len=28
+time=2026-03-12T10:19:24.852-04:00 level=INFO msg="Captured text" prompt=Correct len=28 selection=false method=1 text="this is a test with an erior"
+time=2026-03-12T10:19:24.852-04:00 level=DEBUG msg="Sending to LLM..." prompt=Correct text_len=28
+time=2026-03-12T10:19:24.852-04:00 level=DEBUG msg="processing text" prompt=Correct llm=local-ai prompt_text="Fix only spelling and grammar errors. Do not rewrite, rephrase, or restructure t..." input_len=28
+time=2026-03-12T10:19:24.852-04:00 level=INFO msg="[local] starting llama-server" path=C:\Users\chrix\AppData\Local\GhostSpell\llama-server.exe model=C:\Users\chrix\AppData\Roaming\GhostSpell\models\Qwen3-0.6B-Q4_K_M.gguf port=53496
+time=2026-03-12T10:19:25.181-04:00 level=DEBUG msg="[local] llama-server exited" error="exit status 0xc0000135"
+time=2026-03-12T10:19:35.353-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=27080 registered=1 names=[action]
+time=2026-03-12T10:19:36.775-04:00 level=DEBUG msg=GetMessage msg=0x0312 wParam=0x1 lParam=0x470002
+time=2026-03-12T10:19:36.775-04:00 level=DEBUG msg="WM_HOTKEY received" id=1
+time=2026-03-12T10:19:36.775-04:00 level=DEBUG msg="Dispatching hotkey handler" name=action id=1
+time=2026-03-12T10:19:36.775-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-12T10:19:36.775-04:00 level=INFO msg="Hotkey pressed again — cancelling active request"
+time=2026-03-12T10:19:36.775-04:00 level=INFO msg="[local] killing llama-server" pid=28692
+time=2026-03-12T10:19:36.775-04:00 level=DEBUG msg="LLM request failed" prompt=Correct llm=local-ai input_len=28 error="local LLM not ready: llama-server failed to start: context canceled"
+time=2026-03-12T10:19:36.775-04:00 level=ERROR msg="LLM processing failed" prompt=Correct error="LLM request failed: local LLM not ready: llama-server failed to start: context canceled"
+time=2026-03-12T10:19:36.775-04:00 level=INFO msg="Request cancelled by user" prompt=Correct
+time=2026-03-12T10:19:40.440-04:00 level=DEBUG msg=GetMessage msg=0x0312 wParam=0x1 lParam=0x470002
+time=2026-03-12T10:19:40.440-04:00 level=DEBUG msg="WM_HOTKEY received" id=1
+time=2026-03-12T10:19:40.440-04:00 level=DEBUG msg="Dispatching hotkey handler" name=action id=1
+time=2026-03-12T10:19:40.440-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-12T10:19:40.440-04:00 level=INFO msg="Correct triggered"
+time=2026-03-12T10:19:40.440-04:00 level=DEBUG msg="Playing working sound loop..."
+time=2026-03-12T10:19:40.441-04:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-12T10:19:40.441-04:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-12T10:19:40.441-04:00 level=DEBUG msg="Capturing text..."
+time=2026-03-12T10:19:40.441-04:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-12T10:19:40.441-04:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-12T10:19:40.491-04:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-12T10:19:40.605-04:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-12T10:19:40.605-04:00 level=DEBUG msg="captureText: clipboard read" len=0 empty=true
+time=2026-03-12T10:19:40.605-04:00 level=DEBUG msg="No selection detected, falling back to select-all" prompt=Correct
+time=2026-03-12T10:19:40.667-04:00 level=DEBUG msg="captureText: sending Copy after select-all..."
+time=2026-03-12T10:19:40.780-04:00 level=DEBUG msg="captureText: reading clipboard after select-all..."
+time=2026-03-12T10:19:40.780-04:00 level=DEBUG msg="captureText: final clipboard read" len=28
+time=2026-03-12T10:19:40.780-04:00 level=INFO msg="Captured text" prompt=Correct len=28 selection=false method=1 text="this is a test with an erior"
+time=2026-03-12T10:19:40.780-04:00 level=DEBUG msg="Sending to LLM..." prompt=Correct text_len=28
+time=2026-03-12T10:19:40.780-04:00 level=DEBUG msg="processing text" prompt=Correct llm=local-ai prompt_text="Fix only spelling and grammar errors. Do not rewrite, rephrase, or restructure t..." input_len=28
+time=2026-03-12T10:19:40.780-04:00 level=INFO msg="[local] starting llama-server" path=C:\Users\chrix\AppData\Local\GhostSpell\llama-server.exe model=C:\Users\chrix\AppData\Roaming\GhostSpell\models\Qwen3-0.6B-Q4_K_M.gguf port=53609
+time=2026-03-12T10:19:41.104-04:00 level=DEBUG msg="[local] llama-server exited" error="exit status 0xc0000135"
+time=2026-03-12T10:19:42.175-04:00 level=DEBUG msg=GetMessage msg=0x0312 wParam=0x1 lParam=0x470002
+time=2026-03-12T10:19:42.175-04:00 level=DEBUG msg="WM_HOTKEY received" id=1
+time=2026-03-12T10:19:42.175-04:00 level=DEBUG msg="Dispatching hotkey handler" name=action id=1
+time=2026-03-12T10:19:42.175-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-12T10:19:42.175-04:00 level=INFO msg="Hotkey pressed again — cancelling active request"
+time=2026-03-12T10:19:42.175-04:00 level=INFO msg="[local] killing llama-server" pid=27744
+time=2026-03-12T10:19:42.175-04:00 level=DEBUG msg="LLM request failed" prompt=Correct llm=local-ai input_len=28 error="local LLM not ready: llama-server failed to start: context canceled"
+time=2026-03-12T10:19:42.175-04:00 level=ERROR msg="LLM processing failed" prompt=Correct error="LLM request failed: local LLM not ready: llama-server failed to start: context canceled"
+time=2026-03-12T10:19:42.175-04:00 level=INFO msg="Request cancelled by user" prompt=Correct
+time=2026-03-12T10:19:43.503-04:00 level=DEBUG msg=GetMessage msg=0x0312 wParam=0x1 lParam=0x470002
+time=2026-03-12T10:19:43.503-04:00 level=DEBUG msg="WM_HOTKEY received" id=1
+time=2026-03-12T10:19:43.503-04:00 level=DEBUG msg="Dispatching hotkey handler" name=action id=1
+time=2026-03-12T10:19:43.503-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-12T10:19:43.503-04:00 level=INFO msg="Correct triggered"
+time=2026-03-12T10:19:43.503-04:00 level=DEBUG msg="Playing working sound loop..."
+time=2026-03-12T10:19:43.503-04:00 level=DEBUG msg="Saving clipboard..."
+time=2026-03-12T10:19:43.503-04:00 level=DEBUG msg="Clipboard saved"
+time=2026-03-12T10:19:43.503-04:00 level=DEBUG msg="Capturing text..."
+time=2026-03-12T10:19:43.503-04:00 level=DEBUG msg="captureText: Accessibility API returned no text, falling back to clipboard"
+time=2026-03-12T10:19:43.503-04:00 level=DEBUG msg="captureText: clearing clipboard..."
+time=2026-03-12T10:19:43.554-04:00 level=DEBUG msg="captureText: sending Copy keystroke..."
+time=2026-03-12T10:19:43.667-04:00 level=DEBUG msg="captureText: reading clipboard..."
+time=2026-03-12T10:19:43.667-04:00 level=DEBUG msg="captureText: clipboard read" len=28 empty=false
+time=2026-03-12T10:19:43.667-04:00 level=INFO msg="Selection detected" prompt=Correct len=28
+time=2026-03-12T10:19:43.667-04:00 level=INFO msg="Captured text" prompt=Correct len=28 selection=true method=1 text="this is a test with an erior"
+time=2026-03-12T10:19:43.667-04:00 level=DEBUG msg="Sending to LLM..." prompt=Correct text_len=28
+time=2026-03-12T10:19:43.667-04:00 level=DEBUG msg="processing text" prompt=Correct llm=local-ai prompt_text="Fix only spelling and grammar errors. Do not rewrite, rephrase, or restructure t..." input_len=28
+time=2026-03-12T10:19:43.667-04:00 level=INFO msg="[local] starting llama-server" path=C:\Users\chrix\AppData\Local\GhostSpell\llama-server.exe model=C:\Users\chrix\AppData\Roaming\GhostSpell\models\Qwen3-0.6B-Q4_K_M.gguf port=53628
+time=2026-03-12T10:19:43.981-04:00 level=DEBUG msg="[local] llama-server exited" error="exit status 0xc0000135"
+time=2026-03-12T10:19:51.191-04:00 level=DEBUG msg=GetMessage msg=0x0312 wParam=0x1 lParam=0x470002
+time=2026-03-12T10:19:51.191-04:00 level=DEBUG msg="WM_HOTKEY received" id=1
+time=2026-03-12T10:19:51.191-04:00 level=DEBUG msg="Dispatching hotkey handler" name=action id=1
+time=2026-03-12T10:19:51.191-04:00 level=DEBUG msg="Hotkey callback fired"
+time=2026-03-12T10:19:51.191-04:00 level=INFO msg="Hotkey pressed again — cancelling active request"
+time=2026-03-12T10:19:51.191-04:00 level=INFO msg="[local] killing llama-server" pid=1200
+time=2026-03-12T10:19:51.191-04:00 level=DEBUG msg="LLM request failed" prompt=Correct llm=local-ai input_len=28 error="local LLM not ready: llama-server failed to start: context canceled"
+time=2026-03-12T10:19:51.191-04:00 level=ERROR msg="LLM processing failed" prompt=Correct error="LLM request failed: local LLM not ready: llama-server failed to start: context canceled"
+time=2026-03-12T10:19:51.191-04:00 level=INFO msg="Request cancelled by user" prompt=Correct
+time=2026-03-12T10:19:53.325-04:00 level=INFO msg="[local] killing llama-server" pid=25368
+time=2026-03-12T10:19:53.325-04:00 level=INFO msg="[GUI] TestProvider FAILED after 1m0.1658488s: local LLM not ready: llama-server failed to start: timeout after 1m0s waiting for llama-server health"
+time=2026-03-12T10:20:05.352-04:00 level=DEBUG msg="Hotkey listener heartbeat" threadID=27080 registered=1 names=[action]
+time=2026-03-12T10:20:14.534-04:00 level=INFO msg="[GUI] JS called: OpenLogFile"
