@@ -44,8 +44,7 @@ Updates are built in — go to **Settings > About > Check for Updates** and clic
 
 | Platform | Download |
 |----------|----------|
-| **Windows** | [ghostspell-windows-amd64.exe](https://github.com/chrixbedardcad/GhostSpell/releases/latest/download/ghostspell-windows-amd64.exe) — tray only, no console |
-| **Windows** (debug) | [ghostspell-windows-amd64-window.exe](https://github.com/chrixbedardcad/GhostSpell/releases/latest/download/ghostspell-windows-amd64-window.exe) — with console window |
+| **Windows** | [ghostspell-windows-amd64.exe](https://github.com/chrixbedardcad/GhostSpell/releases/latest/download/ghostspell-windows-amd64.exe) |
 | **Linux** | [ghostspell-linux-amd64](https://github.com/chrixbedardcad/GhostSpell/releases/latest/download/ghostspell-linux-amd64) |
 | **macOS** (Intel) | [GhostSpell-darwin-amd64.dmg](https://github.com/chrixbedardcad/GhostSpell/releases/latest/download/GhostSpell-darwin-amd64.dmg) |
 | **macOS** (Apple Silicon) | [GhostSpell-darwin-arm64.dmg](https://github.com/chrixbedardcad/GhostSpell/releases/latest/download/GhostSpell-darwin-arm64.dmg) |
@@ -59,7 +58,7 @@ Updates are built in — go to **Settings > About > Check for Updates** and clic
 
 **Linux:** Downloads the binary to `/usr/local/bin/ghostspell` and checks for required dependencies (`xclip`, `xdotool`, `libwebkit2gtk-4.1`, `libgtk-3`).
 
-**Windows:** Downloads `ghostspell.exe` and `ghostspell-window.exe` to `%LOCALAPPDATA%\GhostSpell\`, adds to PATH, and creates a Start Menu shortcut.
+**Windows:** Downloads `ghostspell.exe` to `%LOCALAPPDATA%\GhostSpell\`, adds to PATH, and creates a Start Menu shortcut.
 
 Scripts only download from official GitHub releases — inspect them at [`scripts/install.sh`](scripts/install.sh) and [`scripts/install.ps1`](scripts/install.ps1).
 </details>
@@ -208,7 +207,7 @@ Most users only need the **Settings GUI**. For power users, everything is stored
 
 ### Windows
 
-No dependencies. The installer creates a Start Menu shortcut. Two exe variants: `ghostspell.exe` (tray only, recommended) and `ghostspell-window.exe` (with console for debugging).
+No dependencies. The installer creates a Start Menu shortcut and adds GhostSpell to Windows startup. Debug logs are available in **Settings > Debug**.
 
 ### macOS
 
@@ -261,7 +260,6 @@ All platforms require CGO_ENABLED=1. To include the built-in Ghost-AI engine (em
 **Windows** (requires MinGW):
 ```bash
 go build -tags "production ghostai" -ldflags "-H=windowsgui -extldflags '-static'" -o ghostspell.exe .
-go build -tags "production ghostai" -ldflags "-extldflags '-static'" -o ghostspell-window.exe .
 ```
 
 **Linux**:

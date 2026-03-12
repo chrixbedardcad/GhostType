@@ -34,17 +34,10 @@ if (-not (Test-Path $InstallDir)) {
     New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
 }
 
-$Assets = @(
-    @{ Name = "ghostspell.exe";        File = "ghostspell-windows-amd64.exe" },
-    @{ Name = "ghostspell-window.exe"; File = "ghostspell-windows-amd64-window.exe" }
-)
-
-foreach ($Asset in $Assets) {
-    $Url = "https://github.com/$Repo/releases/download/$Version/$($Asset.File)"
-    $Dest = Join-Path $InstallDir $Asset.Name
-    Write-Info "Downloading $($Asset.File)..."
-    Invoke-WebRequest -Uri $Url -OutFile $Dest -UseBasicParsing
-}
+$Url = "https://github.com/$Repo/releases/download/$Version/ghostspell-windows-amd64.exe"
+$Dest = Join-Path $InstallDir "ghostspell.exe"
+Write-Info "Downloading ghostspell-windows-amd64.exe..."
+Invoke-WebRequest -Uri $Url -OutFile $Dest -UseBasicParsing
 
 # --- Add to PATH ------------------------------------------------------------
 
@@ -95,10 +88,6 @@ $Startup.Save()
 Write-Ok ""
 Write-Ok "GhostSpell $Version installed to $InstallDir"
 Write-Ok ""
-Write-Info "Two variants installed:"
-Write-Host "  ghostspell.exe        - tray only, no console (recommended)"
-Write-Host "  ghostspell-window.exe - with console window (useful for debugging)"
-Write-Host ""
 Write-Info "Config is stored in: $env:APPDATA\GhostSpell\"
 Write-Host ""
 

@@ -79,10 +79,8 @@ jobs:
           fi
           if [ "${{ matrix.goos }}" = "windows" ]; then
             # Static link MinGW runtime (libwinpthread, libgcc, libstdc++) so users don't need DLLs.
-            # Default exe is windowless (tray only, no console) — recommended for daily use.
+            # Windowless (tray only, no console) — logging goes to debug log file.
             go build -tags "$TAGS" -ldflags "-H=windowsgui -extldflags '-static'" -o ghostspell-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
-            # Window exe shows a console window — useful for debugging.
-            go build -tags "$TAGS" -ldflags "-extldflags '-static'" -o ghostspell-${{ matrix.goos }}-${{ matrix.goarch }}-window${{ matrix.ext }}
           else
             go build -tags "$TAGS" -o ghostspell-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
           fi
