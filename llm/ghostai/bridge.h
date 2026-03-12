@@ -78,9 +78,23 @@ int ghost_engine_load(ghost_engine* e, const char* model_path,
                       char* error_buf, int error_buf_size);
 
 /*
+ * Apply the model's chat template to format system + user messages.
+ *
+ * Uses llama_chat_apply_template() which reads the template from model
+ * metadata (tokenizer.chat_template). Falls back to ChatML if none found.
+ *
+ * Returns a heap-allocated string (free with ghost_string_free),
+ * or NULL on error.
+ */
+char* ghost_engine_apply_chat(ghost_engine* e,
+                               const char* system_msg,
+                               const char* user_msg,
+                               char* error_buf, int error_buf_size);
+
+/*
  * Run text completion.
  *
- * prompt:     Full prompt text (system + user).
+ * prompt:     Full prompt text (already formatted via apply_chat).
  * max_tokens: Maximum tokens to generate.
  * abort_flag: Pointer to an int; set to non-zero to cancel inference.
  *             The C inference loop checks this between tokens.

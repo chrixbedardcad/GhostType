@@ -59,6 +59,7 @@ type ModelInfo struct {
 // engineBackend is implemented by cgoBackend (real) and stubBackend (placeholder).
 type engineBackend interface {
 	load(modelPath string) error
+	applyChat(systemMsg, userMsg string) (string, error)
 	complete(prompt string, maxTokens int, abort *int32) (string, Stats, error)
 	unload()
 	isLoaded() bool

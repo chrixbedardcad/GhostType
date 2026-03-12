@@ -109,6 +109,59 @@ int ghost_engine_load(ghost_engine* e, const char* model_path,
     return 0;
 }
 
+char* ghost_engine_apply_chat(ghost_engine* e,
+                               const char* system_msg,
+                               const char* user_msg,
+                               char* error_buf, int error_buf_size) {
+    if (!e || !e->loaded || !e->model) {
+        snprintf(error_buf, error_buf_size, "model not loaded");
+        return NULL;
+    }
+
+    /* Build a 2-message chat: system + user. */
+    struct llama_chat_message msgs[2];
+    msgs[0].role    = "system";
+    msgs[0].content = system_msg;
+    msgs[1].role    = "user";
+    msgs[1].content = user_msg;
+
+    /* First call: measure required buffer size.
+     * llama_chat_apply_template returns the number of chars written (or needed). */
+    int needed = llama_chat_apply_template(
+        llama_model_chat_template(e->model, NULL),
+        msgs, 2,
+        1 /* add_ass: append assistant turn start */,
+        NULL, 0);
+
+    if (needed < 0) {
+        snprintf(error_buf, error_buf_size, "chat template apply failed (size query)");
+        return NULL;
+    }
+
+    /* Allocate and render. */
+    int buf_size = needed + 1;
+    char* buf = (char*)malloc((size_t)buf_size);
+    if (!buf) {
+        snprintf(error_buf, error_buf_size, "out of memory (chat template)");
+        return NULL;
+    }
+
+    int written = llama_chat_apply_template(
+        llama_model_chat_template(e->model, NULL),
+        msgs, 2,
+        1,
+        buf, buf_size);
+
+    if (written < 0) {
+        free(buf);
+        snprintf(error_buf, error_buf_size, "chat template apply failed");
+        return NULL;
+    }
+
+    buf[written] = '\0';
+    return buf;
+}
+
 char* ghost_engine_complete(ghost_engine* e,
                             const char* prompt,
                             int max_tokens,

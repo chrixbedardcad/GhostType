@@ -71,6 +71,27 @@ func (b *cgoBackend) load(modelPath string) error {
 	return nil
 }
 
+func (b *cgoBackend) applyChat(systemMsg, userMsg string) (string, error) {
+	if b.handle == nil {
+		return "", fmt.Errorf("engine allocation failed")
+	}
+
+	cSystem := C.CString(systemMsg)
+	defer C.free(unsafe.Pointer(cSystem))
+	cUser := C.CString(userMsg)
+	defer C.free(unsafe.Pointer(cUser))
+
+	var errBuf [512]C.char
+	result := C.ghost_engine_apply_chat(b.handle, cSystem, cUser, &errBuf[0], 512)
+	if result == nil {
+		return "", fmt.Errorf("ghost-ai: %s", C.GoString(&errBuf[0]))
+	}
+
+	text := C.GoString(result)
+	C.ghost_string_free(result)
+	return text, nil
+}
+
 func (b *cgoBackend) complete(prompt string, maxTokens int, abort *int32) (string, Stats, error) {
 	if b.handle == nil {
 		return "", Stats{}, fmt.Errorf("engine allocation failed")

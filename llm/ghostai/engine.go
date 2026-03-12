@@ -77,6 +77,23 @@ func (e *Engine) Load(modelPath string) error {
 	return nil
 }
 
+// ApplyChat formats system and user messages using the model's built-in chat
+// template (read from GGUF metadata). This ensures the model sees properly
+// structured input (e.g., ChatML for Qwen, Llama-style for Llama models).
+func (e *Engine) ApplyChat(systemMsg, userMsg string) (string, error) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	if e.closed {
+		return "", ErrNotAvailable
+	}
+	if !e.be.isLoaded() {
+		return "", ErrNotLoaded
+	}
+
+	return e.be.applyChat(systemMsg, userMsg)
+}
+
 // Complete runs text completion. The prompt should include both the system
 // instruction and user text. Returns the generated text and performance stats.
 //

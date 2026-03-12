@@ -94,8 +94,15 @@ func (c *GhostAIClient) Send(ctx context.Context, req Request) (*Response, error
 		maxTokens = c.maxTokens
 	}
 
-	// Build the same prompt format as the subprocess client.
-	prompt := "/no_think\n" + req.Prompt + "\n\nUser: " + req.Text
+	// Format using the model's chat template (ChatML for Qwen, etc.).
+	// System = instruction prompt, User = the text to process.
+	systemMsg := "/no_think\n" + req.Prompt
+	prompt, err := c.engine.ApplyChat(systemMsg, req.Text)
+	if err != nil {
+		slog.Warn("[ghost-ai] chat template failed, using raw format", "error", err)
+		// Fallback to raw format if template fails.
+		prompt = systemMsg + "\n\nUser: " + req.Text
+	}
 
 	text, stats, err := c.engine.Complete(ctx, prompt, maxTokens)
 	if err != nil {
