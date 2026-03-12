@@ -5,7 +5,7 @@
 #
 # What it does:
 #   1. Downloads the latest GhostSpell release from GitHub
-#   2. Installs both variants (console + windowless) to %LOCALAPPDATA%\GhostSpell\
+#   2. Installs ghostspell.exe to %LOCALAPPDATA%\GhostSpell\
 #   3. Adds the install directory to your user PATH
 #
 
@@ -32,6 +32,13 @@ Start-Sleep -Seconds 1
 
 if (-not (Test-Path $InstallDir)) {
     New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
+}
+
+# Clean up old console variant from previous versions.
+$OldWindow = Join-Path $InstallDir "ghostspell-window.exe"
+if (Test-Path $OldWindow) {
+    Remove-Item -Force $OldWindow -ErrorAction SilentlyContinue
+    Write-Info "Removed old ghostspell-window.exe"
 }
 
 $Url = "https://github.com/$Repo/releases/download/$Version/ghostspell-windows-amd64.exe"
