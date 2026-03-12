@@ -63,7 +63,12 @@ func KnownModels(provider string) []ModelInfo {
 			{Name: "deepseek-chat", Tag: "recommended"},
 			{Name: "deepseek-reasoner", Tag: "best"},
 		}
-case "ollama":
+	case "local":
+		return []ModelInfo{
+			{Name: "qwen3-0.6b", Tag: "recommended"},
+			{Name: "qwen3-1.7b", Tag: "best"},
+		}
+	case "ollama":
 		return []ModelInfo{
 			{Name: "qwen3.5:4b", Tag: "recommended"},
 			{Name: "llama3.3", Tag: "best"},

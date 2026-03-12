@@ -370,6 +370,7 @@
           <option value="deepseek">DeepSeek</option>
 
           <option value="ollama">Ollama</option>
+          <option value="local">Local AI (Built-in)</option>
         </select>
       </div>
       <div class="form-group">
@@ -397,6 +398,20 @@
         </div>
         <div id="ollama-body"></div>
         <div id="ollama-action-status" class="status" style="margin-top:6px"></div>
+      </div>
+
+      <!-- Local AI panel -->
+      <div id="local-panel" class="ollama-panel" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <h3 style="margin:0">Local AI (Built-in)</h3>
+          <button class="btn btn-secondary btn-sm" onclick="onLocalRefresh()" style="padding:3px 8px;font-size:0.72em">Refresh</button>
+        </div>
+        <div id="local-status-bar-settings" class="ollama-status-bar checking">
+          <span class="ollama-status-dot"></span>
+          <span id="local-status-text-settings">Checking...</span>
+        </div>
+        <div id="local-body-settings"></div>
+        <div id="local-action-status-settings" class="status" style="margin-top:6px"></div>
       </div>
 
       <div class="form-group" id="form-model-group" style="position:relative">
@@ -655,7 +670,7 @@
       <p>• GhostSpell works in any application — browsers, editors, chat apps, email.</p>
       <p>• The text is always processed in its original language (except the Translate prompt).</p>
       <p>• Clipboard contents are preserved and restored after processing.</p>
-      <p>• You can set up multiple AI providers (OpenAI, Anthropic, Gemini, xAI, DeepSeek, Ollama) in the Models tab.</p>
+      <p>• You can set up multiple AI providers (OpenAI, Anthropic, Gemini, xAI, DeepSeek, Ollama, Local AI) in the Models tab.</p>
       <p>• For local/private processing, set up Ollama with a local model — your text never leaves your machine.</p>
     </div>
 
@@ -865,14 +880,20 @@ function cancelForm() { document.getElementById('provider-form').style.display =
 function onFormProviderChange() {
   const provider = document.getElementById('form-provider').value;
   const isOllama = provider === 'ollama';
-  document.getElementById('form-apikey-group').style.display = isOllama ? 'none' : 'block';
+  const isLocal = provider === 'local';
+  const noKey = isOllama || isLocal;
+  document.getElementById('form-apikey-group').style.display = noKey ? 'none' : 'block';
   document.getElementById('form-endpoint-group').style.display = isOllama ? 'block' : 'none';
   document.getElementById('ollama-panel').style.display = isOllama ? 'block' : 'none';
-  document.getElementById('form-model-group').style.display = isOllama ? 'none' : 'block';
+  document.getElementById('form-model-group').style.display = (isOllama || isLocal) ? 'none' : 'block';
+  // Show local AI panel when local is selected
+  const localPanel = document.getElementById('local-panel');
+  if (localPanel) localPanel.style.display = isLocal ? 'block' : 'none';
   const keyLink = document.getElementById('form-apikey-link');
   if (keyLink) { keyLink.style.display = PROVIDER_KEY_URLS[provider] ? 'inline-block' : 'none'; }
-  if (!isOllama) loadModels('form-model', provider);
-  else onOllamaRefresh();
+  if (isOllama) onOllamaRefresh();
+  else if (isLocal) onLocalRefresh();
+  else loadModels('form-model', provider);
 }
 
 async function testForm() {
@@ -895,7 +916,7 @@ async function saveForm() {
   const endpoint = document.getElementById('form-endpoint').value.trim();
   const originalLabel = document.getElementById('edit-original-label').value;
   if (!label) { setStatus('form-status','error','Label is required'); return; }
-  if (provider !== 'ollama' && !apiKey) { setStatus('form-status','error','API key is required'); return; }
+  if (provider !== 'ollama' && provider !== 'local' && !apiKey) { setStatus('form-status','error','API key is required'); return; }
   if (!model) { setStatus('form-status','error','Model is required'); return; }
   const result = await goCall('saveProvider', label, provider, apiKey, model, endpoint, originalLabel);
   if (result && result.startsWith('ok')) {
@@ -1105,6 +1126,126 @@ function ollamaSetFormModel(name) {
   if (!labelEl.value.trim()) labelEl.value = 'ollama-' + name.replace(/[:/]/g, '-');
   // Re-render to update selected state
   onOllamaRefresh();
+}
+
+// ==================== LOCAL AI (Settings) ====================
+async function onLocalRefresh() {
+  const bar = document.getElementById('local-status-bar-settings');
+  const text = document.getElementById('local-status-text-settings');
+  const body = document.getElementById('local-body-settings');
+  bar.className = 'ollama-status-bar checking'; text.textContent = 'Checking...'; body.innerHTML = '';
+
+  const raw = await goCall('localStatus');
+  if (!raw) { bar.className = 'ollama-status-bar not-installed'; text.textContent = 'Status check failed'; return; }
+
+  let st; try { st = JSON.parse(raw); } catch(e) { bar.className = 'ollama-status-bar not-installed'; text.textContent = 'Check failed'; return; }
+
+  const serverOK = st.server_installed;
+  const models = st.models || [];
+  const available = st.available || [];
+
+  if (serverOK && models.length > 0) {
+    bar.className = 'ollama-status-bar running'; text.textContent = 'Ready';
+    // Show installed models with select buttons
+    let html = '<div style="font-size:0.78em;color:#6c7086;margin-bottom:6px">Installed models</div>';
+    const formModel = document.getElementById('form-model').value;
+    for (const m of models) {
+      const sizeMB = m.size ? Math.round(m.size / 1024 / 1024) + ' MB' : '';
+      const badge = m.tag ? ollamaTagBadge(m.tag) : '';
+      const selected = m.name === formModel;
+      html += '<div class="ollama-model-card' + (selected ? '" style="border-color:#89b4fa' : '') + '">'
+        + '<div><div class="model-name">' + esc(m.name) + badge + (selected ? ' <span class="badge badge-rec">SELECTED</span>' : '') + '</div>'
+        + '<div class="model-meta">' + esc(sizeMB) + '</div></div>'
+        + '<div style="display:flex;gap:4px">'
+        + '<button class="btn btn-secondary btn-sm" onclick="localSetFormModel(\'' + escJS(m.name) + '\')" style="font-size:0.75em">' + (selected ? '\u2714 Selected' : 'Select') + '</button>'
+        + '<button class="btn btn-danger btn-sm" onclick="localDeleteModelSettings(\'' + escJS(m.name) + '\')" style="font-size:0.75em;padding:3px 6px">Del</button>'
+        + '</div></div>';
+    }
+    // Show available models not yet installed
+    const installedNames = new Set(models.map(m => m.name));
+    const remaining = available.filter(m => !installedNames.has(m.name));
+    if (remaining.length > 0) {
+      html += '<div style="font-size:0.78em;color:#6c7086;margin-top:10px;margin-bottom:6px">Download more</div>';
+      for (const m of remaining) {
+        const sizeMB = Math.round(m.size / 1024 / 1024);
+        html += '<div class="ollama-model-card">'
+          + '<div class="model-name">' + esc(m.name) + ollamaTagBadge(m.tag) + ' <span style="font-size:0.75em;color:#6c7086">' + sizeMB + ' MB</span></div>'
+          + '<button class="btn btn-primary btn-sm" onclick="localDownloadModelSettings(\'' + escJS(m.name) + '\')" style="font-size:0.75em">Download</button>'
+          + '</div>';
+      }
+    }
+    body.innerHTML = html;
+    if (!formModel && models.length > 0) localSetFormModel(models[0].name);
+  } else if (serverOK) {
+    bar.className = 'ollama-status-bar installed'; text.textContent = 'Engine ready — download a model';
+    let html = '';
+    for (const m of available) {
+      const sizeMB = Math.round(m.size / 1024 / 1024);
+      html += '<div class="ollama-model-card">'
+        + '<div class="model-name">' + esc(m.name) + ollamaTagBadge(m.tag) + ' <span style="font-size:0.75em;color:#6c7086">' + sizeMB + ' MB</span></div>'
+        + '<button class="btn btn-primary btn-sm" onclick="localDownloadModelSettings(\'' + escJS(m.name) + '\')" style="font-size:0.75em">Download</button>'
+        + '</div>';
+    }
+    body.innerHTML = html;
+  } else {
+    bar.className = 'ollama-status-bar not-installed'; text.textContent = 'Not set up';
+    body.innerHTML = '<div style="text-align:center;padding:10px 0">'
+      + '<div style="font-size:0.85em;color:#bac2de;margin-bottom:8px">Download the AI engine and a grammar model.</div>'
+      + '<button class="btn btn-primary btn-sm" onclick="localSetupAllSettings()" id="local-setup-btn-settings">Download & Set Up</button>'
+      + '</div>';
+  }
+}
+
+function localSetFormModel(name) {
+  document.getElementById('form-model').value = name;
+  document.getElementById('form-model-label').textContent = name;
+  const labelEl = document.getElementById('form-label');
+  if (!labelEl.value.trim()) labelEl.value = 'local-ai';
+  onLocalRefresh();
+}
+
+async function localDownloadModelSettings(name) {
+  const statusEl = document.getElementById('local-action-status-settings');
+  statusEl.className = 'status info'; statusEl.textContent = 'Downloading ' + name + '...';
+  const result = await goCall('localDownloadModel', name);
+  if (result && result.startsWith('ok')) {
+    statusEl.className = 'status success'; statusEl.textContent = name + ' downloaded!';
+    onLocalRefresh();
+  } else {
+    statusEl.className = 'status error'; statusEl.textContent = 'Failed: ' + (result || 'unknown');
+  }
+}
+
+async function localDeleteModelSettings(name) {
+  const result = await goCall('localDeleteModel', name);
+  if (result && result.startsWith('ok')) { onLocalRefresh(); }
+}
+
+async function localSetupAllSettings() {
+  const btn = document.getElementById('local-setup-btn-settings');
+  const statusEl = document.getElementById('local-action-status-settings');
+  if (btn) { btn.disabled = true; btn.textContent = 'Downloading engine...'; }
+  statusEl.className = 'status info'; statusEl.textContent = 'Downloading AI engine...';
+
+  let result = await goCall('localDownloadServer');
+  if (!result || !result.startsWith('ok')) {
+    statusEl.className = 'status error'; statusEl.textContent = 'Engine download failed: ' + (result || '');
+    if (btn) { btn.disabled = false; btn.textContent = 'Download & Set Up'; }
+    return;
+  }
+
+  if (btn) btn.textContent = 'Downloading model...';
+  statusEl.textContent = 'Downloading grammar model...';
+  result = await goCall('localDownloadModel', 'qwen3-0.6b');
+  if (!result || !result.startsWith('ok')) {
+    statusEl.className = 'status error'; statusEl.textContent = 'Model download failed: ' + (result || '');
+    if (btn) { btn.disabled = false; btn.textContent = 'Download & Set Up'; }
+    return;
+  }
+
+  statusEl.className = 'status success'; statusEl.textContent = 'Setup complete!';
+  localSetFormModel('qwen3-0.6b');
+  onLocalRefresh();
 }
 
 // ===========================================================================

@@ -12,7 +12,8 @@ var cheapModels = map[string]string{
 	"openai":    "gpt-4o-mini",
 	"gemini":    "gemini-2.5-flash-lite",
 	"xai":       "grok-3-mini",
-	"deepseek":    "deepseek-chat",
+	"deepseek":  "deepseek-chat",
+	"local":     "qwen3-0.6b",
 }
 
 // ResolveModelTag checks if the model string is a known tag (e.g. "cheap")

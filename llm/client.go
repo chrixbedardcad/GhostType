@@ -69,6 +69,12 @@ func NewClient(cfg *config.Config) (Client, error) {
 		})
 	case "ollama":
 		return NewOllamaClient(cfg), nil
+	case "local":
+		return newLocalFromDef(LLMProviderDefCompat{
+			Model:     cfg.Model,
+			MaxTokens: cfg.MaxTokens,
+			TimeoutMs: cfg.TimeoutMs,
+		})
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider: %s", cfg.LLMProvider)
 	}
@@ -93,7 +99,13 @@ func NewClientFromDef(def config.LLMProviderDef) (Client, error) {
 		return newDeepSeekFromDef(def), nil
 	case "ollama":
 		return newOllamaFromDef(def), nil
-default:
+	case "local":
+		return newLocalFromDef(LLMProviderDefCompat{
+			Model:     def.Model,
+			MaxTokens: def.MaxTokens,
+			TimeoutMs: def.TimeoutMs,
+		})
+	default:
 		return nil, fmt.Errorf("unsupported LLM provider: %s", def.Provider)
 	}
 }

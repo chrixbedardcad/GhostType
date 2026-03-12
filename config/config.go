@@ -350,7 +350,7 @@ func applyDefaults(cfg *Config) {
 
 	// Synthesize LLMProviders from legacy flat fields if not set.
 	if len(cfg.LLMProviders) == 0 && cfg.LLMProvider != "" {
-		if cfg.LLMProvider == "ollama" || cfg.APIKey != "" {
+		if cfg.LLMProvider == "ollama" || cfg.LLMProvider == "local" || cfg.APIKey != "" {
 			cfg.LLMProviders = map[string]LLMProviderDef{
 				"default": {
 					Provider:    cfg.LLMProvider,
@@ -370,7 +370,7 @@ func applyDefaults(cfg *Config) {
 	// Fill missing TimeoutMs per provider from global value.
 	for label, def := range cfg.LLMProviders {
 		if def.TimeoutMs == 0 {
-			if def.Provider == "ollama" {
+			if def.Provider == "ollama" || def.Provider == "local" {
 				def.TimeoutMs = 120000
 			} else {
 				def.TimeoutMs = cfg.TimeoutMs
@@ -387,16 +387,17 @@ func Validate(cfg *Config) error {
 		"openai":    true,
 		"gemini":    true,
 		"xai":       true,
-		"deepseek": true,
-		"ollama":   true,
+		"deepseek":  true,
+		"ollama":    true,
+		"local":     true,
 	}
 
 	// Flat-field validation only when llm_providers was not provided directly.
 	if cfg.LLMProvider != "" {
 		if !validProviders[cfg.LLMProvider] {
-			return fmt.Errorf("unsupported llm_provider: %s (valid: anthropic, openai, gemini, xai, ollama)", cfg.LLMProvider)
+			return fmt.Errorf("unsupported llm_provider: %s (valid: anthropic, openai, gemini, xai, ollama, local)", cfg.LLMProvider)
 		}
-		if cfg.LLMProvider != "ollama" && cfg.APIKey == "" {
+		if cfg.LLMProvider != "ollama" && cfg.LLMProvider != "local" && cfg.APIKey == "" {
 			return fmt.Errorf("api_key is required for provider %s", cfg.LLMProvider)
 		}
 		if cfg.Model == "" {
@@ -414,9 +415,9 @@ func Validate(cfg *Config) error {
 	// Validate each provider def in llm_providers.
 	for label, def := range cfg.LLMProviders {
 		if !validProviders[def.Provider] {
-			return fmt.Errorf("llm_providers[%s]: unsupported provider %q (valid: anthropic, openai, gemini, xai, ollama)", label, def.Provider)
+			return fmt.Errorf("llm_providers[%s]: unsupported provider %q (valid: anthropic, openai, gemini, xai, ollama, local)", label, def.Provider)
 		}
-		if def.Provider != "ollama" && def.APIKey == "" && def.RefreshToken == "" {
+		if def.Provider != "ollama" && def.Provider != "local" && def.APIKey == "" && def.RefreshToken == "" {
 			return fmt.Errorf("llm_providers[%s]: api_key is required for provider %s", label, def.Provider)
 		}
 		if def.Model == "" {

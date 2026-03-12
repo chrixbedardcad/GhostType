@@ -88,7 +88,7 @@ func (s *SettingsService) clearLegacyAndSave() error {
 
 	// Remove invalid provider entries (e.g. phantom "default" from legacy synthesis).
 	for label, def := range s.cfgCopy.LLMProviders {
-		if def.Provider != "ollama" && def.APIKey == "" && def.RefreshToken == "" {
+		if def.Provider != "ollama" && def.Provider != "local" && def.APIKey == "" && def.RefreshToken == "" {
 			delete(s.cfgCopy.LLMProviders, label)
 			if s.cfgCopy.DefaultLLM == label {
 				s.cfgCopy.DefaultLLM = ""
@@ -211,13 +211,13 @@ func (s *SettingsService) SetDefault(label string) string {
 func (s *SettingsService) TestConnection(provider, apiKey, model, endpoint string) string {
 	guiLog("[GUI] JS called: TestConnection(provider=%s, model=%s, endpoint=%q)", provider, model, endpoint)
 
-	// Ollama needs much longer timeout — first request loads model into memory.
+	// Ollama and local need much longer timeout — first request loads model into memory.
 	timeout := 10 * time.Second
 	timeoutMs := 10000
-	if provider == "ollama" {
+	if provider == "ollama" || provider == "local" {
 		timeout = 120 * time.Second
 		timeoutMs = 120000
-		guiLog("[GUI] Ollama detected — using %s timeout", timeout)
+		guiLog("[GUI] %s detected — using %s timeout", provider, timeout)
 	}
 
 	def := config.LLMProviderDef{
@@ -266,13 +266,13 @@ func (s *SettingsService) TestProvider(label string) string {
 	}
 	guiLog("[GUI] TestProvider: provider=%s model=%s endpoint=%q", def.Provider, def.Model, def.APIEndpoint)
 
-	// Ollama needs much longer timeout — first request loads model into memory.
+	// Ollama and local need much longer timeout — first request loads model into memory.
 	timeout := 10 * time.Second
 	timeoutMs := 10000
-	if def.Provider == "ollama" {
+	if def.Provider == "ollama" || def.Provider == "local" {
 		timeout = 120 * time.Second
 		timeoutMs = 120000
-		guiLog("[GUI] Ollama detected — using %s timeout", timeout)
+		guiLog("[GUI] %s detected — using %s timeout", def.Provider, timeout)
 	}
 
 	def.MaxTokens = 32
@@ -805,6 +805,74 @@ func (s *SettingsService) QuitForRestart() string {
 	}()
 
 	return "ok"
+}
+
+// --- Local AI management ---------------------------------------------------
+
+// LocalStatus returns JSON with llama-server installed status and installed models.
+func (s *SettingsService) LocalStatus() string {
+	guiLog("[GUI] JS called: LocalStatus")
+	serverInstalled := llm.LlamaServerInstalled()
+	installed, err := llm.InstalledLocalModels()
+	if err != nil {
+		guiLog("[GUI] LocalStatus: error listing models: %v", err)
+		installed = nil
+	}
+
+	result := map[string]interface{}{
+		"server_installed": serverInstalled,
+		"models":           installed,
+		"available":        llm.AvailableLocalModels(),
+	}
+	data, _ := json.Marshal(result)
+	return string(data)
+}
+
+// LocalDownloadModel downloads a local model by name (blocking).
+func (s *SettingsService) LocalDownloadModel(name string) string {
+	guiLog("[GUI] JS called: LocalDownloadModel(%s)", name)
+	if err := llm.DownloadModel(name, nil); err != nil {
+		guiLog("[GUI] LocalDownloadModel error: %v", err)
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// LocalDeleteModel deletes a downloaded local model.
+func (s *SettingsService) LocalDeleteModel(name string) string {
+	guiLog("[GUI] JS called: LocalDeleteModel(%s)", name)
+	if err := llm.DeleteModel(name); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// LocalDownloadServer downloads the llama-server binary (blocking).
+func (s *SettingsService) LocalDownloadServer() string {
+	guiLog("[GUI] JS called: LocalDownloadServer")
+	if err := llm.DownloadLlamaServer(nil); err != nil {
+		guiLog("[GUI] LocalDownloadServer error: %v", err)
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// LocalAvailableModels returns the list of downloadable models as JSON.
+func (s *SettingsService) LocalAvailableModels() string {
+	models := llm.AvailableLocalModels()
+	data, _ := json.Marshal(models)
+	return string(data)
+}
+
+// LocalInstalledModels returns the list of installed models as JSON.
+func (s *SettingsService) LocalInstalledModels() string {
+	models, err := llm.InstalledLocalModels()
+	if err != nil {
+		guiLog("[GUI] LocalInstalledModels error: %v", err)
+		return "[]"
+	}
+	data, _ := json.Marshal(models)
+	return string(data)
 }
 
 // OpenFile opens a file using the platform's default handler.
