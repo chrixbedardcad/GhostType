@@ -99,29 +99,6 @@ find "$LLAMA_BUILD" -name '*.a' -exec cp {} "$LLAMA_OUT/lib/" \; 2>/dev/null || 
 # On Windows (MinGW), look for .lib files too.
 find "$LLAMA_BUILD" -name '*.lib' -exec cp {} "$LLAMA_OUT/lib/" \; 2>/dev/null || true
 
-# Merge ggml sub-libraries into a single libggml.a.
-# Recent llama.cpp splits ggml into libggml-base.a, libggml-cpu.a, etc.
-# Our CGo LDFLAGS reference only -lllama -lggml, so we need one combined archive.
-cd "$LLAMA_OUT/lib"
-if ls libggml-*.a 1>/dev/null 2>&1; then
-    echo "    Merging ggml sub-libraries into libggml.a..."
-    MERGE_DIR=$(mktemp -d)
-    # Extract objects from all ggml archives (including existing libggml.a if any).
-    for lib in libggml*.a; do
-        SUB_DIR="$MERGE_DIR/$(basename "$lib" .a)"
-        mkdir -p "$SUB_DIR"
-        cd "$SUB_DIR"
-        ar x "$LLAMA_OUT/lib/$lib"
-        cd "$LLAMA_OUT/lib"
-    done
-    # Combine all objects into a single libggml.a.
-    rm -f libggml*.a
-    ar rcs libggml.a "$MERGE_DIR"/*/*.o
-    rm -rf "$MERGE_DIR"
-    echo "    Created combined libggml.a"
-fi
-cd "$PROJECT_ROOT"
-
 echo ""
 echo "=== Build complete ==="
 echo "Headers:   $(ls "$LLAMA_OUT/include/" 2>/dev/null | wc -l | tr -d ' ') files"

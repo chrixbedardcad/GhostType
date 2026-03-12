@@ -4,9 +4,10 @@ package ghostai
 
 /*
 #cgo CFLAGS: -I${SRCDIR}/../../build/llama/include -O2
-#cgo LDFLAGS: -L${SRCDIR}/../../build/llama/lib -lllama -lggml -lstdc++ -lm -lpthread
-#cgo darwin LDFLAGS: -framework Accelerate
-#cgo windows LDFLAGS: -lkernel32
+#cgo LDFLAGS: -L${SRCDIR}/../../build/llama/lib -lstdc++ -lm -lpthread
+#cgo linux LDFLAGS: -Wl,--start-group -lllama -lggml-cpu -lggml-base -Wl,--end-group
+#cgo darwin LDFLAGS: -lllama -lggml-cpu -lggml-base -framework Accelerate
+#cgo windows LDFLAGS: -lllama -lggml-cpu -lggml-base -lkernel32
 
 #include "bridge.h"
 #include <stdlib.h>
