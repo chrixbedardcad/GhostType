@@ -109,6 +109,18 @@ find "$LLAMA_BUILD" -name '*.a' -exec cp {} "$LLAMA_OUT/lib/" \; 2>/dev/null || 
 # On Windows (MinGW), look for .lib files too.
 find "$LLAMA_BUILD" -name '*.lib' -exec cp {} "$LLAMA_OUT/lib/" \; 2>/dev/null || true
 
+# Windows: MinGW linker expects lib*.a naming; Ninja may produce *.a without prefix.
+case "$(uname -s)" in
+    MINGW*|MSYS*)
+        for lib in "$LLAMA_OUT/lib/"*.a; do
+            base=$(basename "$lib")
+            if [[ "$base" != lib* ]]; then
+                mv "$lib" "$LLAMA_OUT/lib/lib$base"
+            fi
+        done
+        ;;
+esac
+
 echo ""
 echo "=== Build complete ==="
 echo "Headers:   $(ls "$LLAMA_OUT/include/" 2>/dev/null | wc -l | tr -d ' ') files"
