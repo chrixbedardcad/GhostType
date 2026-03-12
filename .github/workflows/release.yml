@@ -90,6 +90,8 @@ jobs:
             go build -tags "$TAGS" -o ghostspell-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
           fi
       - name: Download bundled llama-server
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           # Read pinned version from source of truth.
           LLAMA_VER=$(grep 'BundledLlamaCppVersion =' llm/local.go | sed 's/.*"\(.*\)".*/\1/')
@@ -104,7 +106,7 @@ jobs:
           esac
 
           # Fetch release assets JSON.
-          ASSETS_JSON=$(curl -fsSL "https://api.github.com/repos/ggml-org/llama.cpp/releases/tags/${LLAMA_VER}")
+          ASSETS_JSON=$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" "https://api.github.com/repos/ggml-org/llama.cpp/releases/tags/${LLAMA_VER}")
           ASSET_URL=$(echo "$ASSETS_JSON" | python3 -c "
           import sys, json
           data = json.load(sys.stdin)
