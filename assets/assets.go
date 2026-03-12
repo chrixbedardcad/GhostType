@@ -20,7 +20,8 @@ var TrayIconMacOS []byte
 //go:embed ghostspell.ico
 var AppIconICO []byte
 
-// Tray animation frames for working indicator (bobbing ghost).
+// Tray animation frames for working indicator (floating/breathing ghost).
+// 4 frames: up-faded, center-bright, down-faded, center-dim.
 //
 //go:embed GhostSpell_tray_working_1.png
 var TrayWorking1 []byte
@@ -31,6 +32,9 @@ var TrayWorking2 []byte
 //go:embed GhostSpell_tray_working_3.png
 var TrayWorking3 []byte
 
+//go:embed GhostSpell_tray_working_4.png
+var TrayWorking4 []byte
+
 //go:embed GhostSpell_tray_working_1_macOS.png
 var TrayWorkingMacOS1 []byte
 
@@ -39,3 +43,6 @@ var TrayWorkingMacOS2 []byte
 
 //go:embed GhostSpell_tray_working_3_macOS.png
 var TrayWorkingMacOS3 []byte
+
+//go:embed GhostSpell_tray_working_4_macOS.png
+var TrayWorkingMacOS4 []byte

@@ -581,8 +581,8 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	trayCfg := tray.Config{
 		IconPNG:         assets.TrayIcon64,
 		TemplateIconPNG: assets.TrayIconMacOS,
-		WorkingFrames:   [][]byte{assets.TrayWorking1, assets.TrayWorking2, assets.TrayWorking3},
-		WorkingFramesMacOS: [][]byte{assets.TrayWorkingMacOS1, assets.TrayWorkingMacOS2, assets.TrayWorkingMacOS3},
+		WorkingFrames:      [][]byte{assets.TrayWorking1, assets.TrayWorking2, assets.TrayWorking3, assets.TrayWorking4},
+		WorkingFramesMacOS: [][]byte{assets.TrayWorkingMacOS1, assets.TrayWorkingMacOS2, assets.TrayWorkingMacOS3, assets.TrayWorkingMacOS4},
 		IsProcessing:    func() bool { return processingActive.Load() },
 		OnPromptSelect: func(idx int) {
 			slog.Debug("OnPromptSelect callback entered", "index", idx)

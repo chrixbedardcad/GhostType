@@ -173,24 +173,18 @@ func (ts *trayState) StartAnimation() {
 	ts.systray.SetTooltip("GhostSpell — Processing...")
 
 	go func() {
-		// Bounce pattern: 0 → 1 → 2 → 1 → 0 → 1 → ...
-		pattern := make([]int, 0, len(frames)*2-2)
-		for i := range frames {
-			pattern = append(pattern, i)
-		}
-		for i := len(frames) - 2; i > 0; i-- {
-			pattern = append(pattern, i)
-		}
-
+		// Linear cycle: 0 → 1 → 2 → 3 → 0 → 1 → ...
+		// Frames are designed to loop seamlessly:
+		//   up-faded → center-bright → down-faded → center-dim → repeat
 		idx := 0
-		ticker := time.NewTicker(250 * time.Millisecond)
+		ticker := time.NewTicker(200 * time.Millisecond)
 		defer ticker.Stop()
 		for {
 			select {
 			case <-stop:
 				return
 			case <-ticker.C:
-				fi := pattern[idx%len(pattern)]
+				fi := idx % len(frames)
 				if runtime.GOOS == "darwin" {
 					ts.systray.SetTemplateIcon(frames[fi])
 				} else {
