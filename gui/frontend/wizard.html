@@ -1048,7 +1048,7 @@ async function localRefresh() {
     // Ready — model downloaded
     bar.className = 'ollama-status-bar running';
     text.textContent = 'Ghost-AI ready';
-    renderLocalReady(body, models);
+    renderLocalReady(body, models, available);
   } else {
     // Need to download a model
     bar.className = 'ollama-status-bar installed';
@@ -1057,7 +1057,7 @@ async function localRefresh() {
   }
 }
 
-function renderLocalReady(container, models) {
+function renderLocalReady(container, models, available) {
   let html = '<div style="font-size:0.88em;color:#bac2de;line-height:1.6;padding:8px 0"><strong>Ghost-AI is ready!</strong> Select a model:</div>';
   html += '<div class="form-group" style="margin-bottom:4px"><select id="local-model-select">';
   for (const m of models) {
@@ -1067,6 +1067,25 @@ function renderLocalReady(container, models) {
   }
   html += '</select></div>';
   html += '<div style="margin-top:12px"><button class="btn btn-primary" onclick="localFinish()">Use this model</button></div>';
+  // Show available models not yet downloaded
+  const installedNames = new Set(models.map(m => m.name));
+  const remaining = (available || []).filter(m => !installedNames.has(m.name));
+  if (remaining.length > 0) {
+    html += '<div style="font-size:0.82em;color:#6c7086;margin-top:16px;margin-bottom:8px;border-top:1px solid #45475a;padding-top:12px">Download more models</div>';
+    for (const m of remaining) {
+      const sizeMB = Math.round(m.size / 1024 / 1024);
+      const badge = m.tag ? tagBadgeHTML(m.tag) : '';
+      html += `
+        <div class="model-card">
+          <div class="model-info">
+            <div class="model-name">${esc(m.name)}${badge}</div>
+            <div class="model-meta">${sizeMB} MB download</div>
+            ${m.desc ? '<div style="font-size:0.75em;color:#6c7086;margin-top:2px">' + esc(m.desc) + '</div>' : ''}
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="localDownloadModel('${escJS(m.name)}')" id="local-dl-${esc(m.name)}">&#9729; Download</button>
+        </div>`;
+    }
+  }
   container.innerHTML = html;
 }
 
