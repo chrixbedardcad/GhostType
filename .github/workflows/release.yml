@@ -37,16 +37,16 @@ jobs:
           #   runner: ubuntu-latest
           #   ext: ""
           #   cgo: '1'
-          # - goos: darwin
-          #   goarch: amd64
-          #   runner: macos-15-intel
-          #   ext: ""
-          #   cgo: '1'
-          # - goos: darwin
-          #   goarch: arm64
-          #   runner: macos-latest
-          #   ext: ""
-          #   cgo: '1'
+          - goos: darwin
+            goarch: amd64
+            runner: macos-15-intel
+            ext: ""
+            cgo: '1'
+          - goos: darwin
+            goarch: arm64
+            runner: macos-latest
+            ext: ""
+            cgo: '1'
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     defaults:

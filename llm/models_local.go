@@ -76,6 +76,25 @@ func AvailableLocalModels() []LocalModel {
 			Size:     1_110_000_000,
 			Tag:      "best",
 		},
+		{
+			Name:     "qwen3-4b",
+			FileName: "Qwen3-4B-Q4_K_M.gguf",
+			URL:      "https://huggingface.co/unsloth/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q4_K_M.gguf",
+			Size:     2_600_000_000,
+		},
+		{
+			Name:     "gemma-3-1b",
+			FileName: "gemma-3-1b-it-Q4_K_M.gguf",
+			URL:      "https://huggingface.co/bartowski/google_gemma-3-1b-it-GGUF/resolve/main/google_gemma-3-1b-it-Q4_K_M.gguf",
+			Size:     770_000_000,
+			Tag:      "fast",
+		},
+		{
+			Name:     "phi-4-mini",
+			FileName: "Phi-4-mini-instruct-Q4_K_M.gguf",
+			URL:      "https://huggingface.co/bartowski/microsoft_Phi-4-mini-instruct-GGUF/resolve/main/microsoft_Phi-4-mini-instruct-Q4_K_M.gguf",
+			Size:     2_400_000_000,
+		},
 	}
 }
 

@@ -233,6 +233,7 @@ func processMode(
 		if stopAnim != nil {
 			stopAnim()
 		}
+		gui.HideIndicator()
 		sound.PlayCancel()
 		return
 	}
@@ -242,6 +243,7 @@ func processMode(
 		if stopAnim != nil {
 			stopAnim()
 		}
+		gui.HideIndicator()
 		processingActive.Store(false)
 		processingGuard.Unlock()
 	}()
@@ -251,6 +253,7 @@ func processMode(
 	if startAnim != nil {
 		startAnim()
 	}
+	gui.ShowIndicator()
 
 	// Save original clipboard.
 	slog.Debug("Saving clipboard...")
@@ -668,8 +671,8 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	var trayStopAnim func()
 	trayRun, stopTrayFn, dismissTrayMenu, trayStartAnim, trayStopAnim = tray.Start(trayCfg, wailsApp)
 
-	// NOTE: Floating ghost overlay removed — it blocked the tray menu on macOS
-	// and was too intrusive. Tray icon animation is the working indicator.
+	// Floating ghost overlay — shows while processing.
+	gui.CreateIndicator(wailsApp)
 
 	// When debug auto-disables after 30min, log it.
 	if debugState != nil {

@@ -595,6 +595,13 @@
       <button class="btn btn-secondary btn-sm" onclick="onOpenConfigFile()">Open config.json</button>
     </div>
 
+    <hr class="section-divider">
+
+    <div class="section">
+      <button class="btn btn-sm" onclick="quitApp()" style="background:#f38ba8;color:#1e1e2e;font-weight:600;border:none;padding:6px 16px;border-radius:4px;cursor:pointer">Quit GhostSpell</button>
+      <div style="font-size:0.75em;color:#6c7086;margin-top:6px">Completely close GhostSpell and remove it from the system tray.</div>
+    </div>
+
   </div>
 
   <!-- ============ DEBUG TAB ============ -->
@@ -799,6 +806,9 @@ async function init() {
       renderPermissions(perms);
     }
   }
+
+  // Populate General tab values on first load (it's the default active tab).
+  renderGeneral();
 }
 
 // ---- Helpers ----
@@ -1242,7 +1252,7 @@ async function onLocalRefresh() {
       const badge = m.tag ? ollamaTagBadge(m.tag) : '';
       const selected = m.name === formModel;
       html += '<div class="ollama-model-card' + (selected ? '" style="border-color:#89b4fa' : '') + '">'
-        + '<div><div class="model-name">' + esc(m.name) + badge + (selected ? ' <span class="badge badge-rec">SELECTED</span>' : '') + '</div>'
+        + '<div><div class="model-name"><span style="color:#a6e3a1">&#10003;</span> ' + esc(m.name) + badge + (selected ? ' <span class="badge badge-rec">SELECTED</span>' : '') + '</div>'
         + '<div class="model-meta">' + esc(sizeMB) + '</div></div>'
         + '<div style="display:flex;gap:4px">'
         + '<button class="btn btn-secondary btn-sm" onclick="localSetFormModel(\'' + escJS(m.name) + '\')" style="font-size:0.75em">' + (selected ? '\u2714 Selected' : 'Select') + '</button>'
@@ -1257,8 +1267,8 @@ async function onLocalRefresh() {
       for (const m of remaining) {
         const sizeMB = Math.round(m.size / 1024 / 1024);
         html += '<div class="ollama-model-card">'
-          + '<div class="model-name">' + esc(m.name) + ollamaTagBadge(m.tag) + ' <span style="font-size:0.75em;color:#6c7086">' + sizeMB + ' MB</span></div>'
-          + '<button class="btn btn-primary btn-sm" onclick="localDownloadModelSettings(\'' + escJS(m.name) + '\')" style="font-size:0.75em">Download</button>'
+          + '<div class="model-name"><span style="color:#89b4fa">&#9729;</span> ' + esc(m.name) + ollamaTagBadge(m.tag) + ' <span style="font-size:0.75em;color:#6c7086">' + sizeMB + ' MB</span></div>'
+          + '<button class="btn btn-primary btn-sm" onclick="localDownloadModelSettings(\'' + escJS(m.name) + '\')" style="font-size:0.75em">&#9729; Download</button>'
           + '</div>';
       }
     }
@@ -1270,8 +1280,8 @@ async function onLocalRefresh() {
     for (const m of available) {
       const sizeMB = Math.round(m.size / 1024 / 1024);
       html += '<div class="ollama-model-card">'
-        + '<div class="model-name">' + esc(m.name) + ollamaTagBadge(m.tag) + ' <span style="font-size:0.75em;color:#6c7086">' + sizeMB + ' MB</span></div>'
-        + '<button class="btn btn-primary btn-sm" onclick="localDownloadModelSettings(\'' + escJS(m.name) + '\')" style="font-size:0.75em">Download</button>'
+        + '<div class="model-name"><span style="color:#89b4fa">&#9729;</span> ' + esc(m.name) + ollamaTagBadge(m.tag) + ' <span style="font-size:0.75em;color:#6c7086">' + sizeMB + ' MB</span></div>'
+        + '<button class="btn btn-primary btn-sm" onclick="localDownloadModelSettings(\'' + escJS(m.name) + '\')" style="font-size:0.75em">&#9729; Download</button>'
         + '</div>';
     }
     body.innerHTML = html;
@@ -1453,6 +1463,12 @@ async function promptDrop(e, toIdx) {
 // ===========================================================================
 // GENERAL TAB
 // ===========================================================================
+
+async function quitApp() {
+  if (confirm('Quit GhostSpell? The app will close completely.')) {
+    await goCall('quitApp');
+  }
+}
 
 async function renderGeneral() {
   await reloadConfig();

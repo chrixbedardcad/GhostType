@@ -807,6 +807,16 @@ func (s *SettingsService) QuitForRestart() string {
 	return "ok"
 }
 
+// QuitApp completely closes GhostSpell.
+func (s *SettingsService) QuitApp() string {
+	guiLog("[GUI] JS called: QuitApp")
+	go func() {
+		time.Sleep(300 * time.Millisecond)
+		os.Exit(0)
+	}()
+	return "ok"
+}
+
 // --- Local AI management ---------------------------------------------------
 
 // GhostAIStatus returns JSON with Ghost-AI engine availability and status.
