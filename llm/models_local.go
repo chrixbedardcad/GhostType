@@ -49,6 +49,7 @@ type LocalModel struct {
 	URL      string `json:"url"`
 	Size     int64  `json:"size"`
 	Tag      string `json:"tag,omitempty"`
+	Desc     string `json:"desc,omitempty"`
 }
 
 // DownloadProgress reports download progress.
@@ -68,6 +69,7 @@ func AvailableLocalModels() []LocalModel {
 			URL:      "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
 			Size:     397_000_000,
 			Tag:      "recommended",
+			Desc:     "Tiny and fast. Great for quick spelling/grammar fixes. 100+ languages.",
 		},
 		{
 			Name:     "qwen3-1.7b",
@@ -75,25 +77,29 @@ func AvailableLocalModels() []LocalModel {
 			URL:      "https://huggingface.co/unsloth/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q4_K_M.gguf",
 			Size:     1_110_000_000,
 			Tag:      "best",
+			Desc:     "Best quality-to-size ratio. Accurate corrections with context awareness. 100+ languages.",
 		},
 		{
 			Name:     "qwen3-4b",
 			FileName: "Qwen3-4B-Q4_K_M.gguf",
 			URL:      "https://huggingface.co/unsloth/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q4_K_M.gguf",
 			Size:     2_600_000_000,
+			Desc:     "High quality. Understands nuance and complex grammar. Needs 4GB+ RAM.",
 		},
 		{
 			Name:     "gemma-3-1b",
 			FileName: "gemma-3-1b-it-Q4_K_M.gguf",
-			URL:      "https://huggingface.co/bartowski/google_gemma-3-1b-it-GGUF/resolve/main/google_gemma-3-1b-it-Q4_K_M.gguf",
-			Size:     770_000_000,
+			URL:      "https://huggingface.co/unsloth/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q4_K_M.gguf",
+			Size:     806_000_000,
 			Tag:      "fast",
+			Desc:     "Google's lightweight model. Fast responses, 140+ languages including French.",
 		},
 		{
-			Name:     "phi-4-mini",
-			FileName: "Phi-4-mini-instruct-Q4_K_M.gguf",
-			URL:      "https://huggingface.co/bartowski/microsoft_Phi-4-mini-instruct-GGUF/resolve/main/microsoft_Phi-4-mini-instruct-Q4_K_M.gguf",
-			Size:     2_400_000_000,
+			Name:     "llama-3.2-3b",
+			FileName: "Llama-3.2-3B-Instruct-Q4_K_M.gguf",
+			URL:      "https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf",
+			Size:     2_020_000_000,
+			Desc:     "Meta's strong instruction-follower. Officially supports English, French, Spanish + 5 more.",
 		},
 	}
 }

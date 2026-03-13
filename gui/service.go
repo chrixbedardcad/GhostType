@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"sync/atomic"
 	"time"
 
 	"github.com/chrixbedardcad/GhostSpell/config"
@@ -52,6 +53,8 @@ type SettingsService struct {
 	// Restarting is set when the user requests a restart for permissions.
 	// Prevents the onCancel handler from treating this as a user-cancelled wizard.
 	Restarting bool
+
+	downloadProgress atomic.Value // stores *llm.DownloadProgress
 }
 
 // Reset reinitializes the service for a new settings session. Called each time
@@ -807,16 +810,6 @@ func (s *SettingsService) QuitForRestart() string {
 	return "ok"
 }
 
-// QuitApp completely closes GhostSpell.
-func (s *SettingsService) QuitApp() string {
-	guiLog("[GUI] JS called: QuitApp")
-	go func() {
-		time.Sleep(300 * time.Millisecond)
-		os.Exit(0)
-	}()
-	return "ok"
-}
-
 // --- Local AI management ---------------------------------------------------
 
 // GhostAIStatus returns JSON with Ghost-AI engine availability and status.
@@ -851,11 +844,30 @@ func (s *SettingsService) LocalStatus() string {
 // LocalDownloadModel downloads a local model by name (blocking).
 func (s *SettingsService) LocalDownloadModel(name string) string {
 	guiLog("[GUI] JS called: LocalDownloadModel(%s)", name)
-	if err := llm.DownloadModel(name, nil); err != nil {
+	s.downloadProgress.Store(&llm.DownloadProgress{})
+	if err := llm.DownloadModel(name, func(p llm.DownloadProgress) {
+		s.downloadProgress.Store(&p)
+	}); err != nil {
+		s.downloadProgress.Store((*llm.DownloadProgress)(nil))
 		guiLog("[GUI] LocalDownloadModel error: %v", err)
 		return fmt.Sprintf("error: %v", err)
 	}
+	s.downloadProgress.Store((*llm.DownloadProgress)(nil))
 	return "ok"
+}
+
+// LocalDownloadProgress returns the current download progress as JSON.
+func (s *SettingsService) LocalDownloadProgress() string {
+	v := s.downloadProgress.Load()
+	if v == nil {
+		return ""
+	}
+	p, ok := v.(*llm.DownloadProgress)
+	if !ok || p == nil {
+		return ""
+	}
+	data, _ := json.Marshal(p)
+	return string(data)
 }
 
 // LocalDeleteModel deletes a downloaded local model.

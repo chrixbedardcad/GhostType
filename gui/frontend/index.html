@@ -396,7 +396,7 @@
           <option value="deepseek">DeepSeek</option>
 
           <option value="ollama">Ollama</option>
-          <option value="local">Local AI (Built-in)</option>
+          <option value="local">Ghost-AI (Built-in)</option>
         </select>
       </div>
       <div class="form-group">
@@ -429,7 +429,7 @@
       <!-- Local AI panel -->
       <div id="local-panel" class="ollama-panel" style="display:none">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <h3 style="margin:0">Local AI (Built-in)</h3>
+          <h3 style="margin:0">Ghost-AI (Built-in)</h3>
           <button class="btn btn-secondary btn-sm" onclick="onLocalRefresh()" style="padding:3px 8px;font-size:0.72em">Refresh</button>
         </div>
         <div id="local-status-bar-settings" class="ollama-status-bar checking">
@@ -595,13 +595,6 @@
       <button class="btn btn-secondary btn-sm" onclick="onOpenConfigFile()">Open config.json</button>
     </div>
 
-    <hr class="section-divider">
-
-    <div class="section">
-      <button class="btn btn-sm" onclick="quitApp()" style="background:#f38ba8;color:#1e1e2e;font-weight:600;border:none;padding:6px 16px;border-radius:4px;cursor:pointer">Quit GhostSpell</button>
-      <div style="font-size:0.75em;color:#6c7086;margin-top:6px">Completely close GhostSpell and remove it from the system tray.</div>
-    </div>
-
   </div>
 
   <!-- ============ DEBUG TAB ============ -->
@@ -718,7 +711,7 @@
       <p>• GhostSpell works in any application — browsers, editors, chat apps, email.</p>
       <p>• The text is always processed in its original language (except the Translate prompt).</p>
       <p>• Clipboard contents are preserved and restored after processing.</p>
-      <p>• You can set up multiple AI providers (OpenAI, Anthropic, Gemini, xAI, DeepSeek, Ollama, Local AI) in the Models tab.</p>
+      <p>• You can set up multiple AI providers (OpenAI, Anthropic, Gemini, xAI, DeepSeek, Ollama, Ghost-AI) in the Models tab.</p>
       <p>• For local/private processing, set up Ollama with a local model — your text never leaves your machine.</p>
     </div>
 
@@ -860,11 +853,11 @@ async function renderProviderList() {
     html += `<div class="local-ai-banner">
       <div class="banner-icon">\uD83D\uDC7B</div>
       <div class="banner-body">
-        <div class="banner-title">Local AI is now built in</div>
-        <div class="banner-desc">Run AI offline, free, no account needed. Works out of the box with bundled engine.</div>
+        <div class="banner-title">Ghost-AI is now built in</div>
+        <div class="banner-desc">Runs 100% on your machine — private, offline, free forever.</div>
       </div>
       <div class="banner-actions">
-        <button class="btn-setup" onclick="setupLocalAI()">Set up Local AI</button>
+        <button class="btn-setup" onclick="setupLocalAI()">Set up Ghost-AI</button>
         <button class="btn-dismiss" onclick="dismissLocalBanner()">Dismiss</button>
       </div>
     </div>`;
@@ -918,7 +911,7 @@ function setupLocalAI() {
   document.getElementById('form-title').textContent = 'Add Provider';
   document.getElementById('edit-original-label').value = '';
   document.getElementById('form-provider').value = 'local';
-  document.getElementById('form-label').value = 'local-ai';
+  document.getElementById('form-label').value = 'ghost-ai';
   document.getElementById('form-apikey').value = '';
   document.getElementById('form-endpoint').value = '';
   onFormProviderChange();
@@ -1268,6 +1261,7 @@ async function onLocalRefresh() {
         const sizeMB = Math.round(m.size / 1024 / 1024);
         html += '<div class="ollama-model-card">'
           + '<div class="model-name"><span style="color:#89b4fa">&#9729;</span> ' + esc(m.name) + ollamaTagBadge(m.tag) + ' <span style="font-size:0.75em;color:#6c7086">' + sizeMB + ' MB</span></div>'
+          + (m.desc ? '<div style="font-size:0.72em;color:#6c7086;margin-top:2px;padding-left:18px">' + esc(m.desc) + '</div>' : '')
           + '<button class="btn btn-primary btn-sm" onclick="localDownloadModelSettings(\'' + escJS(m.name) + '\')" style="font-size:0.75em">&#9729; Download</button>'
           + '</div>';
       }
@@ -1281,6 +1275,7 @@ async function onLocalRefresh() {
       const sizeMB = Math.round(m.size / 1024 / 1024);
       html += '<div class="ollama-model-card">'
         + '<div class="model-name"><span style="color:#89b4fa">&#9729;</span> ' + esc(m.name) + ollamaTagBadge(m.tag) + ' <span style="font-size:0.75em;color:#6c7086">' + sizeMB + ' MB</span></div>'
+        + (m.desc ? '<div style="font-size:0.72em;color:#6c7086;margin-top:2px;padding-left:18px">' + esc(m.desc) + '</div>' : '')
         + '<button class="btn btn-primary btn-sm" onclick="localDownloadModelSettings(\'' + escJS(m.name) + '\')" style="font-size:0.75em">&#9729; Download</button>'
         + '</div>';
     }
@@ -1292,14 +1287,33 @@ function localSetFormModel(name) {
   document.getElementById('form-model').value = name;
   document.getElementById('form-model-label').textContent = name;
   const labelEl = document.getElementById('form-label');
-  if (!labelEl.value.trim()) labelEl.value = 'local-ai';
+  if (!labelEl.value.trim()) labelEl.value = 'ghost-ai';
   onLocalRefresh();
 }
 
 async function localDownloadModelSettings(name) {
+  const btn = event ? event.target : null;
+  if (btn) { btn.textContent = 'Downloading...'; btn.disabled = true; }
   const statusEl = document.getElementById('local-action-status-settings');
-  statusEl.className = 'status info'; statusEl.textContent = 'Downloading ' + name + '...';
-  const result = await goCall('localDownloadModel', name);
+  statusEl.className = 'status info';
+  statusEl.innerHTML = '<div style="width:100%;background:#313244;border-radius:4px;height:18px;overflow:hidden;margin-top:4px"><div id="dl-progress-bar-s" style="width:0%;height:100%;background:linear-gradient(90deg,#89b4fa,#a6e3a1);border-radius:4px;transition:width 0.3s"></div></div><div id="dl-progress-text-s" style="font-size:0.78em;margin-top:2px">Starting download...</div>';
+
+  const downloadPromise = goCall('localDownloadModel', name);
+  const pollInterval = setInterval(async () => {
+    const pRaw = await goCall('localDownloadProgress');
+    if (pRaw) {
+      try {
+        const p = JSON.parse(pRaw);
+        const bar = document.getElementById('dl-progress-bar-s');
+        const txt = document.getElementById('dl-progress-text-s');
+        if (bar && p.percent > 0) bar.style.width = Math.min(p.percent, 100).toFixed(1) + '%';
+        if (txt && p.total > 0) txt.textContent = Math.round(p.downloaded / 1024 / 1024) + ' / ' + Math.round(p.total / 1024 / 1024) + ' MB (' + p.percent.toFixed(0) + '%)';
+      } catch(e) {}
+    }
+  }, 500);
+  const result = await downloadPromise;
+  clearInterval(pollInterval);
+  if (btn) { btn.disabled = false; }
   if (result && result.startsWith('ok')) {
     statusEl.className = 'status success'; statusEl.textContent = name + ' downloaded!';
     onLocalRefresh();
@@ -1463,12 +1477,6 @@ async function promptDrop(e, toIdx) {
 // ===========================================================================
 // GENERAL TAB
 // ===========================================================================
-
-async function quitApp() {
-  if (confirm('Quit GhostSpell? The app will close completely.')) {
-    await goCall('quitApp');
-  }
-}
 
 async function renderGeneral() {
   await reloadConfig();
