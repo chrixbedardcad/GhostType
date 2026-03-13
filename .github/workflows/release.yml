@@ -31,12 +31,11 @@ jobs:
             runner: windows-latest
             ext: .exe
             cgo: '1'
-          # Re-enable when ready for multi-platform releases:
-          # - goos: linux
-          #   goarch: amd64
-          #   runner: ubuntu-latest
-          #   ext: ""
-          #   cgo: '1'
+          - goos: linux
+            goarch: amd64
+            runner: ubuntu-latest
+            ext: ""
+            cgo: '1'
           - goos: darwin
             goarch: amd64
             runner: macos-15-intel
