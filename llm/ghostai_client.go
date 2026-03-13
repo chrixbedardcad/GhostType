@@ -140,9 +140,12 @@ func (c *GhostAIClient) Send(ctx context.Context, req Request) (resp *Response, 
 	}
 
 	// Clean up model output: strip thinking tags, ChatML tokens, reasoning.
+	raw := text
 	text = cleanLocalModelResponse(text)
 	if strings.TrimSpace(text) == "" {
-		return nil, fmt.Errorf("ghost-ai returned empty content")
+		// Model produced output but it was all thinking/formatting tokens.
+		slog.Warn("[ghost-ai] cleaned response is empty", "raw_len", len(raw), "raw_preview", truncate(raw, 200))
+		return nil, fmt.Errorf("ghost-ai returned empty content (model output was all thinking tokens — try a larger model or increase max_tokens)")
 	}
 
 	slog.Info("[ghost-ai] complete",
@@ -210,6 +213,14 @@ func cleanLocalModelResponse(s string) string {
 	}
 
 	return strings.TrimSpace(s)
+}
+
+// truncate returns the first n bytes of s, appending "…" if truncated.
+func truncate(s string, n int) string {
+	if len(s) <= n {
+		return s
+	}
+	return s[:n] + "…"
 }
 
 func (c *GhostAIClient) Close() {

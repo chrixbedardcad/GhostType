@@ -185,7 +185,7 @@ func (c *OpenAIClient) Send(ctx context.Context, req Request) (*Response, error)
 	slog.Debug(c.providerName+": parsed response", "text_len", len(text), "choices", len(apiResp.Choices))
 
 	if strings.TrimSpace(text) == "" {
-		return nil, fmt.Errorf("API returned empty content")
+		return nil, fmt.Errorf("API returned empty content (model=%s)", c.model)
 	}
 
 	return &Response{

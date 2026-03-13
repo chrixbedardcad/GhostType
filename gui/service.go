@@ -270,15 +270,19 @@ func (s *SettingsService) TestProvider(label string) string {
 	guiLog("[GUI] TestProvider: provider=%s model=%s endpoint=%q", def.Provider, def.Model, def.APIEndpoint)
 
 	// Ollama and local need much longer timeout — first request loads model into memory.
+	// They also need more max_tokens because thinking models (Qwen3, DeepSeek-R1)
+	// may consume tokens on <think> tags even with /no_think.
 	timeout := 10 * time.Second
+	maxTokens := 64
 	timeoutMs := 10000
 	if def.Provider == "ollama" || def.Provider == "local" {
 		timeout = 120 * time.Second
+		maxTokens = 128
 		timeoutMs = 120000
-		guiLog("[GUI] %s detected — using %s timeout", def.Provider, timeout)
+		guiLog("[GUI] %s detected — using %s timeout, %d max_tokens", def.Provider, timeout, maxTokens)
 	}
 
-	def.MaxTokens = 32
+	def.MaxTokens = maxTokens
 	def.TimeoutMs = timeoutMs
 
 	client, err := llm.NewClientFromDef(def)
