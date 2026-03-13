@@ -347,11 +347,6 @@
       <div id="welcome-status" class="status" style="margin-top:8px"></div>
     </div>
 
-    <div id="welcome-more-models" style="display:none;margin-top:14px"></div>
-    <div style="text-align:center;margin-top:10px">
-      <a href="#" onclick="toggleMoreModels();return false" id="welcome-more-link" style="font-size:0.82em;color:#89b4fa;text-decoration:underline">Choose a different model</a>
-    </div>
-
     <div style="text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid #313244">
       <a href="#" onclick="switchToCloud();return false" style="font-size:0.82em;color:#6c7086;text-decoration:underline">Use a cloud provider instead</a>
       <span style="font-size:0.82em;color:#45475a;margin:0 8px">|</span>
@@ -697,32 +692,44 @@ async function loadWelcomeModels() {
   if (!welcomeModels.length) return;
 
   // Check which models are already downloaded.
-  let installedNames = new Set();
+  window._welcomeInstalled = new Set();
   const instRaw = await goCall('localInstalledModels');
-  if (instRaw) { try { JSON.parse(instRaw).forEach(m => installedNames.add(m.name)); } catch(e) {} }
+  if (instRaw) { try { JSON.parse(instRaw).forEach(m => window._welcomeInstalled.add(m.name)); } catch(e) {} }
 
   const container = document.getElementById('welcome-models');
   const rec = welcomeModels.find(m => m.tag === 'recommended') || welcomeModels[0];
   welcomeSelectedModel = rec.name;
 
+  renderWelcomeModelList(container, window._welcomeInstalled);
+}
+
+function renderWelcomeModelList(container, installedNames) {
   let html = '';
   for (const m of welcomeModels) {
     const sizeMB = Math.round(m.size / 1024 / 1024);
     const badge = m.tag ? tagBadgeHTML(m.tag) : '';
-    const isRec = m.name === rec.name;
-    const downloaded = installedNames.has(m.name);
+    const isSelected = m.name === welcomeSelectedModel;
+    const downloaded = installedNames && installedNames.has(m.name);
     const statusIcon = downloaded
       ? '<span style="color:#a6e3a1;font-size:0.85em" title="Downloaded">&#10003;</span>'
       : '<span style="color:#89b4fa;font-size:0.85em" title="Not downloaded">&#9729;</span>';
-    html += '<div class="model-card" style="' + (isRec ? 'border-color:#89b4fa' : '') + '">'
+    html += '<div class="model-card" style="cursor:pointer;' + (isSelected ? 'border-color:#89b4fa' : '') + '" onclick="pickWelcomeModel(\'' + escJS(m.name) + '\')">'
       + '<div class="model-info"><div class="model-name">' + statusIcon + ' ' + esc(m.name) + badge + '</div>'
       + '<div class="model-meta">' + sizeMB + ' MB' + (downloaded ? ' &#10003; downloaded' : ' &mdash; runs on your computer') + '</div>'
       + (m.desc ? '<div style="font-size:0.72em;color:#6c7086;margin-top:2px">' + esc(m.desc) + '</div>' : '')
       + '</div>'
-      + (isRec ? '<span class="badge badge-rec" style="font-size:0.7em">DEFAULT</span>' : '')
+      + (isSelected ? '<span class="badge badge-rec" style="font-size:0.7em">SELECTED</span>' : '')
       + '</div>';
   }
   container.innerHTML = html;
+}
+
+function pickWelcomeModel(name) {
+  welcomeSelectedModel = name;
+  renderWelcomeModelList(document.getElementById('welcome-models'), window._welcomeInstalled || new Set());
+  // Update button text to show which model.
+  const btn = document.getElementById('welcome-start-btn');
+  if (btn && !btn.disabled) btn.textContent = 'Download ' + name + ' & Start';
 }
 
 async function welcomeDownloadAndStart() {
