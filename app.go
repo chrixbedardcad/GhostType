@@ -261,7 +261,11 @@ func processMode(
 	if startAnim != nil {
 		startAnim()
 	}
-	gui.ShowIndicator()
+	// NOTE: ShowIndicator() is deferred until AFTER captureText(). On Windows,
+	// the indicator overlay (AlwaysOnTop, IgnoreMouseEvents=false) steals focus
+	// from the target app, causing SendInput(Ctrl+C) to go to the indicator
+	// instead of Notepad/Chrome/etc. The tray animation still provides visual
+	// feedback during capture; the indicator appears once LLM processing starts.
 
 	// Save original clipboard.
 	slog.Debug("Saving clipboard...")
@@ -318,6 +322,10 @@ func processMode(
 
 	slog.Info("Captured text", "prompt", promptName, "len", len(text), "selection", hadSelection, "method", capMethod, "text", text)
 	fmt.Printf("[%s] Captured: %q\n", promptName, text)
+
+	// Text captured — now safe to show the indicator overlay. It won't
+	// interfere with keyboard simulation since capture is complete.
+	gui.ShowIndicator()
 
 	// Create cancellable context with per-provider timeout.
 	timeout := time.Duration(router.TimeoutForPrompt(promptIdx)) * time.Millisecond
