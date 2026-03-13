@@ -362,13 +362,13 @@
 </div>
 
 <div class="tab-bar">
-  <button class="active" onclick="switchTab('general')">General</button>
+  <button class="active" onclick="switchTab('about')">About</button>
+  <button onclick="switchTab('general')">General</button>
   <button onclick="switchTab('models')">Models</button>
   <button onclick="switchTab('prompts')">Prompts</button>
   <button onclick="switchTab('hotkeys')">Hotkeys</button>
   <button onclick="switchTab('debug')">Debug</button>
   <button onclick="switchTab('help')">Help</button>
-  <button onclick="switchTab('about')">About</button>
 </div>
 
 <div class="tab-content">
@@ -501,7 +501,7 @@
   </div>
 
   <!-- ============ GENERAL TAB ============ -->
-  <div id="tab-general" class="tab-panel active">
+  <div id="tab-general" class="tab-panel">
     <div class="section" id="macos-perms-section" style="display:none">
       <h2>macOS Permissions</h2>
       <div style="padding:10px 14px;background:#313244;border-radius:6px;margin-bottom:8px">
@@ -718,16 +718,49 @@
 
   </div>
 
-  <div id="tab-about" class="tab-panel">
+  <div id="tab-about" class="tab-panel active">
     <div class="about-block">
       <img src="/ghost-icon.png" alt="GhostSpell" style="width:64px;height:64px;margin-bottom:8px">
       <div class="app-name">GhostSpell</div>
       <div class="app-ver" id="about-version"></div>
       <div class="desc">AI-powered text correction and rewriting.</div>
+      <div style="margin-top:12px;display:flex;gap:12px;justify-content:center;align-items:center">
+        <a href="#" onclick="wails.Browser.OpenURL('https://github.com/chrixbedardcad/GhostSpell'); return false;" style="color:#89b4fa;font-size:0.82em;text-decoration:none">GitHub</a>
+        <span style="color:#45475a">|</span>
+        <span id="about-stars" style="font-size:0.82em;color:#6c7086"></span>
+        <span style="color:#45475a">|</span>
+        <span style="font-size:0.82em;color:#a6e3a1">AGPL-3.0</span>
+      </div>
     </div>
+
     <div class="update-box">
+      <div id="update-auto-status" style="margin-bottom:10px"></div>
       <button class="btn btn-primary" onclick="checkForUpdate()" id="update-btn">Check for Updates</button>
       <div class="status" id="update-status"></div>
+    </div>
+
+    <div style="background:#313244;border:1px solid #45475a;border-radius:8px;padding:14px;margin-top:16px">
+      <div style="font-size:0.82em;font-weight:600;color:#cdd6f4;margin-bottom:8px">Open Source Licenses</div>
+      <div style="font-size:0.75em;color:#a6adc8;line-height:1.6">
+        <div style="margin-bottom:6px">
+          <strong>llama.cpp</strong> — MIT License<br>
+          Copyright (c) 2023-2026 The ggml authors.<br>
+          Local AI inference engine used by Ghost-AI.
+          <a href="#" onclick="wails.Browser.OpenURL('https://github.com/ggml-org/llama.cpp'); return false;" style="color:#89b4fa;text-decoration:none;margin-left:4px">Source</a>
+        </div>
+        <div style="margin-bottom:6px">
+          <strong>Wails</strong> — MIT License<br>
+          Copyright (c) 2022 Lea Anthony.<br>
+          Desktop application framework.
+          <a href="#" onclick="wails.Browser.OpenURL('https://github.com/wailsapp/wails'); return false;" style="color:#89b4fa;text-decoration:none;margin-left:4px">Source</a>
+        </div>
+        <div>
+          <strong>Qwen3 Models</strong> — Apache 2.0 License<br>
+          Copyright (c) Alibaba Cloud.<br>
+          Language models used by Ghost-AI.
+          <a href="#" onclick="wails.Browser.OpenURL('https://huggingface.co/Qwen'); return false;" style="color:#89b4fa;text-decoration:none;margin-left:4px">Source</a>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -766,6 +799,7 @@ function switchTab(name) {
   if (name === 'hotkeys') renderGeneral();
   if (name === 'general') { renderGeneral(); onCheckPermissions(); }
   if (name === 'debug') renderDebug();
+  if (name === 'about') autoCheckForUpdate();
 }
 
 // ---- Init ----
@@ -1654,6 +1688,36 @@ async function saveHotkeys() {
 // ABOUT TAB
 // ===========================================================================
 
+let _autoChecked = false;
+async function autoCheckForUpdate() {
+  if (_autoChecked) return;
+  _autoChecked = true;
+  // Fetch GitHub stars
+  try {
+    const resp = await fetch('https://api.github.com/repos/chrixbedardcad/GhostSpell');
+    if (resp.ok) {
+      const data = await resp.json();
+      const stars = data.stargazers_count || 0;
+      const el = document.getElementById('about-stars');
+      if (el) el.textContent = stars + ' stars';
+    }
+  } catch(e) {}
+  // Auto-check for update
+  const raw = await goCall('checkForUpdate');
+  if (!raw) return;
+  try {
+    const data = JSON.parse(raw);
+    if (data.has_update) {
+      const el = document.getElementById('update-auto-status');
+      if (el) {
+        el.innerHTML = '<div style="background:#a6e3a1;color:#1e1e2e;padding:8px 12px;border-radius:6px;font-size:0.85em;font-weight:600">'
+          + 'Update available: v' + esc(data.latest) + ' (you have v' + esc(data.current) + ')'
+          + '</div>';
+      }
+    }
+  } catch(e) {}
+}
+
 async function checkForUpdate() {
   const btn = document.getElementById('update-btn');
   btn.disabled = true; btn.textContent = 'Checking...';
@@ -1689,7 +1753,7 @@ async function doUpdate() {
 }
 
 // ---- Boot ----
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => { init(); autoCheckForUpdate(); });
 </script>
 </body>
 </html>

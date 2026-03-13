@@ -48,6 +48,9 @@ type Config struct {
 	GetActivePrompt func() int
 	GetPromptNames  func() []string
 	GetModelLabels  func() []ModelLabel
+
+	// OnUpdateClick is called when the "Update available" menu item is clicked.
+	OnUpdateClick func()
 }
 
 // trayState holds the runtime state of the system tray.
@@ -59,14 +62,18 @@ type trayState struct {
 	// Animation state.
 	animMu   sync.Mutex
 	animStop chan struct{}
+
+	// Update state.
+	updateMu      sync.Mutex
+	updateVersion string // non-empty when an update is available
 }
 
 // Start configures the system tray icon and menu on the given Wails application.
 // It returns a run function that starts the Cocoa/GTK/Win32 event loop (blocking),
 // a stop function that quits the app, a dismissMenu function that cancels any
 // currently tracking tray menu, startAnim/stopAnim for working animation, and
-// a setTooltip function.
-func Start(cfg Config, app *application.App) (run func() error, stop func(), dismissMenu func() bool, startAnim func(), stopAnim func()) {
+// a setUpdateAvailable function that sets the update version and rebuilds the menu.
+func Start(cfg Config, app *application.App) (run func() error, stop func(), dismissMenu func() bool, startAnim func(), stopAnim func(), setUpdateAvailable func(version string)) {
 	slog.Info("[tray] Start() called",
 		"os", runtime.GOOS,
 		"icon_bytes", len(cfg.IconPNG),
@@ -145,7 +152,15 @@ func Start(cfg Config, app *application.App) (run func() error, stop func(), dis
 	startAnim = func() { ts.StartAnimation() }
 	stopAnim = func() { ts.StopAnimation() }
 
-	return run, stop, dismissMenu, startAnim, stopAnim
+	setUpdateAvailable = func(ver string) {
+		ts.updateMu.Lock()
+		ts.updateVersion = ver
+		ts.updateMu.Unlock()
+		ts.refreshMenu()
+		slog.Info("[tray] Update available", "version", ver)
+	}
+
+	return run, stop, dismissMenu, startAnim, stopAnim, setUpdateAvailable
 }
 
 // StartAnimation begins cycling through working animation frames.
@@ -220,6 +235,20 @@ func (ts *trayState) refreshMenu() {
 
 	// Version header (disabled).
 	menu.Add(fmt.Sprintf("GhostSpell v%s", version.Version)).SetEnabled(false)
+
+	// Update available item.
+	ts.updateMu.Lock()
+	updateVer := ts.updateVersion
+	ts.updateMu.Unlock()
+	if updateVer != "" {
+		updateItem := menu.Add(fmt.Sprintf("Update available → v%s", updateVer))
+		updateItem.OnClick(func(ctx *application.Context) {
+			if ts.cfg.OnUpdateClick != nil {
+				ts.cfg.OnUpdateClick()
+			}
+		})
+	}
+
 	menu.AddSeparator()
 
 	// Prompt selection (radio group).

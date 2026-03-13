@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
@@ -19,6 +21,7 @@ import (
 	"github.com/chrixbedardcad/GhostSpell/config"
 	"github.com/chrixbedardcad/GhostSpell/gui"
 	"github.com/chrixbedardcad/GhostSpell/hotkey"
+	"github.com/chrixbedardcad/GhostSpell/internal/version"
 	"github.com/chrixbedardcad/GhostSpell/keyboard"
 	"github.com/chrixbedardcad/GhostSpell/llm"
 	"github.com/chrixbedardcad/GhostSpell/mode"
@@ -463,6 +466,40 @@ func processMode(
 }
 
 
+// checkAndNotifyUpdate checks GitHub for a newer version and calls setUpdate
+// if one is available. Silently fails on network errors.
+func checkAndNotifyUpdate(setUpdate func(string)) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "GET",
+		"https://api.github.com/repos/chrixbedardcad/GhostSpell/releases/latest", nil)
+	if err != nil {
+		return
+	}
+	req.Header.Set("Accept", "application/vnd.github+json")
+	resp, err := (&http.Client{Timeout: 10 * time.Second}).Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	var rel struct {
+		TagName string `json:"tag_name"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&rel); err != nil {
+		return
+	}
+	latest := rel.TagName
+	if len(latest) > 0 && latest[0] == 'v' {
+		latest = latest[1:]
+	}
+	if latest != version.Version && latest != "" {
+		slog.Info("Update available", "current", version.Version, "latest", latest)
+		setUpdate(latest)
+	}
+}
+
 func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSetup bool) {
 	cb := newClipboard()
 	kb := newKeyboard()
@@ -624,6 +661,25 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 			sound.PlayToggle()
 			scheduleHotkeyRecovery()
 		},
+		OnUpdateClick: func() {
+			// Open Settings to the About tab (first tab) which has the update UI.
+			gui.ShowSettings(settingsSvc, cfg, configPath, func() {
+				newCfg, err := config.LoadRaw(configPath)
+				if err != nil {
+					slog.Error("Failed to reload config after settings save", "error", err)
+					return
+				}
+				mu.Lock()
+				*cfg = *newCfg
+				mu.Unlock()
+				sound.SetEnabled(*cfg.SoundEnabled)
+				if router != nil {
+					router.ResetClients()
+				}
+				slog.Info("Live config reloaded after settings save")
+				refreshHotkeys()
+			})
+		},
 		OnExit: func() {
 			slog.Info("Exit requested via tray menu")
 			fmt.Println("\nGhostSpell exiting (tray menu).")
@@ -669,7 +725,19 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	var dismissTrayMenu func() bool
 	var trayStartAnim func()
 	var trayStopAnim func()
-	trayRun, stopTrayFn, dismissTrayMenu, trayStartAnim, trayStopAnim = tray.Start(trayCfg, wailsApp)
+	var setUpdateAvailable func(string)
+	trayRun, stopTrayFn, dismissTrayMenu, trayStartAnim, trayStopAnim, setUpdateAvailable = tray.Start(trayCfg, wailsApp)
+
+	// Background update checker — checks after 60s, then every 24h.
+	go func() {
+		time.Sleep(60 * time.Second)
+		checkAndNotifyUpdate(setUpdateAvailable)
+		ticker := time.NewTicker(24 * time.Hour)
+		defer ticker.Stop()
+		for range ticker.C {
+			checkAndNotifyUpdate(setUpdateAvailable)
+		}
+	}()
 
 	// Floating ghost overlay — shows while processing.
 	gui.CreateIndicator(wailsApp)
