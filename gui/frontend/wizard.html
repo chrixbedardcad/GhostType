@@ -324,32 +324,68 @@
     </div>
   </div>
 
-  <!-- ============ STEP 1: WELCOME — LOCAL AI DEFAULT ============ -->
+  <!-- ============ STEP 1: WELCOME — WHAT IS GHOSTSPELL ============ -->
   <div class="step-section" id="step-1">
     <div style="text-align:center;margin-bottom:16px">
-      <h2 style="font-size:1.2em;color:#a6e3a1;margin-bottom:6px">GhostSpell is ready to go!</h2>
-      <div style="font-size:0.85em;color:#a6adc8;line-height:1.5;max-width:380px;margin:0 auto">
-        Ghost-AI runs <strong style="color:#cdd6f4">100% on your machine</strong> &mdash; your text never leaves your computer.
-      </div>
-      <div style="display:flex;justify-content:center;gap:16px;margin-top:10px">
-        <span style="font-size:0.78em;color:#89b4fa">&#128274; Private</span>
-        <span style="font-size:0.78em;color:#a6e3a1">&#9889; Offline</span>
-        <span style="font-size:0.78em;color:#f9e2af">&#127873; Free forever</span>
+      <h2 style="font-size:1.2em;color:#a6e3a1;margin-bottom:6px">Welcome to GhostSpell</h2>
+      <div style="font-size:0.88em;color:#a6adc8;line-height:1.6;max-width:420px;margin:0 auto">
+        GhostSpell corrects and rewrites text <strong style="color:#cdd6f4">in any app</strong> using AI.
+        Select text, press <kbd style="background:#45475a;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:0.95em;color:#89b4fa">Ctrl+G</kbd>, and your text is improved instantly.
       </div>
     </div>
 
-    <div id="welcome-models"></div>
-
-    <div style="text-align:center;margin-top:16px">
-      <button class="btn btn-primary" onclick="welcomeDownloadAndStart()" id="welcome-start-btn" style="padding:12px 28px;font-size:1em">
-        Download Model &amp; Start
-      </button>
-      <div id="welcome-status" class="status" style="margin-top:8px"></div>
+    <div style="background:#313244;border-radius:8px;padding:14px 16px;margin-bottom:14px">
+      <div style="font-size:0.82em;color:#cdd6f4;line-height:1.7">
+        <div style="margin-bottom:6px"><span style="color:#a6e3a1">&#10003;</span> <strong>Custom prompts</strong> &mdash; create your own (Correct, Polish, Translate, or anything you want)</div>
+        <div style="margin-bottom:6px"><span style="color:#a6e3a1">&#10003;</span> <strong>Multiple models</strong> &mdash; assign a different AI model to each prompt</div>
+        <div><span style="color:#a6e3a1">&#10003;</span> <strong>Works everywhere</strong> &mdash; any text field in any application</div>
+      </div>
     </div>
 
-    <div style="text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid #313244">
-      <a href="#" onclick="switchToCloud();return false" style="font-size:0.82em;color:#6c7086;text-decoration:underline">Use a cloud provider instead</a>
-      <span style="font-size:0.82em;color:#45475a;margin:0 8px">|</span>
+    <div style="font-size:0.85em;color:#bac2de;margin-bottom:10px;font-weight:600">Choose how to power GhostSpell:</div>
+
+    <div class="card" onclick="selectCategory('local')" style="border-color:#a6e3a1">
+      <div class="card-header">
+        <span class="card-icon"><img src="/ghostAI.png" width="28" height="28" style="vertical-align:middle"></span>
+        <span class="card-title">Ghost-AI (Built-in) <span class="badge badge-free">FREE</span> <span class="badge badge-rec">RECOMMENDED</span></span>
+      </div>
+      <div class="card-desc">
+        Runs 100% on your machine &mdash; private, offline, no account needed.<br>
+        Download a model and start correcting instantly.
+      </div>
+    </div>
+
+    <div class="card" onclick="startOAuth()">
+      <div class="card-header">
+        <svg class="card-icon" width="28" height="28" viewBox="0 0 24 24"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z" fill="#10A37F"/></svg>
+        <span class="card-title">OAuth Login ChatGPT</span>
+      </div>
+      <div class="card-desc">
+        Sign in with your ChatGPT account &mdash; no API key needed.
+      </div>
+    </div>
+
+    <div class="card" onclick="category='cloud';goToStep(2)">
+      <div class="card-header">
+        <span class="card-icon">&#128273;</span>
+        <span class="card-title">API Key</span>
+      </div>
+      <div class="card-desc">
+        Gemini, OpenAI, Anthropic, xAI, or DeepSeek. Free tiers available.
+      </div>
+    </div>
+
+    <div class="card" onclick="selectCategory('ollama')">
+      <div class="card-header">
+        <svg class="card-icon" width="28" height="28" viewBox="0 0 24 24" style="vertical-align:middle"><path d="M16.361 10.26a.894.894 0 0 0-.558.47l-.072.148.001.207c0 .193.004.217.059.353.076.193.152.312.291.448.24.238.51.3.872.205a.86.86 0 0 0 .517-.436.752.752 0 0 0 .08-.498c-.064-.453-.33-.782-.724-.897a1.06 1.06 0 0 0-.466 0zm-9.203.005c-.305.096-.533.32-.65.639a1.187 1.187 0 0 0-.06.52c.057.309.31.59.598.667.362.095.632.033.872-.205.14-.136.215-.255.291-.448.055-.136.059-.16.059-.353l.001-.207-.072-.148a.894.894 0 0 0-.565-.472 1.02 1.02 0 0 0-.474.007Z" fill="#cdd6f4"/></svg>
+        <span class="card-title">Ollama <span class="badge badge-free">FREE</span></span>
+      </div>
+      <div class="card-desc">
+        For power users with Ollama installed.
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:10px">
       <a href="#" onclick="skipWizard();return false" style="font-size:0.82em;color:#6c7086;text-decoration:underline">Skip for now</a>
     </div>
 
@@ -458,7 +494,7 @@
     </div>
 
     <div class="btn-row">
-      <button class="btn btn-secondary" onclick="goToStep('1.5')">Back</button>
+      <button class="btn btn-secondary" onclick="goToStep(returnTo === 'settings' ? '1.5' : 1)">Back</button>
       <span></span>
     </div>
   </div>
@@ -491,7 +527,7 @@
     <div class="status" id="oauth-status"></div>
 
     <div class="btn-row">
-      <button class="btn btn-secondary" onclick="goToStep('1.5')">Back</button>
+      <button class="btn btn-secondary" onclick="goToStep(returnTo === 'settings' ? '1.5' : 1)">Back</button>
       <span></span>
     </div>
   </div>
@@ -508,7 +544,7 @@
     <div id="ollama-action-status" class="status"></div>
 
     <div class="btn-row">
-      <button class="btn btn-secondary" onclick="goToStep('1.5')">Back</button>
+      <button class="btn btn-secondary" onclick="goToStep(returnTo === 'settings' ? '1.5' : 1)">Back</button>
       <button class="btn btn-secondary btn-sm" onclick="ollamaRefresh()">Refresh</button>
     </div>
   </div>
@@ -520,9 +556,12 @@
       Ghost-AI runs locally on your machine &mdash; private, offline, no account needed.<br>
       Just download a grammar model to get started.
     </div>
-    <div style="display:flex;gap:12px;margin-bottom:14px">
+    <div style="display:flex;gap:12px;margin-bottom:8px">
       <span style="font-size:0.75em;color:#89b4fa">&#128274; Your text stays on your device</span>
       <span style="font-size:0.75em;color:#a6e3a1">&#9889; Works without internet</span>
+    </div>
+    <div style="font-size:0.72em;color:#f9e2af;margin-bottom:14px;line-height:1.4">
+      &#128161; Tip: Larger models produce better results but need more RAM and disk space.
     </div>
 
     <div id="local-status-bar" class="ollama-status-bar checking">
@@ -534,7 +573,7 @@
     <div id="local-action-status" class="status"></div>
 
     <div class="btn-row">
-      <button class="btn btn-secondary" onclick="goToStep('1.5')">Back</button>
+      <button class="btn btn-secondary" onclick="goToStep(returnTo === 'settings' ? '1.5' : 1)">Back</button>
       <span></span>
     </div>
   </div>
@@ -736,7 +775,7 @@ async function welcomeDownloadAndStart() {
   const btn = document.getElementById('welcome-start-btn');
   const statusEl = document.getElementById('welcome-status');
   if (!welcomeSelectedModel) {
-    welcomeSelectedModel = 'qwen3-0.6b';
+    welcomeSelectedModel = 'qwen3-1.7b';
   }
   btn.disabled = true;
 
@@ -805,7 +844,8 @@ function selectWelcomeModel(name) {
 }
 
 function switchToCloud() {
-  goToStep('1.5');
+  category = 'cloud';
+  goToStep(2);
 }
 
 function backFromCloudChoice() {
@@ -1091,6 +1131,7 @@ function renderLocalReady(container, models, available) {
 
 function renderLocalNeedModel(container, available) {
   let html = '<div style="font-size:0.88em;color:#bac2de;line-height:1.6;padding:8px 0">Download a grammar model to get started:</div>';
+  html += '<div style="font-size:0.72em;color:#f9e2af;margin-bottom:8px">&#128161; Larger models = better results, but need more RAM and disk space.</div>';
   for (const m of available) {
     const sizeMB = Math.round(m.size / 1024 / 1024);
     const badge = m.tag ? tagBadgeHTML(m.tag) : '';
@@ -1114,7 +1155,7 @@ function renderLocalNeedAll(container, available) {
 
 async function localSetupAll() {
   // Ghost-AI engine is built-in — just download the default model.
-  await localDownloadModel('qwen3-0.6b');
+  await localDownloadModel('qwen3-1.7b');
 }
 
 async function localDownloadModel(name) {

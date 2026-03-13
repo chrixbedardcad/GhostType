@@ -67,20 +67,28 @@ type DownloadProgress struct {
 func AvailableLocalModels() []LocalModel {
 	return []LocalModel{
 		{
-			Name:     "qwen3-0.6b",
-			FileName: "Qwen3-0.6B-Q4_K_M.gguf",
-			URL:      "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
-			Size:     397_000_000,
-			Tag:      "recommended",
-			Desc:     "Tiny and fast. Great for quick spelling/grammar fixes. 100+ languages.",
-		},
-		{
 			Name:     "qwen3-1.7b",
 			FileName: "Qwen3-1.7B-Q4_K_M.gguf",
 			URL:      "https://huggingface.co/unsloth/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q4_K_M.gguf",
 			Size:     1_110_000_000,
-			Tag:      "best",
+			Tag:      "recommended",
 			Desc:     "Best quality-to-size ratio. Accurate corrections with context awareness. 100+ languages.",
+		},
+		{
+			Name:     "qwen3-0.6b",
+			FileName: "Qwen3-0.6B-Q4_K_M.gguf",
+			URL:      "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
+			Size:     397_000_000,
+			Tag:      "fast",
+			Desc:     "Tiny and fast. Great for quick spelling/grammar fixes. 100+ languages.",
+		},
+		{
+			Name:     "phi-4-mini",
+			FileName: "Phi-4-mini-instruct-Q4_K_M.gguf",
+			URL:      "https://huggingface.co/bartowski/Phi-4-mini-instruct-GGUF/resolve/main/Phi-4-mini-instruct-Q4_K_M.gguf",
+			Size:     2_360_000_000,
+			Tag:      "best",
+			Desc:     "Microsoft's Phi-4 Mini (3.8B). Excellent reasoning and grammar. Needs 4GB+ RAM.",
 		},
 		{
 			Name:     "qwen3-4b",
@@ -102,7 +110,6 @@ func AvailableLocalModels() []LocalModel {
 			FileName: "gemma-3-1b-it-Q4_K_M.gguf",
 			URL:      "https://huggingface.co/unsloth/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q4_K_M.gguf",
 			Size:     806_000_000,
-			Tag:      "fast",
 			Desc:     "Google's lightweight model. Fast responses, 140+ languages including French.",
 		},
 		{
