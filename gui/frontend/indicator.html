@@ -81,28 +81,37 @@
 <script>
 var _start = Date.now();
 var _iv = null;
-var _icon = '';
-var _name = '';
+
+// Read prompt data from the window title (set via native SetTitle API,
+// not ExecJS — guaranteed reliable on all platforms).
+// Format: "icon|name"
+function readPromptFromTitle() {
+  var t = document.title || '';
+  var idx = t.indexOf('|');
+  if (idx >= 0) {
+    document.getElementById('pi').textContent = t.substring(0, idx);
+    document.getElementById('pn').textContent = t.substring(idx + 1);
+  }
+}
+
 function startTimer() {
   _start = Date.now();
   document.getElementById('t').textContent = '0s';
-  // Also render prompt from stored data — covers the case where
-  // setPrompt ExecJS was dropped but focus/visibilitychange fired.
-  document.getElementById('pi').textContent = _icon;
-  document.getElementById('pn').textContent = _name;
+  readPromptFromTitle();
   if (_iv) clearInterval(_iv);
   _iv = setInterval(function() {
     var s = Math.floor((Date.now() - _start) / 1000);
     document.getElementById('t').textContent = s + 's';
   }, 1000);
 }
+
+// ExecJS fallback — still works if ExecJS lands.
 function setPrompt(icon, name) {
-  _icon = icon || '';
-  _name = name || '';
-  document.getElementById('pi').textContent = _icon;
-  document.getElementById('pn').textContent = _name;
+  document.getElementById('pi').textContent = icon || '';
+  document.getElementById('pn').textContent = name || '';
 }
-// Reset timer + render prompt when the window becomes visible.
+
+// Start timer + read prompt when the window becomes visible.
 document.addEventListener('visibilitychange', function() {
   if (!document.hidden) startTimer();
 });
