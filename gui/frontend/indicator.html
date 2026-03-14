@@ -17,24 +17,62 @@
     align-items: center;
     justify-content: center;
   }
+  .pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(30, 30, 36, 0.88);
+    border-radius: 20px;
+    padding: 6px 14px 6px 6px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
   .ghost-wrap {
     animation: float 2s ease-in-out infinite;
   }
   @keyframes float {
     0%   { transform: translateY(0px); }
-    50%  { transform: translateY(-8px); }
+    50%  { transform: translateY(-5px); }
     100% { transform: translateY(0px); }
   }
   .ghost-wrap img {
-    width: 48px;
-    height: 48px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
+  }
+  .timer {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+    font-variant-numeric: tabular-nums;
+    min-width: 20px;
   }
 </style>
 </head>
 <body>
-<div class="ghost-wrap">
-  <img src="/ghostspell-ghost.png" alt="GhostSpell">
+<div class="pill">
+  <div class="ghost-wrap">
+    <img src="/ghostspell-ghost.png" alt="">
+  </div>
+  <div class="timer" id="timer">0s</div>
 </div>
+<script>
+var startTime = Date.now();
+var timerEl = document.getElementById('timer');
+var interval = null;
+
+function updateTimer() {
+  var s = Math.floor((Date.now() - startTime) / 1000);
+  timerEl.textContent = s + 's';
+}
+
+function resetTimer() {
+  startTime = Date.now();
+  timerEl.textContent = '0s';
+  if (interval) clearInterval(interval);
+  interval = setInterval(updateTimer, 1000);
+}
+
+resetTimer();
+</script>
 </body>
 </html>

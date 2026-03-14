@@ -49,6 +49,12 @@ func newGhostAIFromDef(def LLMProviderDefCompat) (client *GhostAIClient, err err
 
 	config := ghostai.DefaultConfig()
 	config.MaxTokens = maxTokens
+	// Give thinking models (Qwen3/3.5, DeepSeek) more context for <think>
+	// blocks. The default 2048 is too tight when thinking overhead is 200-400+
+	// tokens on top of the actual output.
+	if isThinkingModel(def.Model) {
+		config.ContextSize = 4096
+	}
 
 	engine := ghostai.New(config)
 
@@ -112,20 +118,19 @@ func (c *GhostAIClient) Send(ctx context.Context, req Request) (resp *Response, 
 	if maxTokens == 0 {
 		maxTokens = c.maxTokens
 	}
-	// Dynamic max_tokens: for correction tasks, output ≈ input length.
-	// Cap to 1.5x input word count + headroom, avoiding wasted generation.
-	inputWords := len(strings.Fields(req.Text))
-	dynamicMax := int(float64(inputWords)*2) + 64
-	// Thinking models (Qwen3/3.5, DeepSeek) generate <think> blocks that
-	// get stripped. Even with /no_think, larger models (4b+) may still emit
-	// 200-400 tokens of thinking before producing output. We need enough
-	// budget for the full thinking block + the actual corrected text.
 	thinking := isThinkingModel(c.modelName)
 	if thinking {
-		dynamicMax += 384
-	}
-	if dynamicMax < maxTokens {
-		maxTokens = dynamicMax
+		// Thinking models need room for <think> blocks + actual output.
+		// Don't cap — let them use the full context window. The C bridge
+		// clamps max_tokens to context_size - prompt_tokens automatically.
+		maxTokens = c.engine.Config().ContextSize
+	} else {
+		// Non-thinking models: cap to ~2x input length to avoid wasted generation.
+		inputWords := len(strings.Fields(req.Text))
+		dynamicMax := int(float64(inputWords)*2) + 64
+		if dynamicMax < maxTokens {
+			maxTokens = dynamicMax
+		}
 	}
 	if maxTokens < 64 {
 		maxTokens = 64

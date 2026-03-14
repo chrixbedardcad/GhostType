@@ -246,7 +246,19 @@ func processMode(
 		return
 	}
 	processingActive.Store(true)
+
+	// Create cancel context immediately so a second Ctrl+G can cancel at
+	// any point — including during text capture, not only during LLM processing.
+	cancelCtx, cancelFn := context.WithCancel(context.Background())
+	mu.Lock()
+	*cancelLLM = cancelFn
+	mu.Unlock()
+
 	defer func() {
+		cancelFn()
+		mu.Lock()
+		*cancelLLM = nil
+		mu.Unlock()
 		sound.StopWorkingLoop()
 		if stopAnim != nil {
 			stopAnim()
@@ -278,6 +290,12 @@ func processMode(
 	// Capture text — detects existing selection or falls back to select-all.
 	slog.Debug("Capturing text...")
 	text, hadSelection, capMethod, err := captureText(promptName, cb, kb)
+	// Bail out immediately if cancelled during capture (second Ctrl+G).
+	if cancelCtx.Err() != nil {
+		slog.Info("Request cancelled during capture", "prompt", promptName)
+		cb.Restore()
+		return
+	}
 	if err != nil {
 		slog.Error("Failed to capture text", "prompt", promptName, "error", err)
 		sound.StopWorkingLoop()
@@ -337,20 +355,11 @@ func processMode(
 	// (visual feedback) but the target app has focus for keyboard simulation.
 	kb.RestoreForegroundWindow()
 
-	// Create cancellable context with per-provider timeout.
+	// Create timeout context as child of cancelCtx — inherits cancel from
+	// second Ctrl+G press, plus its own per-provider deadline.
 	timeout := time.Duration(router.TimeoutForPrompt(promptIdx)) * time.Millisecond
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-
-	mu.Lock()
-	*cancelLLM = cancel
-	mu.Unlock()
-
-	defer func() {
-		cancel()
-		mu.Lock()
-		*cancelLLM = nil
-		mu.Unlock()
-	}()
+	ctx, cancel := context.WithTimeout(cancelCtx, timeout)
+	defer cancel()
 
 	// Send to LLM via mode router.
 	slog.Debug("Sending to LLM...", "prompt", promptName, "text_len", len(text))

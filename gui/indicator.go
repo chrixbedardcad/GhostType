@@ -35,8 +35,8 @@ func CreateIndicator(app *application.App) {
 	indicatorWin = app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Name:              "ghostspell-indicator",
 		Title:             "",
-		Width:             64,
-		Height:            64,
+		Width:             148,
+		Height:            52,
 		Frameless:         true,
 		AlwaysOnTop:       true,
 		BackgroundType:    bgType,
@@ -73,11 +73,13 @@ func ShowIndicator() {
 	if app != nil {
 		screen := app.Screen.GetPrimary()
 		if screen != nil {
-			x := screen.WorkArea.X + screen.WorkArea.Width - 80
-			y := screen.WorkArea.Y + screen.WorkArea.Height - 80
+			x := screen.WorkArea.X + screen.WorkArea.Width - 164
+			y := screen.WorkArea.Y + screen.WorkArea.Height - 68
 			win.SetPosition(x, y)
 		}
 	}
+	// Reset the elapsed timer each time the indicator is shown.
+	win.ExecJS("resetTimer()")
 	win.Show()
 }
 
