@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/chrixbedardcad/GhostSpell/config"
+	"github.com/chrixbedardcad/GhostSpell/gui"
 	"github.com/chrixbedardcad/GhostSpell/internal/debuglog"
 	"github.com/chrixbedardcad/GhostSpell/internal/sysinfo"
 	"github.com/chrixbedardcad/GhostSpell/llm"
@@ -174,6 +175,13 @@ func main() {
 		"models", len(cfg.Models),
 	)
 	logSysInfo(cfg)
+
+	// Register the OpenAI OAuth token refresh hook so the LLM layer can
+	// auto-refresh expired tokens without importing the gui package.
+	llm.RefreshOpenAIKeyFunc = func(refreshToken string) (string, error) {
+		apiKey, _, err := gui.RefreshOpenAITokens(refreshToken)
+		return apiKey, err
+	}
 
 	// First-launch check: if no provider is configured, the wizard will
 	// run on the tray Wails app (no separate app to avoid goroutine leaks).
