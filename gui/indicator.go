@@ -84,18 +84,19 @@ func ShowIndicator(promptIcon, promptName string) {
 
 	slog.Debug("[indicator] ShowIndicator called", "prompt", promptName, "icon", promptIcon)
 
-	// Show the window FIRST, then burst ExecJS calls. On Windows WebView2,
-	// ExecJS on a hidden window gets silently dropped. By showing first, the
-	// WebView is active and ready to receive JS calls. We burst 5 times with
-	// short delays to ensure at least one call lands during the transition.
+	// Show the window FIRST, then set prompt data via ExecJS. On Windows
+	// WebView2, ExecJS on a hidden window gets silently dropped.
+	// We sleep 100ms after Show to let WebView2 fully transition to visible
+	// before calling ExecJS. This is synchronous (not a goroutine) so that
+	// process.go's RestoreForegroundWindow() runs AFTER the ExecJS lands —
+	// a goroutine would race with RestoreForegroundWindow stealing focus,
+	// causing WebView2 to drop the ExecJS calls.
+	// The JS side also stores prompt data in variables and renders them
+	// from the focus/visibilitychange handlers as a fallback.
 	win.Show()
+	time.Sleep(100 * time.Millisecond)
 	js := fmt.Sprintf(`setPrompt(%q,%q);startTimer()`, promptIcon, promptName)
-	go func() {
-		for i := 0; i < 5; i++ {
-			win.ExecJS(js)
-			time.Sleep(50 * time.Millisecond)
-		}
-	}()
+	win.ExecJS(js)
 }
 
 // HideIndicator hides the floating ghost overlay.

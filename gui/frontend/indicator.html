@@ -81,28 +81,31 @@
 <script>
 var _start = Date.now();
 var _iv = null;
+var _icon = '';
+var _name = '';
 function startTimer() {
   _start = Date.now();
   document.getElementById('t').textContent = '0s';
+  // Also render prompt from stored data — covers the case where
+  // setPrompt ExecJS was dropped but focus/visibilitychange fired.
+  document.getElementById('pi').textContent = _icon;
+  document.getElementById('pn').textContent = _name;
   if (_iv) clearInterval(_iv);
   _iv = setInterval(function() {
     var s = Math.floor((Date.now() - _start) / 1000);
     document.getElementById('t').textContent = s + 's';
   }, 1000);
 }
-function stopTimer() {
-  if (_iv) { clearInterval(_iv); _iv = null; }
-  document.getElementById('t').textContent = '0s';
-}
 function setPrompt(icon, name) {
-  document.getElementById('pi').textContent = icon || '';
-  document.getElementById('pn').textContent = name || '';
+  _icon = icon || '';
+  _name = name || '';
+  document.getElementById('pi').textContent = _icon;
+  document.getElementById('pn').textContent = _name;
 }
-// Reset timer when the window becomes visible (backup for ExecJS).
+// Reset timer + render prompt when the window becomes visible.
 document.addEventListener('visibilitychange', function() {
   if (!document.hidden) startTimer();
 });
-// Also reset on focus (Wails may not fire visibilitychange).
 window.addEventListener('focus', startTimer);
 </script>
 </body>
