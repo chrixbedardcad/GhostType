@@ -215,14 +215,15 @@ func (s *SettingsService) TestConnection(provider, apiKey, model, endpoint strin
 	guiLog("[GUI] JS called: TestConnection(provider=%s, model=%s, endpoint=%q)", provider, model, endpoint)
 
 	// Ollama and local need much longer timeout — first request loads model into memory.
-	// They also need more max_tokens because thinking models (Qwen3, DeepSeek-R1)
-	// may consume tokens on <think> tags even with /no_think.
+	// They also need more max_tokens because thinking models (Qwen3/3.5, DeepSeek)
+	// can consume 200-400 tokens on <think> blocks even with /no_think — larger
+	// models like qwen3.5-4b are especially heavy thinkers.
 	timeout := 10 * time.Second
 	maxTokens := 64
 	timeoutMs := 10000
 	if provider == "ollama" || provider == "local" {
 		timeout = 120 * time.Second
-		maxTokens = 128
+		maxTokens = 512
 		timeoutMs = 120000
 		guiLog("[GUI] %s detected — using %s timeout, %d max_tokens", provider, timeout, maxTokens)
 	}
@@ -274,14 +275,15 @@ func (s *SettingsService) TestProvider(label string) string {
 	guiLog("[GUI] TestProvider: provider=%s model=%s endpoint=%q", def.Provider, def.Model, def.APIEndpoint)
 
 	// Ollama and local need much longer timeout — first request loads model into memory.
-	// They also need more max_tokens because thinking models (Qwen3, DeepSeek-R1)
-	// may consume tokens on <think> tags even with /no_think.
+	// They also need more max_tokens because thinking models (Qwen3/3.5, DeepSeek)
+	// can consume 200-400 tokens on <think> blocks even with /no_think — larger
+	// models like qwen3.5-4b are especially heavy thinkers.
 	timeout := 10 * time.Second
 	maxTokens := 64
 	timeoutMs := 10000
 	if def.Provider == "ollama" || def.Provider == "local" {
 		timeout = 120 * time.Second
-		maxTokens = 128
+		maxTokens = 512
 		timeoutMs = 120000
 		guiLog("[GUI] %s detected — using %s timeout, %d max_tokens", def.Provider, timeout, maxTokens)
 	}

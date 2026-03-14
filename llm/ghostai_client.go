@@ -117,11 +117,12 @@ func (c *GhostAIClient) Send(ctx context.Context, req Request) (resp *Response, 
 	inputWords := len(strings.Fields(req.Text))
 	dynamicMax := int(float64(inputWords)*2) + 64
 	// Thinking models (Qwen3/3.5, DeepSeek) generate <think> blocks that
-	// get stripped. Even with /no_think, models may still emit thinking tokens.
-	// Add headroom so there's enough budget for thinking + actual output.
+	// get stripped. Even with /no_think, larger models (4b+) may still emit
+	// 200-400 tokens of thinking before producing output. We need enough
+	// budget for the full thinking block + the actual corrected text.
 	thinking := isThinkingModel(c.modelName)
 	if thinking {
-		dynamicMax += 128
+		dynamicMax += 384
 	}
 	if dynamicMax < maxTokens {
 		maxTokens = dynamicMax
