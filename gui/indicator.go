@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"runtime"
 	"sync"
+	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -83,12 +84,18 @@ func ShowIndicator(promptIcon, promptName string) {
 
 	slog.Debug("[indicator] ShowIndicator called", "prompt", promptName, "icon", promptIcon)
 
-	// Set prompt info and reset timer via ExecJS. The JS side also auto-resets
-	// on visibilitychange, so even if these calls are dropped during the
-	// hidden→visible transition, the timer will still start correctly.
-	win.ExecJS(fmt.Sprintf(`setPrompt(%q,%q)`, promptIcon, promptName))
-	win.ExecJS(`startTimer()`)
+	// Show the window FIRST, then burst ExecJS calls. On Windows WebView2,
+	// ExecJS on a hidden window gets silently dropped. By showing first, the
+	// WebView is active and ready to receive JS calls. We burst 5 times with
+	// short delays to ensure at least one call lands during the transition.
 	win.Show()
+	js := fmt.Sprintf(`setPrompt(%q,%q);startTimer()`, promptIcon, promptName)
+	go func() {
+		for i := 0; i < 5; i++ {
+			win.ExecJS(js)
+			time.Sleep(50 * time.Millisecond)
+		}
+	}()
 }
 
 // HideIndicator hides the floating ghost overlay.

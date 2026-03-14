@@ -290,7 +290,7 @@
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px">
         <span style="font-size:1.5em;flex-shrink:0;width:36px;text-align:center">&#9000;&#65039;</span>
         <div>
-          <div style="font-weight:600;font-size:0.9em;color:#cdd6f4">2. Press <kbd style="background:#45475a;padding:2px 8px;border-radius:4px;font-family:monospace;color:#89b4fa;font-size:0.95em">Ctrl+G</kbd></div>
+          <div style="font-weight:600;font-size:0.9em;color:#cdd6f4">2. Press <kbd style="background:#45475a;padding:2px 8px;border-radius:4px;font-family:monospace;color:#89b4fa;font-size:0.95em"><span class="hk">Ctrl+G</span></kbd></div>
           <div style="font-size:0.8em;color:#a6adc8">The magic shortcut. That's it.</div>
         </div>
       </div>
@@ -783,16 +783,16 @@
 
     <div style="background:#313244;border-radius:10px;padding:18px 20px;margin-bottom:16px;text-align:center">
       <div style="color:#bac2de;margin-bottom:10px;font-size:0.9em;font-weight:600">Your magic shortcut:</div>
-      <kbd style="background:#45475a;padding:8px 18px;border-radius:6px;font-family:monospace;font-size:1.3em;color:#89b4fa;display:inline-block">Ctrl+G</kbd>
+      <kbd style="background:#45475a;padding:8px 18px;border-radius:6px;font-family:monospace;font-size:1.3em;color:#89b4fa;display:inline-block"><span class="hk">Ctrl+G</span></kbd>
       <div style="color:#a6adc8;margin-top:10px;font-size:0.82em;line-height:1.5">
-        Select text in <strong style="color:#cdd6f4">any app</strong>, press <strong style="color:#89b4fa">Ctrl+G</strong>, and watch the magic happen.<br>
+        Select text in <strong style="color:#cdd6f4">any app</strong>, press <strong style="color:#89b4fa"><span class="hk">Ctrl+G</span></strong>, and watch the magic happen.<br>
         Switch modes from the system tray icon &mdash; right-click to pick a prompt.
       </div>
     </div>
 
     <div style="background:#2a2d42;border-radius:8px;padding:12px 16px;margin-bottom:18px;font-size:0.8em;color:#a6adc8;line-height:1.6">
       <strong style="color:#cdd6f4">Pro tips:</strong><br>
-      &#8226; Press <strong style="color:#89b4fa">Ctrl+G</strong> again while processing to cancel<br>
+      &#8226; Press <strong style="color:#89b4fa"><span class="hk">Ctrl+G</span></strong> again while processing to cancel<br>
       &#8226; Open <strong style="color:#cdd6f4">Settings</strong> from the tray to customize prompts and models<br>
       &#8226; GhostSpell runs quietly in your system tray &mdash; look for the ghost icon
     </div>
@@ -808,6 +808,9 @@
 <script type="module" src="/wails/runtime.js"></script>
 
 <script>
+const _isMac = navigator.platform.indexOf('Mac') !== -1;
+const _hotkey = _isMac ? 'Cmd+G' : 'Ctrl+G';
+
 // ==================== STATE ====================
 let currentStep = 'welcome';
 let totalSteps = 4;
@@ -1765,6 +1768,11 @@ function skipRestart() {
 
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', async function() {
+  // Replace Ctrl+G with Cmd+G on macOS
+  if (_isMac) {
+    document.querySelectorAll('.hk').forEach(function(el) { el.textContent = _hotkey; });
+  }
+
   if (returnTo === 'settings') {
     document.getElementById('wizard-cancel-row').style.display = 'flex';
     document.getElementById('step1-back-btn').style.display = 'none';
