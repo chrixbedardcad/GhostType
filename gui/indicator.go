@@ -78,15 +78,16 @@ func ShowIndicator() {
 			win.SetPosition(x, y)
 		}
 	}
-	// Reset the elapsed timer each time the indicator is shown.
-	win.ExecJS("resetTimer()")
+	// Show window FIRST so the WebView is active, then reset timer.
+	// On Windows, WebView2 silently drops ExecJS calls when the window
+	// is hidden, so we must show before executing JS.
 	win.Show()
+	win.ExecJS("resetTimer()")
 }
 
 // HideIndicator hides the floating ghost overlay and stops the elapsed timer.
-// Resetting the DOM text to "0s" here ensures that the next ShowIndicator
-// displays "0s" immediately, even though ExecJS is asynchronous — by the time
-// the user presses Ctrl+G again the stopTimer JS will have executed.
+// ExecJS runs BEFORE Hide() so the WebView is still active and processes the
+// JS. This ensures the DOM reads "0s" when the window is next shown.
 func HideIndicator() {
 	indicatorMu.Lock()
 	win := indicatorWin
@@ -94,6 +95,6 @@ func HideIndicator() {
 	if win == nil {
 		return
 	}
-	win.Hide()
 	win.ExecJS("stopTimer()")
+	win.Hide()
 }

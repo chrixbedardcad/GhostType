@@ -62,6 +62,10 @@ var interval = null;
 
 function updateTimer() {
   var s = Math.floor((Date.now() - startTime) / 1000);
+  // Safety net: if timer shows an absurd value (>600s = 10min), the
+  // stopTimer/resetTimer calls were likely dropped by a hidden WebView.
+  // Auto-reset to avoid showing stale values like "200s".
+  if (s > 600) { startTime = Date.now(); s = 0; }
   timerEl.textContent = s + 's';
 }
 
