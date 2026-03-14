@@ -39,12 +39,32 @@
     height: 36px;
     object-fit: contain;
   }
+  .prompt-icon {
+    font-size: 14px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .prompt-name {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    white-space: nowrap;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .timer {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     font-size: 13px;
     color: rgba(255, 255, 255, 0.85);
     font-variant-numeric: tabular-nums;
     min-width: 20px;
+  }
+  .sep {
+    width: 1px;
+    height: 16px;
+    background: rgba(255, 255, 255, 0.15);
+    flex-shrink: 0;
   }
 </style>
 </head>
@@ -53,7 +73,33 @@
   <div class="ghost-wrap">
     <img src="/ghostspell-ghost.png" alt="">
   </div>
+  <span class="prompt-icon" id="pi"></span>
+  <span class="prompt-name" id="pn"></span>
+  <div class="sep"></div>
   <div class="timer" id="t">0s</div>
 </div>
+<script>
+var _start = Date.now();
+var _iv = null;
+function startTimer() {
+  _start = Date.now();
+  document.getElementById('t').textContent = '0s';
+  if (_iv) clearInterval(_iv);
+  _iv = setInterval(function() {
+    var s = Math.floor((Date.now() - _start) / 1000);
+    document.getElementById('t').textContent = s + 's';
+  }, 1000);
+}
+function setPrompt(icon, name) {
+  document.getElementById('pi').textContent = icon || '';
+  document.getElementById('pn').textContent = name || '';
+}
+// Auto-start on visibility change (window shown).
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden) startTimer();
+});
+// Also start on load.
+startTimer();
+</script>
 </body>
 </html>

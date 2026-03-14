@@ -465,16 +465,30 @@
 
       <div class="provider-card" id="prov-card-openai">
         <div class="provider-card-header">
-          <svg width="22" height="22" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z" fill="#10A37F"/></svg>
-          <strong>OpenAI</strong>
+          <svg width="22" height="22" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729z" fill="#10A37F"/></svg>
+          <strong>OpenAI API Key</strong>
           <span class="provider-status inactive" id="prov-status-openai">&#9675; Not configured</span>
         </div>
-        <div class="provider-card-meta" id="prov-meta-openai">GPT-4o, o1, o3 &mdash; API key or ChatGPT OAuth login.</div>
+        <div class="provider-card-meta" id="prov-meta-openai">GPT-4o, o1, o3 &mdash; paste your OpenAI API key.</div>
         <div class="provider-card-actions">
           <button class="btn btn-primary btn-sm" onclick="showProviderSetup('openai')">Set up</button>
           <button class="btn btn-secondary btn-sm" onclick="testProviderConnection('openai')" style="display:none" id="prov-test-openai">Test</button>
         </div>
         <div class="provider-test-result" id="prov-result-openai"></div>
+      </div>
+
+      <div class="provider-card" id="prov-card-openai-oauth">
+        <div class="provider-card-header">
+          <svg width="22" height="22" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729z" fill="#10A37F"/></svg>
+          <strong>ChatGPT Login</strong>
+          <span class="provider-status inactive" id="prov-status-openai-oauth">&#9675; Not authorized</span>
+        </div>
+        <div class="provider-card-meta" id="prov-meta-openai-oauth">Sign in with ChatGPT &mdash; no API key needed.</div>
+        <div class="provider-card-actions">
+          <button class="btn btn-primary btn-sm" onclick="startOpenAIOAuth()">Authorize</button>
+          <button class="btn btn-secondary btn-sm" onclick="testProviderConnection('openai')" style="display:none" id="prov-test-openai-oauth">Test</button>
+        </div>
+        <div class="provider-test-result" id="prov-result-openai-oauth"></div>
       </div>
 
       <div class="provider-card" id="prov-card-anthropic">
@@ -607,33 +621,20 @@
       <div id="prov-lmstudio-status" class="status"></div>
     </div>
 
-    <!-- ======== OpenAI Setup (special: OAuth option) ======== -->
+    <!-- ======== OpenAI API Key Setup ======== -->
     <div id="provider-setup-openai" style="display:none">
       <button class="btn btn-secondary btn-sm" onclick="backToProviders()" style="margin-bottom:10px">&larr; Back to providers</button>
-      <h2><svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:6px"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z" fill="#10A37F"/></svg> OpenAI Setup</h2>
-      <p style="font-size:0.82em;color:#a6adc8;margin-bottom:12px">Connect with API key or sign in with your ChatGPT account.</p>
+      <h2><svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:6px"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729z" fill="#10A37F"/></svg> OpenAI API Key</h2>
+      <p style="font-size:0.82em;color:#a6adc8;margin-bottom:12px">Paste your OpenAI API key. Get one from platform.openai.com.</p>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-        <div style="background:#1e1e2e;border:1px solid #45475a;border-radius:8px;padding:12px;cursor:pointer" onclick="showOpenAIAPIKey()">
-          <strong>&#128273; API Key</strong><br>
-          <span style="font-size:0.8em;color:#a6adc8">Paste your OpenAI API key.</span>
-        </div>
-        <div style="background:#1e1e2e;border:1px solid #45475a;border-radius:8px;padding:12px;cursor:pointer" onclick="startOpenAIOAuth()">
-          <strong>&#128272; OAuth Login</strong><br>
-          <span style="font-size:0.8em;color:#a6adc8">Sign in with ChatGPT. No key needed.</span>
-        </div>
+      <div class="form-group">
+        <label>API Key</label>
+        <input type="password" id="prov-openai-apikey" placeholder="sk-...">
+        <a href="#" onclick="wails.Browser.OpenURL('https://platform.openai.com/api-keys');return false" style="font-size:0.78em;color:#89b4fa">Get API Key &rarr;</a>
       </div>
-
-      <div id="openai-apikey-form" style="display:none">
-        <div class="form-group">
-          <label>API Key</label>
-          <input type="password" id="prov-openai-apikey" placeholder="sk-...">
-          <a href="#" onclick="wails.Browser.OpenURL('https://platform.openai.com/api-keys');return false" style="font-size:0.78em;color:#89b4fa">Get API Key &rarr;</a>
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-secondary" onclick="testProviderConnection('openai')">Test</button>
-          <button class="btn btn-primary" onclick="saveCloudProvider('openai')">Save</button>
-        </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="testOpenAIApiKey()">Test Connection</button>
+        <button class="btn btn-primary" onclick="saveCloudProvider('openai')">Save</button>
       </div>
       <div id="prov-openai-status" class="status"></div>
     </div>
@@ -1136,7 +1137,6 @@ async function renderProviders() {
   await reloadConfig();
   const providers = configData.providers || {};
   const types = ['local','ollama','lmstudio','openai','anthropic','gemini','xai','deepseek'];
-  // Provider types are the keys of configData.providers
   const configuredTypes = new Set(Object.keys(providers));
   types.forEach(function(t) {
     var isConfigured = configuredTypes.has(t);
@@ -1151,6 +1151,28 @@ async function renderProviders() {
     if (testBtn) testBtn.style.display = isConfigured ? '' : 'none';
     if (setupBtn) setupBtn.textContent = isConfigured ? 'Edit' : 'Set up';
   });
+
+  // OpenAI OAuth card: show authorized status if refresh_token exists
+  var openaiProv = providers.openai;
+  var oauthStatusEl = document.getElementById('prov-status-openai-oauth');
+  var oauthTestBtn = document.getElementById('prov-test-openai-oauth');
+  var oauthCard = document.getElementById('prov-card-openai-oauth');
+  var oauthSetupBtn = oauthCard ? oauthCard.querySelector('.provider-card-actions .btn-primary') : null;
+  var hasOAuth = openaiProv && openaiProv.refresh_token;
+  if (oauthStatusEl) {
+    oauthStatusEl.textContent = hasOAuth ? '\u25CF Authorized' : '\u25CB Not authorized';
+    oauthStatusEl.className = 'provider-status ' + (hasOAuth ? 'active' : 'inactive');
+  }
+  if (oauthTestBtn) oauthTestBtn.style.display = hasOAuth ? '' : 'none';
+  if (oauthSetupBtn) oauthSetupBtn.textContent = hasOAuth ? 'Re-authorize' : 'Authorize';
+
+  // OpenAI API Key card: show status based on api_key (not refresh_token)
+  var hasApiKey = openaiProv && openaiProv.api_key;
+  var apiStatusEl = document.getElementById('prov-status-openai');
+  if (apiStatusEl) {
+    apiStatusEl.textContent = hasApiKey ? '\u25CF Configured' : '\u25CB Not configured';
+    apiStatusEl.className = 'provider-status ' + (hasApiKey ? 'active' : 'inactive');
+  }
 }
 
 function showProviderSetup(type) {
@@ -1195,7 +1217,6 @@ async function loadProviderSetupValues(type) {
   } else if (type === 'openai') {
     if (prov && prov.api_key) {
       document.getElementById('prov-openai-apikey').value = prov.api_key;
-      document.getElementById('openai-apikey-form').style.display = 'block';
     }
   }
 }
@@ -1237,14 +1258,41 @@ async function saveCloudProvider(type) {
 async function testProviderConnection(type) {
   var resultEl = document.getElementById('prov-result-' + type);
   var testResultEl = document.getElementById('prov-' + type + '-test-result');
-  // Find a model label that uses this provider type
+
+  // For local (Ghost-AI), use TestProviderConnection which picks a default test model
+  // even if no model entry exists yet. Same for ollama/lmstudio setup pages.
+  if (type === 'local' || type === 'ollama' || type === 'lmstudio') {
+    var testBtn = document.getElementById('prov-test-' + type);
+    if (testBtn) { testBtn.disabled = true; testBtn.textContent = 'Testing...'; }
+    // Use the selected model if available, otherwise let the backend pick a default.
+    var selectedModel = provSelectedModel[type] || '';
+    var result;
+    if (selectedModel) {
+      result = await goCall('testConnection', type, '', selectedModel, '');
+    } else {
+      result = await goCall('testProviderConnection', type);
+    }
+    if (testBtn) { testBtn.textContent = 'Test'; setTimeout(function() { testBtn.disabled = false; }, 3000); }
+    if (resultEl) {
+      resultEl.className = 'provider-test-result ' + (result && result.startsWith('ok') ? 'pass' : 'fail');
+      resultEl.textContent = (result && result.startsWith('ok')) ? '\u2714 Connection successful' : '\u2718 ' + (result || 'Failed');
+      resultEl.style.display = 'block';
+    }
+    if (testResultEl) {
+      if (result && result.startsWith('ok')) setStatus(testResultEl.id, 'success', 'Connection successful!');
+      else setStatus(testResultEl.id, 'error', result || 'Connection failed');
+    }
+    return;
+  }
+
+  // Cloud providers: find a model label that uses this provider type
   var models = configData.models || {};
   var label = '';
   for (var l in models) {
     if (models[l].provider === type) { label = l; break; }
   }
   if (!label) {
-    if (resultEl) { resultEl.className = 'provider-test-result fail'; resultEl.textContent = '\u2718 Not configured'; resultEl.style.display = 'block'; }
+    if (resultEl) { resultEl.className = 'provider-test-result fail'; resultEl.textContent = '\u2718 No model configured — add one in Models tab'; resultEl.style.display = 'block'; }
     return;
   }
   // Disable test buttons temporarily
@@ -1294,12 +1342,28 @@ async function testCloudProvider() {
   else setStatus('prov-cloud-status', 'error', result || 'Connection failed');
 }
 
-function showOpenAIAPIKey() {
-  document.getElementById('openai-apikey-form').style.display = 'block';
-}
-
 function startOpenAIOAuth() {
   window.location.href = '/wizard.html?returnTo=settings&startOAuth=1';
+}
+
+async function testOpenAIApiKey() {
+  var key = document.getElementById('prov-openai-apikey').value.trim();
+  if (!key) { setStatus('prov-openai-status', 'error', 'API key required'); return; }
+  setStatus('prov-openai-status', 'info', 'Testing...');
+  var model = '';
+  var raw = await goCall('getKnownModels', 'openai');
+  if (raw) {
+    try {
+      var models = JSON.parse(raw);
+      for (var i = 0; i < models.length; i++) {
+        if (typeof models[i] === 'object' && models[i].tag === 'recommended') { model = models[i].name; break; }
+      }
+      if (!model && models.length > 0) model = typeof models[0] === 'string' ? models[0] : models[0].name;
+    } catch(e) {}
+  }
+  var result = await goCall('testConnection', 'openai', key, model, '');
+  if (result && result.startsWith('ok')) setStatus('prov-openai-status', 'success', 'Connection successful!');
+  else setStatus('prov-openai-status', 'error', result || 'Connection failed');
 }
 
 async function saveProviderKeepAlive(enabled) {
@@ -1394,12 +1458,17 @@ async function onProvLocalRefresh() {
   if (!selectedModel && models.length > 0) provLocalSelectModel(models[0].name);
 }
 
-function provLocalSelectModel(name) {
+async function provLocalSelectModel(name) {
   provSelectedModel['local'] = name;
-  // AI Providers tab ONLY saves provider credentials — model entries are in Models tab.
-  goCall('saveProviderConfig', 'local', '', '', '', false).then(function(result) {
-    if (result && result.startsWith('ok')) reloadConfig();
-  });
+  // Save provider credentials.
+  var r1 = await goCall('saveProviderConfig', 'local', '', '', '', false);
+  if (!r1 || !r1.startsWith('ok')) return;
+  // Also create/update the model entry so Ghost-AI is usable immediately.
+  var r2 = await goCall('saveModel', 'Ghost-AI', 'local', name, '');
+  if (r2 && r2.startsWith('ok')) {
+    await goCall('setDefaultModel', 'Ghost-AI');
+  }
+  await reloadConfig();
   onProvLocalRefresh();
 }
 
@@ -1746,7 +1815,7 @@ async function onModelProviderChange() {
   // Auto-fill label
   var nameEl = document.getElementById('model-form-name');
   if (!nameEl.value.trim()) {
-    var autoLabels = {anthropic:'claude', openai:'chatgpt', gemini:'gemini', xai:'grok', deepseek:'deepseek', ollama:'ollama', local:'ghost-ai', lmstudio:'lmstudio'};
+    var autoLabels = {anthropic:'claude', openai:'chatgpt', gemini:'gemini', xai:'grok', deepseek:'deepseek', ollama:'ollama', local:'Ghost-AI', lmstudio:'lmstudio'};
     nameEl.value = autoLabels[provider] || provider;
   }
 }

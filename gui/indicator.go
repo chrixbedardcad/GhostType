@@ -5,15 +5,13 @@ import (
 	"log/slog"
 	"runtime"
 	"sync"
-	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 var (
-	indicatorWin  *application.WebviewWindow
-	indicatorMu   sync.Mutex
-	indicatorDone chan struct{} // closed to stop the timer goroutine
+	indicatorWin *application.WebviewWindow
+	indicatorMu  sync.Mutex
 )
 
 // CreateIndicator creates a small, hidden, frameless overlay window showing an
@@ -38,7 +36,7 @@ func CreateIndicator(app *application.App) {
 	indicatorWin = app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Name:              "ghostspell-indicator",
 		Title:             "",
-		Width:             148,
+		Width:             260,
 		Height:            52,
 		Frameless:         true,
 		AlwaysOnTop:       true,
@@ -62,8 +60,9 @@ func CreateIndicator(app *application.App) {
 }
 
 // ShowIndicator displays the floating ghost in the bottom-right corner of the
-// primary screen (above the taskbar on Windows).
-func ShowIndicator() {
+// primary screen (above the taskbar on Windows). The prompt icon and name are
+// displayed alongside the ghost and elapsed timer.
+func ShowIndicator(promptIcon, promptName string) {
 	indicatorMu.Lock()
 	win := indicatorWin
 	indicatorMu.Unlock()
@@ -76,17 +75,20 @@ func ShowIndicator() {
 	if app != nil {
 		screen := app.Screen.GetPrimary()
 		if screen != nil {
-			x := screen.WorkArea.X + screen.WorkArea.Width - 164
+			x := screen.WorkArea.X + screen.WorkArea.Width - 276
 			y := screen.WorkArea.Y + screen.WorkArea.Height - 68
 			win.SetPosition(x, y)
 		}
 	}
 
-	slog.Debug("[indicator] ShowIndicator called")
-	// Pre-set "0s" before showing — belt & suspenders with the goroutine burst.
-	win.ExecJS(`document.getElementById('t').textContent='0s'`)
+	slog.Debug("[indicator] ShowIndicator called", "prompt", promptName, "icon", promptIcon)
+
+	// Set prompt info and reset timer via ExecJS. The JS side also auto-resets
+	// on visibilitychange, so even if these calls are dropped during the
+	// hidden→visible transition, the timer will still start correctly.
+	win.ExecJS(fmt.Sprintf(`setPrompt(%q,%q)`, promptIcon, promptName))
+	win.ExecJS(`startTimer()`)
 	win.Show()
-	startIndicatorTimer()
 }
 
 // HideIndicator hides the floating ghost overlay.
@@ -99,77 +101,5 @@ func HideIndicator() {
 	}
 
 	slog.Debug("[indicator] HideIndicator called")
-	stopIndicatorTimer()
-	// Set text back to "0s" before hiding so it's ready for next show.
-	win.ExecJS(`document.getElementById('t').textContent='0s'`)
 	win.Hide()
-}
-
-// startIndicatorTimer launches a goroutine that drives the elapsed timer
-// display from Go. This replaces the old JS-side setInterval approach which
-// was unreliable: ExecJS calls on hidden/transitioning Wails WebViews get
-// silently dropped, causing the JS interval to leak and accumulate stale
-// values (200s+). With Go owning the timer, if one ExecJS update is dropped,
-// the next one (1 second later) self-corrects.
-func startIndicatorTimer() {
-	stopIndicatorTimer() // ensure no stale goroutine
-
-	indicatorMu.Lock()
-	win := indicatorWin
-	done := make(chan struct{})
-	indicatorDone = done
-	indicatorMu.Unlock()
-
-	if win == nil {
-		return
-	}
-
-	start := time.Now()
-	slog.Debug("[indicator] timer goroutine starting")
-
-	go func() {
-		// Immediately set "0s" — try a few times in quick succession to
-		// make sure at least one ExecJS call lands even if the WebView
-		// is still transitioning from hidden → visible.
-		for i := 0; i < 3; i++ {
-			select {
-			case <-done:
-				slog.Debug("[indicator] timer goroutine stopped during init burst")
-				return
-			default:
-			}
-			win.ExecJS(`document.getElementById('t').textContent='0s'`)
-			time.Sleep(30 * time.Millisecond)
-		}
-
-		ticker := time.NewTicker(time.Second)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-done:
-				slog.Debug("[indicator] timer goroutine stopped", "elapsed", int(time.Since(start).Seconds()))
-				return
-			case <-ticker.C:
-				s := int(time.Since(start).Seconds())
-				win.ExecJS(fmt.Sprintf(`document.getElementById('t').textContent='%ds'`, s))
-			}
-		}
-	}()
-}
-
-// stopIndicatorTimer stops the Go-side timer goroutine.
-func stopIndicatorTimer() {
-	indicatorMu.Lock()
-	done := indicatorDone
-	indicatorDone = nil
-	indicatorMu.Unlock()
-
-	if done != nil {
-		select {
-		case <-done: // already closed
-		default:
-			close(done)
-		}
-	}
 }

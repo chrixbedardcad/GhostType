@@ -1338,7 +1338,7 @@ async function localFinish() {
 }
 
 async function saveLocalProvider(modelName) {
-  const label = 'ghost-ai';
+  const label = 'Ghost-AI';
   // Save provider credentials
   const r1 = await goCall('saveProviderConfig', 'local', '', '', '', false);
   if (!r1 || !r1.startsWith('ok')) {

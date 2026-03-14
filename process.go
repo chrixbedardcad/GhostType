@@ -162,7 +162,12 @@ func processMode(
 
 	// Text captured — now safe to show the indicator overlay. It won't
 	// interfere with keyboard simulation since capture is complete.
-	gui.ShowIndicator()
+	// Pass prompt icon and name so the indicator pill shows which prompt is active.
+	promptIcon := ""
+	if promptIdx >= 0 && promptIdx < len(cfg.Prompts) {
+		promptIcon = cfg.Prompts[promptIdx].Icon
+	}
+	gui.ShowIndicator(promptIcon, promptName)
 
 	// Immediately restore focus to the target app. The indicator is visible
 	// (visual feedback) but the target app has focus for keyboard simulation.
