@@ -116,21 +116,33 @@ func (c *GhostAIClient) Send(ctx context.Context, req Request) (resp *Response, 
 	// Cap to 1.5x input word count + headroom, avoiding wasted generation.
 	inputWords := len(strings.Fields(req.Text))
 	dynamicMax := int(float64(inputWords)*2) + 64
+	// Thinking models (Qwen3/3.5, DeepSeek) generate <think> blocks that
+	// get stripped. Even with /no_think, models may still emit thinking tokens.
+	// Add headroom so there's enough budget for thinking + actual output.
+	thinking := isThinkingModel(c.modelName)
+	if thinking {
+		dynamicMax += 128
+	}
 	if dynamicMax < maxTokens {
 		maxTokens = dynamicMax
 	}
-	if maxTokens < 32 {
-		maxTokens = 32
+	if maxTokens < 64 {
+		maxTokens = 64
 	}
 
 	// Format using the model's chat template (ChatML for Qwen, etc.).
 	// System = instruction prompt, User = the text to process.
-	systemMsg := "/no_think\n" + req.Prompt
-	prompt, err := c.engine.ApplyChat(systemMsg, req.Text)
+	// Qwen3/3.5 models recognize /no_think in the user turn (not system).
+	systemMsg := req.Prompt
+	userMsg := req.Text
+	if thinking {
+		userMsg = "/no_think\n" + req.Text
+	}
+	prompt, err := c.engine.ApplyChat(systemMsg, userMsg)
 	if err != nil {
 		slog.Warn("[ghost-ai] chat template failed, using raw format", "error", err)
 		// Fallback to raw format if template fails.
-		prompt = systemMsg + "\n\nUser: " + req.Text
+		prompt = systemMsg + "\n\nUser: " + userMsg
 	}
 
 	text, stats, err := c.engine.Complete(ctx, prompt, maxTokens)
@@ -159,6 +171,12 @@ func (c *GhostAIClient) Send(ctx context.Context, req Request) (resp *Response, 
 		Provider: "local",
 		Model:    c.modelName,
 	}, nil
+}
+
+// isThinkingModel returns true for models that generate <think> blocks.
+func isThinkingModel(name string) bool {
+	n := strings.ToLower(name)
+	return strings.Contains(n, "qwen3") || strings.Contains(n, "deepseek")
 }
 
 // cleanLocalModelResponse strips ChatML artifacts, thinking tags, and reasoning
