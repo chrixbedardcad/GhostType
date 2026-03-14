@@ -197,10 +197,17 @@ func cleanLocalModelResponse(s string) string {
 		s = strings.ReplaceAll(s, tok, "")
 	}
 
-	// 3. If model emitted "Answer:" or "Corrected:", take only the text after it.
+	// 3. If the first line starts with "Answer:" or "Corrected:", strip that prefix.
+	// Only match at the beginning of the text to avoid truncating valid content
+	// that happens to contain these words mid-sentence.
+	trimmed := strings.TrimSpace(s)
+	firstLine := trimmed
+	if nl := strings.IndexByte(trimmed, '\n'); nl != -1 {
+		firstLine = trimmed[:nl]
+	}
 	for _, marker := range []string{"Answer:", "Answer :", "Corrected:", "Corrected text:"} {
-		if idx := strings.LastIndex(s, marker); idx != -1 {
-			after := strings.TrimSpace(s[idx+len(marker):])
+		if strings.HasPrefix(firstLine, marker) {
+			after := strings.TrimSpace(trimmed[len(marker):])
 			if after != "" {
 				s = after
 				break

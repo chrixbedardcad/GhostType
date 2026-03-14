@@ -14,6 +14,19 @@
 extern void hotkeyDown(uintptr_t hkhandle);
 extern void hotkeyUp(uintptr_t hkhandle);
 
+// Flag set by custom X error handler when XGrabKey fails (e.g., BadAccess).
+static volatile int grabFailed = 0;
+
+static int grabErrorHandler(Display* dpy, XErrorEvent* pErr) {
+	if (pErr->request_code == 33 && pErr->error_code == BadAccess) {
+		// X_GrabKey (33) with BadAccess means another client already grabbed this key.
+		grabFailed = 1;
+		return 0;
+	}
+	// For other errors, just ignore — we only care about grab failures here.
+	return 0;
+}
+
 int displayTest() {
 	Display* d = NULL;
 	for (int i = 0; i < 42; i++) {
@@ -27,26 +40,9 @@ int displayTest() {
 	return 0;
 }
 
-// FIXME: handle bad access properly.
-// int handleErrors( Display* dpy, XErrorEvent* pErr )
-// {
-//     printf("X Error Handler called, values: %d/%lu/%d/%d/%d\n",
-//         pErr->type,
-//         pErr->serial,
-//         pErr->error_code,
-//         pErr->request_code,
-//         pErr->minor_code );
-//     if( pErr->request_code == 33 ){  // 33 (X_GrabKey)
-//         if( pErr->error_code == BadAccess ){
-//             printf("ERROR: key combination already grabbed by another client.\n");
-//             return 0;
-//         }
-//     }
-//     return 0;
-// }
-
 // waitHotkey blocks until the hotkey is triggered.
-// this function crashes the program if the hotkey already grabbed by others.
+// Returns -1 if X display cannot be opened, -2 if the hotkey is already
+// grabbed by another client, 0 on success.
 int waitHotkey(uintptr_t hkhandle, unsigned int mod, int key) {
 	Display* d = NULL;
 	for (int i = 0; i < 42; i++) {
@@ -58,7 +54,23 @@ int waitHotkey(uintptr_t hkhandle, unsigned int mod, int key) {
 		return -1;
 	}
 	int keycode = XKeysymToKeycode(d, key);
+
+	// Install custom error handler to catch BadAccess from XGrabKey
+	// instead of crashing the program.
+	grabFailed = 0;
+	int (*oldHandler)(Display*, XErrorEvent*) = XSetErrorHandler(grabErrorHandler);
+
 	XGrabKey(d, keycode, mod, DefaultRootWindow(d), False, GrabModeAsync, GrabModeAsync);
+	XSync(d, False); // Flush to trigger any pending X errors
+
+	// Restore original error handler.
+	XSetErrorHandler(oldHandler);
+
+	if (grabFailed) {
+		XCloseDisplay(d);
+		return -2; // Hotkey already grabbed by another client
+	}
+
 	XSelectInput(d, DefaultRootWindow(d), KeyPressMask);
 	XEvent ev;
 	while(1) {
@@ -70,6 +82,7 @@ int waitHotkey(uintptr_t hkhandle, unsigned int mod, int key) {
 		case KeyRelease:
 			hotkeyUp(hkhandle);
 			XUngrabKey(d, keycode, mod, DefaultRootWindow(d));
+			XSync(d, False); // Ensure ungrab completes before closing
 			XCloseDisplay(d);
 			return 0;
 		}

@@ -23,6 +23,7 @@ import (
 	"runtime"
 	"runtime/cgo"
 	"sync"
+	"time"
 )
 
 const errmsg = `Failed to initialize the X11 display, and the clipboard package
@@ -88,8 +89,6 @@ func (hk *Hotkey) reregister() error { return nil }
 func (hk *Hotkey) handle() {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
-	// KNOWN ISSUE: if a hotkey is grabbed by others, C side will crash the program
-
 	var mod Modifier
 	for _, m := range hk.mods {
 		mod = mod | m
@@ -103,7 +102,17 @@ func (hk *Hotkey) handle() {
 			close(hk.canceled)
 			return
 		default:
-			_ = C.waitHotkey(C.uintptr_t(h), C.uint(mod), C.int(hk.key))
+			rc := C.waitHotkey(C.uintptr_t(h), C.uint(mod), C.int(hk.key))
+			if rc == -2 {
+				// Hotkey already grabbed by another client; wait 2s before
+				// retrying to avoid a tight spin loop.
+				select {
+				case <-hk.ctx.Done():
+					close(hk.canceled)
+					return
+				case <-time.After(2 * time.Second):
+				}
+			}
 		}
 	}
 }

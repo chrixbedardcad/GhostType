@@ -30,6 +30,6 @@ func newDeepSeekFromDef(def config.LLMProviderDef) *OpenAIClient {
 		maxTokens:    maxTokens,
 		timeoutMs:    timeoutMs,
 		providerName: "deepseek",
-		httpClient:   newPooledHTTPClient(),
+		httpClient:   newPooledHTTPClient(timeoutMs),
 	}
 }

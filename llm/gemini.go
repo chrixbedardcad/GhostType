@@ -35,6 +35,6 @@ func newGeminiFromDef(def config.LLMProviderDef) *OpenAIClient {
 		maxTokens:    maxTokens,
 		timeoutMs:    timeoutMs,
 		providerName: "gemini",
-		httpClient:   newPooledHTTPClient(),
+		httpClient:   newPooledHTTPClient(timeoutMs),
 	}
 }

@@ -208,7 +208,7 @@ func (s *WindowsSimulator) RestoreForegroundWindow() {
 	if ret == 0 {
 		slog.Warn("SetForegroundWindow failed", "hwnd", fmt.Sprintf("0x%X", s.savedHWND))
 	}
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(20 * time.Millisecond)
 }
 
 func (s *WindowsSimulator) SelectAllAX() error     { return fmt.Errorf("not supported") }

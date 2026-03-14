@@ -68,6 +68,7 @@
   }
   textarea { resize: vertical; min-height: 60px; }
   input:focus, select:focus, textarea:focus { border-color: #89b4fa; }
+  input.invalid { border-color: #f38ba8 !important; }
   select { cursor: pointer; }
 
   /* --- Toggle switch --- */
@@ -239,6 +240,9 @@
     cursor: grab;
   }
   .template-card:active { cursor: grabbing; }
+  .prompt-move-btn { background: none; border: none; color: #888; cursor: pointer; padding: 2px 4px; font-size: 11px; line-height: 1; }
+  .prompt-move-btn:hover { color: #cdd6f4; }
+  .prompt-move-btn:disabled { color: #45475a; cursor: not-allowed; }
   .template-card.dragging { opacity: 0.5; }
   .template-card.editing { cursor: default; border-color: #89b4fa; }
   .template-card .top-row {
@@ -790,7 +794,8 @@ const _bindingPkg = 'github.com/chrixbedardcad/GhostSpell/gui';
 async function goCall(fn, ...args) {
   try {
     const method = _bindingPkg + '.SettingsService.' + fn.charAt(0).toUpperCase() + fn.slice(1);
-    return await wails.Call.ByName(method, ...args);
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error(fn + ' timed out')), 30000));
+    return await Promise.race([wails.Call.ByName(method, ...args), timeout]);
   } catch (e) {
     console.error('Bridge call failed:', fn, e);
     return null;
@@ -857,6 +862,9 @@ function setStatus(id, type, msg) {
   if (!el) return;
   el.className = 'status ' + type;
   el.textContent = msg;
+  if (type === 'success') {
+    setTimeout(() => { if (el.textContent === msg) { el.className = 'status'; el.textContent = ''; } }, 3000);
+  }
 }
 function clearStatus(id) {
   const el = document.getElementById(id);
@@ -939,7 +947,7 @@ async function onTestProvider(label) {
   if (btn) { btn.disabled = true; btn.textContent = 'Testing...'; }
   if (rel) { rel.className = 'test-result'; rel.style.display = 'none'; }
   const result = await goCall('testProvider', label);
-  if (btn) { btn.disabled = false; btn.textContent = 'Test'; }
+  if (btn) { btn.textContent = 'Test'; setTimeout(() => { btn.disabled = false; }, 3000); }
   if (!rel) return;
   if (result && result.startsWith('ok')) {
     rel.className = 'test-result pass'; rel.textContent = '\u2714 Connection successful'; rel.style.display = 'block';
@@ -1040,21 +1048,33 @@ async function testForm() {
   const apiKey = document.getElementById('form-apikey').value.trim();
   const model = document.getElementById('form-model').value;
   const endpoint = document.getElementById('form-endpoint').value.trim();
+  // Rate limit: find the Test Connection button and disable it
+  const formBtns = document.querySelectorAll('#provider-form .btn-row .btn-secondary');
+  const testBtn = Array.from(formBtns).find(b => b.textContent.trim() === 'Test Connection');
+  if (testBtn) { testBtn.disabled = true; testBtn.textContent = 'Testing...'; }
   setStatus('form-status', 'info', 'Testing...');
   const result = await goCall('testConnection', provider, apiKey, model, endpoint);
+  if (testBtn) { testBtn.textContent = 'Test Connection'; setTimeout(() => { testBtn.disabled = false; }, 3000); }
   if (result && result.startsWith('ok')) setStatus('form-status', 'success', 'Connection successful!');
   else setStatus('form-status', 'error', result || 'Connection failed');
 }
 
 async function saveForm() {
-  const label = document.getElementById('form-label').value.trim();
+  const labelEl = document.getElementById('form-label');
+  const apikeyEl = document.getElementById('form-apikey');
+  const label = labelEl.value.trim();
   const provider = document.getElementById('form-provider').value;
-  const apiKey = document.getElementById('form-apikey').value.trim();
+  const apiKey = apikeyEl.value.trim();
   const model = document.getElementById('form-model').value;
   const endpoint = document.getElementById('form-endpoint').value.trim();
   const originalLabel = document.getElementById('edit-original-label').value;
-  if (!label) { setStatus('form-status','error','Label is required'); return; }
-  if (provider !== 'ollama' && provider !== 'local' && !apiKey) { setStatus('form-status','error','API key is required'); return; }
+  // Clear previous validation
+  labelEl.classList.remove('invalid');
+  apikeyEl.classList.remove('invalid');
+  let hasError = false;
+  if (!label) { labelEl.classList.add('invalid'); hasError = true; }
+  if (provider !== 'ollama' && provider !== 'local' && !apiKey) { apikeyEl.classList.add('invalid'); hasError = true; }
+  if (hasError) { setStatus('form-status','error','Please fill in all required fields'); return; }
   if (!model) { setStatus('form-status','error','Model is required'); return; }
   const result = await goCall('saveProvider', label, provider, apiKey, model, endpoint, originalLabel);
   if (result && result.startsWith('ok')) {
@@ -1132,6 +1152,18 @@ document.addEventListener('click', function(e) {
   if (!e.target.closest('#form-model-picker') && !e.target.closest('#form-model-dropdown')) {
     document.getElementById('form-model-dropdown').style.display = 'none';
   }
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const form = document.getElementById('provider-form');
+    if (form && form.style.display !== 'none') { cancelForm(); return; }
+    if (promptEditIdx >= 0) { cancelInlineEdit(); return; }
+  }
+});
+
+document.addEventListener('focusin', function(e) {
+  if (e.target && e.target.classList) e.target.classList.remove('invalid');
 });
 
 const PROVIDER_KEY_URLS = {
@@ -1366,7 +1398,7 @@ async function localDownloadModelSettings(name) {
         const p = JSON.parse(pRaw);
         const bar = document.getElementById('dl-progress-bar-s');
         const txt = document.getElementById('dl-progress-text-s');
-        if (bar && p.percent > 0) bar.style.width = Math.min(p.percent, 100).toFixed(1) + '%';
+        if (bar) bar.style.width = Math.max(2, Math.min(p.percent, 100)).toFixed(1) + '%';
         if (txt && p.total > 0) txt.textContent = Math.round(p.downloaded / 1024 / 1024) + ' / ' + Math.round(p.total / 1024 / 1024) + ' MB (' + p.percent.toFixed(0) + '%)';
       } catch(e) {}
     }
@@ -1432,6 +1464,8 @@ async function renderPrompts() {
     if (isEditing) {
       html += `<button class="btn btn-secondary btn-sm" onclick="cancelInlineEdit()">Cancel</button>`;
     } else {
+      html += `<button class="prompt-move-btn" onclick="movePromptUp(${i})" title="Move up"${i === 0 ? ' disabled' : ''}>\u25B2</button>`;
+      html += `<button class="prompt-move-btn" onclick="movePromptDown(${i})" title="Move down"${i === prompts.length - 1 ? ' disabled' : ''}>\u25BC</button>`;
       html += `<button class="btn btn-secondary btn-sm" onclick="editPromptInline(${i})">Edit</button>
                <button class="btn btn-danger btn-sm" onclick="deletePrompt(${i})">Delete</button>`;
     }
@@ -1542,6 +1576,7 @@ async function deletePrompt(idx) {
 }
 
 async function resetPrompts() {
+  if (!confirm('Reset all prompts to defaults? This cannot be undone.')) return;
   const result = await goCall('resetPrompts');
   if (result && result.startsWith('ok')) {
     promptEditIdx = -1;
@@ -1561,6 +1596,19 @@ async function promptDrop(e, toIdx) {
   if (promptDragIdx === toIdx || promptDragIdx < 0) return;
   await goCall('movePrompt', promptDragIdx, toIdx);
   promptDragIdx = -1;
+  promptEditIdx = -1;
+  renderPrompts();
+}
+async function movePromptUp(idx) {
+  if (idx <= 0) return;
+  await goCall('movePrompt', idx, idx - 1);
+  promptEditIdx = -1;
+  renderPrompts();
+}
+async function movePromptDown(idx) {
+  const prompts = configData.prompts || [];
+  if (idx >= prompts.length - 1) return;
+  await goCall('movePrompt', idx, idx + 1);
   promptEditIdx = -1;
   renderPrompts();
 }

@@ -72,6 +72,12 @@ function resetTimer() {
   interval = setInterval(updateTimer, 1000);
 }
 
+function stopTimer() {
+  if (interval) clearInterval(interval);
+  interval = null;
+  timerEl.textContent = '0s';
+}
+
 resetTimer();
 </script>
 </body>

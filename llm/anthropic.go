@@ -37,7 +37,7 @@ func NewAnthropicClient(cfg *config.Config) *AnthropicClient {
 		endpoint:   endpoint,
 		maxTokens:  cfg.MaxTokens,
 		timeoutMs:  cfg.TimeoutMs,
-		httpClient: newPooledHTTPClient(),
+		httpClient: newPooledHTTPClient(cfg.TimeoutMs),
 	}
 }
 
@@ -62,7 +62,7 @@ func newAnthropicFromDef(def config.LLMProviderDef) *AnthropicClient {
 		endpoint:   endpoint,
 		maxTokens:  maxTokens,
 		timeoutMs:  timeoutMs,
-		httpClient: newPooledHTTPClient(),
+		httpClient: newPooledHTTPClient(timeoutMs),
 	}
 }
 

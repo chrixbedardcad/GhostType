@@ -123,6 +123,10 @@
   .ollama-status-bar.not-installed .ollama-status-dot { background: #f38ba8; }
   .ollama-status-bar.checking .ollama-status-dot { background: #a6adc8; }
 
+  /* --- Progress bar --- */
+  .progress-bar-wrap { width: 100%; height: 6px; background: #313244; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .progress-bar { height: 100%; background: #cba6f7; border-radius: 3px; transition: width 0.3s; width: 0%; }
+
   /* --- Spinner --- */
   .spinner {
     display: inline-block; width: 16px; height: 16px;
@@ -610,6 +614,9 @@
 
     <div id="local-body"></div>
     <div id="local-action-status" class="status"></div>
+    <div class="progress-bar-wrap" id="wizard-progress-wrap" style="display:none">
+      <div class="progress-bar" id="wizard-progress-bar"></div>
+    </div>
 
     <div class="btn-row">
       <button class="btn btn-secondary" onclick="goToStep(returnTo === 'settings' ? '1.5' : 1)">Back</button>
@@ -1143,12 +1150,15 @@ async function localSetupAll() {
 async function localDownloadModel(name) {
   const btn = document.getElementById('local-dl-' + name);
   const statusEl = document.getElementById('local-action-status');
+  const progressWrap = document.getElementById('wizard-progress-wrap');
+  const progressBar = document.getElementById('wizard-progress-bar');
   if (btn) { btn.textContent = 'Downloading...'; btn.disabled = true; }
 
-  // Show progress bar
-  const statusEl2 = document.getElementById('local-action-status');
-  statusEl2.className = 'status info';
-  statusEl2.innerHTML = '<div style="width:100%;background:#313244;border-radius:4px;height:18px;overflow:hidden;margin-top:4px"><div id="dl-progress-bar" style="width:0%;height:100%;background:linear-gradient(90deg,#89b4fa,#a6e3a1);border-radius:4px;transition:width 0.3s"></div></div><div id="dl-progress-text" style="font-size:0.78em;margin-top:2px">Starting download...</div>';
+  // Show progress bar and status
+  statusEl.className = 'status info';
+  statusEl.textContent = 'Starting download...';
+  progressWrap.style.display = 'block';
+  progressBar.style.width = '0%';
 
   // Start download (async) and poll progress
   const downloadPromise = goCall('localDownloadModel', name);
@@ -1157,13 +1167,11 @@ async function localDownloadModel(name) {
     if (pRaw) {
       try {
         const p = JSON.parse(pRaw);
-        const bar = document.getElementById('dl-progress-bar');
-        const txt = document.getElementById('dl-progress-text');
-        if (bar && p.percent > 0) {
-          bar.style.width = Math.min(p.percent, 100).toFixed(1) + '%';
+        if (p.percent > 0) {
+          progressBar.style.width = Math.min(p.percent, 100).toFixed(1) + '%';
         }
-        if (txt && p.total > 0) {
-          txt.textContent = Math.round(p.downloaded / 1024 / 1024) + ' / ' + Math.round(p.total / 1024 / 1024) + ' MB (' + p.percent.toFixed(0) + '%)';
+        if (p.total > 0) {
+          statusEl.textContent = Math.round(p.downloaded / 1024 / 1024) + ' / ' + Math.round(p.total / 1024 / 1024) + ' MB (' + p.percent.toFixed(0) + '%)';
         }
       } catch(e) {}
     }
@@ -1171,16 +1179,15 @@ async function localDownloadModel(name) {
 
   const result = await downloadPromise;
   clearInterval(pollInterval);
+  progressWrap.style.display = 'none';
   if (btn) { btn.disabled = false; btn.textContent = 'Download'; }
 
   if (result && result.startsWith('ok')) {
-    statusEl.className = 'status success';
-    statusEl.textContent = name + ' downloaded!';
+    setStatus('local-action-status', 'success', name + ' downloaded!');
     localSelectedModel = name;
     localRefresh();
   } else {
-    statusEl.className = 'status error';
-    statusEl.textContent = 'Download failed: ' + (result || 'unknown error');
+    setStatus('local-action-status', 'error', 'Download failed: ' + (result || 'unknown error'));
   }
 }
 
@@ -1405,6 +1412,9 @@ function setStatus(id, type, msg) {
   const el = document.getElementById(id);
   el.className = 'status ' + type;
   el.textContent = msg;
+  if (type === 'success') {
+    setTimeout(() => { if (el.textContent === msg) { el.className = 'status'; el.textContent = ''; } }, 3000);
+  }
 }
 
 function clearStatus(id) {

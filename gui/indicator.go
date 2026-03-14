@@ -83,7 +83,10 @@ func ShowIndicator() {
 	win.Show()
 }
 
-// HideIndicator hides the floating ghost overlay.
+// HideIndicator hides the floating ghost overlay and stops the elapsed timer.
+// Resetting the DOM text to "0s" here ensures that the next ShowIndicator
+// displays "0s" immediately, even though ExecJS is asynchronous — by the time
+// the user presses Ctrl+G again the stopTimer JS will have executed.
 func HideIndicator() {
 	indicatorMu.Lock()
 	win := indicatorWin
@@ -92,4 +95,5 @@ func HideIndicator() {
 		return
 	}
 	win.Hide()
+	win.ExecJS("stopTimer()")
 }

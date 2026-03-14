@@ -308,22 +308,31 @@ func getOAuthResult() string {
 
 // runOpenAIOAuthFlow executes the full OpenAI OAuth PKCE flow.
 func runOpenAIOAuthFlow() (apiKey, refreshToken string, err error) {
-	addr := fmt.Sprintf("127.0.0.1:%d", oauthPort)
-	redirectURI := fmt.Sprintf("http://localhost:%d%s", oauthPort, oauthPath)
+	// Try the preferred port first, then fallback ports, then random.
+	var listener net.Listener
+	var port int
+	for _, p := range []int{oauthPort, 9004, 9005, 9006, 9007} {
+		l, listenErr := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", p))
+		if listenErr == nil {
+			listener = l
+			port = p
+			break
+		}
+		slog.Warn("OAuth: port unavailable", "port", p, "error", listenErr)
+	}
+	if listener == nil {
+		// Fallback: random port
+		l, listenErr := net.Listen("tcp", "127.0.0.1:0")
+		if listenErr != nil {
+			return "", "", fmt.Errorf("no available port for OAuth callback: %w", listenErr)
+		}
+		listener = l
+		port = l.Addr().(*net.TCPAddr).Port
+		slog.Info("OAuth: using random fallback port", "port", port)
+	}
+	redirectURI := fmt.Sprintf("http://localhost:%d%s", port, oauthPath)
 
 	slog.Info("OAuth: starting OpenAI flow", "redirect", redirectURI)
-
-	listener, err := net.Listen("tcp", addr)
-	if err != nil {
-		slog.Warn("OAuth: port unavailable, trying random", "port", oauthPort, "error", err)
-		listener, err = net.Listen("tcp", "127.0.0.1:0")
-		if err != nil {
-			return "", "", fmt.Errorf("start listener: %w", err)
-		}
-		actualPort := listener.Addr().(*net.TCPAddr).Port
-		redirectURI = fmt.Sprintf("http://localhost:%d%s", actualPort, oauthPath)
-		slog.Info("OAuth: using fallback port", "port", actualPort)
-	}
 
 	verifier, challenge := generatePKCE()
 	state := randomState()
@@ -456,6 +465,7 @@ p{color:#a6adc8;font-size:0.9em}
 <h2>&#9989; Authorization Successful!</h2>
 <p>You can close this tab and return to GhostSpell.</p>
 </div>
+<script>setTimeout(function(){ window.close(); }, 2000);</script>
 </body></html>`
 	}
 	return fmt.Sprintf(`<!DOCTYPE html>

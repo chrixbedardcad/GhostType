@@ -42,7 +42,7 @@ func NewOpenAIClient(cfg *config.Config) *OpenAIClient {
 		maxTokens:    cfg.MaxTokens,
 		timeoutMs:    cfg.TimeoutMs,
 		providerName: "openai",
-		httpClient:   newPooledHTTPClient(),
+		httpClient:   newPooledHTTPClient(cfg.TimeoutMs),
 	}
 }
 
@@ -71,7 +71,7 @@ func newOpenAIFromDef(def config.LLMProviderDef) *OpenAIClient {
 		maxTokens:    maxTokens,
 		timeoutMs:    timeoutMs,
 		providerName: "openai",
-		httpClient:   newPooledHTTPClient(),
+		httpClient:   newPooledHTTPClient(timeoutMs),
 	}
 }
 

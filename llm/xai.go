@@ -30,6 +30,6 @@ func newXAIFromDef(def config.LLMProviderDef) *OpenAIClient {
 		maxTokens:    maxTokens,
 		timeoutMs:    timeoutMs,
 		providerName: "xai",
-		httpClient:   newPooledHTTPClient(),
+		httpClient:   newPooledHTTPClient(timeoutMs),
 	}
 }

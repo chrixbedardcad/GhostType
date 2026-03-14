@@ -33,28 +33,32 @@ func (s *LinuxSimulator) CopyScript() error                { return fmt.Errorf("
 func (s *LinuxSimulator) PasteScript() error               { return fmt.Errorf("not supported") }
 
 func (s *LinuxSimulator) SelectAll() error {
-	return xdotoolKey("ctrl+a")
+	return xdotoolKeys("ctrl+a")
 }
 
 func (s *LinuxSimulator) Copy() error {
-	return xdotoolKey("ctrl+c")
+	return xdotoolKeys("ctrl+c")
 }
 
 func (s *LinuxSimulator) Paste() error {
-	return xdotoolKey("ctrl+v")
+	return xdotoolKeys("ctrl+v")
 }
 
 func (s *LinuxSimulator) PressRight() error {
-	return xdotoolKey("Right")
+	return xdotoolKeys("Right")
 }
 
-func xdotoolKey(keys string) error {
+// xdotoolKeys sends one or more key sequences in a single xdotool invocation.
+// Each key argument is a separate keystroke (e.g., "ctrl+a", "ctrl+c").
+// Multiple keys are batched: xdotool key --clearmodifiers key1 key2 ...
+func xdotoolKeys(keys ...string) error {
 	path, err := exec.LookPath("xdotool")
 	if err != nil {
 		return fmt.Errorf("xdotool not found (install: apt install xdotool): %w", err)
 	}
-	if err := exec.Command(path, "key", "--clearmodifiers", keys).Run(); err != nil {
-		return fmt.Errorf("xdotool key %s: %w", keys, err)
+	args := append([]string{"key", "--clearmodifiers"}, keys...)
+	if err := exec.Command(path, args...).Run(); err != nil {
+		return fmt.Errorf("xdotool key %v: %w", keys, err)
 	}
 	time.Sleep(10 * time.Millisecond)
 	return nil

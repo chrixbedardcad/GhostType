@@ -34,7 +34,7 @@ func NewOllamaClient(cfg *config.Config) *OllamaClient {
 		endpoint:   endpoint,
 		maxTokens:  cfg.MaxTokens,
 		timeoutMs:  cfg.TimeoutMs,
-		httpClient: newPooledHTTPClient(),
+		httpClient: newPooledHTTPClient(cfg.TimeoutMs),
 	}
 }
 
@@ -77,7 +77,7 @@ func newOllamaFromDef(def config.LLMProviderDef) *OllamaClient {
 		endpoint:   endpoint,
 		maxTokens:  maxTokens,
 		timeoutMs:  timeoutMs,
-		httpClient: newPooledHTTPClient(),
+		httpClient: newPooledHTTPClient(timeoutMs),
 	}
 }
 
