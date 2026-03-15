@@ -486,7 +486,7 @@
         <div class="provider-card-meta" id="prov-meta-openai-oauth">Sign in with ChatGPT &mdash; no API key needed.</div>
         <div class="provider-card-actions">
           <button class="btn btn-primary btn-sm" onclick="startOpenAIOAuth()">Authorize</button>
-          <button class="btn btn-secondary btn-sm" onclick="testProviderConnection('openai')" style="display:none" id="prov-test-openai-oauth">Test</button>
+          <button class="btn btn-secondary btn-sm" onclick="testOAuthConnection()" style="display:none" id="prov-test-openai-oauth">Test</button>
         </div>
         <div class="provider-test-result" id="prov-result-openai-oauth"></div>
       </div>
@@ -1371,6 +1371,34 @@ async function testOpenAIApiKey() {
   else setStatus('prov-openai-status', 'error', result || 'Connection failed');
 }
 
+async function testOAuthConnection() {
+  var btn = document.getElementById('prov-test-openai-oauth');
+  var resultEl = document.getElementById('prov-result-openai-oauth');
+  if (btn) { btn.disabled = true; btn.textContent = 'Testing...'; }
+  if (resultEl) { resultEl.className = 'provider-test-result'; resultEl.textContent = 'Refreshing token...'; resultEl.style.display = 'block'; }
+  // Find the chatgpt model entry to test with
+  var models = configData.models || {};
+  var label = '';
+  for (var l in models) {
+    if (models[l].provider === 'openai') { label = l; break; }
+  }
+  if (!label) {
+    if (resultEl) { resultEl.className = 'provider-test-result fail'; resultEl.textContent = '\u2718 No ChatGPT model configured'; }
+    if (btn) { btn.textContent = 'Test'; setTimeout(function() { btn.disabled = false; }, 3000); }
+    return;
+  }
+  var result = await goCall('testProvider', label);
+  if (btn) { btn.textContent = 'Test'; setTimeout(function() { btn.disabled = false; }, 3000); }
+  if (resultEl) {
+    if (result && result.startsWith('ok')) {
+      resultEl.className = 'provider-test-result pass'; resultEl.textContent = '\u2714 Connection successful';
+    } else {
+      resultEl.className = 'provider-test-result fail'; resultEl.textContent = '\u2718 ' + (result || 'Failed');
+    }
+    resultEl.style.display = 'block';
+  }
+}
+
 async function saveProviderKeepAlive(enabled) {
   // Find a model label that uses the local provider
   var models = configData.models || {};
@@ -1727,10 +1755,18 @@ async function renderModels() {
   emptyEl.style.display = 'none';
 
   var html = '';
+  // Detect if OpenAI uses OAuth (refresh_token) for display purposes.
+  var openaiProv = (configData.providers || {}).openai;
+  var openaiIsOAuth = openaiProv && openaiProv.refresh_token;
+
   labels.forEach(function(label) {
     var m = models[label];
     var isDefault = label === defaultModel;
+    // Show "ChatGPT Login (OAuth)" for OpenAI models when using OAuth, else "OpenAI (API Key)".
     var provName = PROVIDER_NAMES[m.provider] || m.provider;
+    if (m.provider === 'openai') {
+      provName = openaiIsOAuth ? 'ChatGPT Login' : 'OpenAI';
+    }
     var hasProvider = !!(configData.providers || {})[m.provider];
     html += '<div class="provider-entry"' + (!hasProvider ? ' style="opacity:0.6"' : '') + '>';
     html += '<div class="provider-info">';
