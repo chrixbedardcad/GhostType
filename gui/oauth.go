@@ -79,11 +79,36 @@ func openBrowserURL(rawURL string) error {
 
 // tokenResponse represents the response from OpenAI's token endpoint.
 type tokenResponse struct {
-	IDToken      string `json:"id_token"`
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-	Error        string `json:"error,omitempty"`
-	ErrorDesc    string `json:"error_description,omitempty"`
+	IDToken      string          `json:"id_token"`
+	AccessToken  string          `json:"access_token"`
+	RefreshToken string          `json:"refresh_token"`
+	Error        json.RawMessage `json:"error,omitempty"`
+	ErrorDesc    string          `json:"error_description,omitempty"`
+}
+
+// errorString extracts a human-readable error from the token response.
+// Handles both string errors ("invalid_grant") and object errors ({"message":"..."}).
+func (r *tokenResponse) errorString() string {
+	if len(r.Error) == 0 {
+		return ""
+	}
+	// Try string first.
+	var s string
+	if json.Unmarshal(r.Error, &s) == nil && s != "" {
+		return s
+	}
+	// Try object with message field.
+	var obj struct {
+		Message string `json:"message"`
+		Type    string `json:"type"`
+	}
+	if json.Unmarshal(r.Error, &obj) == nil && obj.Message != "" {
+		if obj.Type != "" {
+			return obj.Type + ": " + obj.Message
+		}
+		return obj.Message
+	}
+	return string(r.Error)
 }
 
 // exchangeCodeForTokens exchanges the authorization code for tokens.
@@ -126,8 +151,8 @@ func exchangeCodeForTokens(code, verifier, redirectURI string) (*tokenResponse, 
 		return nil, fmt.Errorf("parse response: %w (body: %s)", err, string(body))
 	}
 
-	if result.Error != "" {
-		return nil, fmt.Errorf("token error: %s — %s", result.Error, result.ErrorDesc)
+	if errStr := result.errorString(); errStr != "" {
+		return nil, fmt.Errorf("token error: %s — %s", errStr, result.ErrorDesc)
 	}
 
 	if result.IDToken == "" {
@@ -177,8 +202,8 @@ func exchangeIDTokenForAPIKey(idToken string) (string, error) {
 		return "", fmt.Errorf("parse response: %w (body: %s)", err, string(body))
 	}
 
-	if result.Error != "" {
-		return "", fmt.Errorf("API key exchange error: %s — %s", result.Error, result.ErrorDesc)
+	if errStr := result.errorString(); errStr != "" {
+		return "", fmt.Errorf("API key exchange error: %s — %s", errStr, result.ErrorDesc)
 	}
 
 	if result.AccessToken == "" {
@@ -228,8 +253,8 @@ func RefreshOpenAITokens(refreshToken string) (apiKey, newRefreshToken string, e
 		return "", "", fmt.Errorf("parse response: %w", err)
 	}
 
-	if result.Error != "" {
-		return "", "", fmt.Errorf("refresh error: %s — %s", result.Error, result.ErrorDesc)
+	if errStr := result.errorString(); errStr != "" {
+		return "", "", fmt.Errorf("refresh error: %s — %s", errStr, result.ErrorDesc)
 	}
 
 	// Get the new refresh token (may be rotated)

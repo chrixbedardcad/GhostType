@@ -377,6 +377,12 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 			promptIdx := cfg.ActivePrompt
 			mu.Unlock()
 
+			if router == nil {
+				slog.Warn("Hotkey pressed but no active model — open Settings to configure")
+				sound.PlayError()
+				return
+			}
+
 			promptName := "Prompt"
 			if promptIdx >= 0 && promptIdx < len(cfg.Prompts) {
 				promptName = cfg.Prompts[promptIdx].Name
