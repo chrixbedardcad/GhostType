@@ -57,6 +57,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		sound.PlayToggle()
 	}
 
+	// refreshTrayMenu is set after tray.Start() and called after settings save.
+	var refreshTrayMenu func()
+
 	// Create the shared Wails application used by both the tray, wizard, and settings.
 	// The SettingsService is pre-registered so its JS bindings are available
 	// whenever a settings or wizard window is created on this app.
@@ -186,6 +189,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 					}
 				}
 				slog.Info("Live config reloaded after settings save")
+				refreshTrayMenu()
 				refreshHotkeys()
 			})
 		},
@@ -262,7 +266,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	var trayStartAnim func()
 	var trayStopAnim func()
 	var setUpdateAvailable func(string)
-	trayRun, stopTrayFn, dismissTrayMenu, trayStartAnim, trayStopAnim, setUpdateAvailable = tray.Start(trayCfg, wailsApp)
+	trayRun, stopTrayFn, dismissTrayMenu, trayStartAnim, trayStopAnim, setUpdateAvailable, refreshTrayMenu = tray.Start(trayCfg, wailsApp)
 
 	// Background update checker — checks after 60s, then every 24h.
 	go func() {

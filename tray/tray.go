@@ -78,7 +78,7 @@ type trayState struct {
 // a stop function that quits the app, a dismissMenu function that cancels any
 // currently tracking tray menu, startAnim/stopAnim for working animation, and
 // a setUpdateAvailable function that sets the update version and rebuilds the menu.
-func Start(cfg Config, app *application.App) (run func() error, stop func(), dismissMenu func() bool, startAnim func(), stopAnim func(), setUpdateAvailable func(version string)) {
+func Start(cfg Config, app *application.App) (run func() error, stop func(), dismissMenu func() bool, startAnim func(), stopAnim func(), setUpdateAvailable func(version string), refreshMenuFn func()) {
 	slog.Info("[tray] Start() called",
 		"os", runtime.GOOS,
 		"icon_bytes", len(cfg.IconPNG),
@@ -165,7 +165,8 @@ func Start(cfg Config, app *application.App) (run func() error, stop func(), dis
 		slog.Info("[tray] Update available", "version", ver)
 	}
 
-	return run, stop, dismissMenu, startAnim, stopAnim, setUpdateAvailable
+	refreshMenuFn = func() { ts.refreshMenu() }
+	return run, stop, dismissMenu, startAnim, stopAnim, setUpdateAvailable, refreshMenuFn
 }
 
 // StartAnimation begins cycling through working animation frames.
