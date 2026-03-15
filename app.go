@@ -174,8 +174,6 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				}
 				mu.Lock()
 				*cfg = *newCfg
-				mu.Unlock()
-				sound.SetEnabled(*cfg.SoundEnabled)
 				if router != nil {
 					router.ResetClients()
 				}
@@ -188,6 +186,8 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 						slog.Info("Model error resolved after settings save")
 					}
 				}
+				mu.Unlock()
+				sound.SetEnabled(*cfg.SoundEnabled)
 				slog.Info("Live config reloaded after settings save")
 				refreshTrayMenu()
 				refreshHotkeys()
@@ -373,21 +373,24 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				time.Sleep(50 * time.Millisecond)
 			}
 
+			// Snapshot cfg fields and router under lock to avoid races with
+			// settings save which replaces *cfg and router concurrently.
 			mu.Lock()
 			promptIdx := cfg.ActivePrompt
+			promptName := "Prompt"
+			if promptIdx >= 0 && promptIdx < len(cfg.Prompts) {
+				promptName = cfg.Prompts[promptIdx].Name
+			}
+			localRouter := router
 			mu.Unlock()
 
-			if router == nil {
+			if localRouter == nil {
 				slog.Warn("Hotkey pressed but no active model — open Settings to configure")
 				sound.PlayError()
 				return
 			}
 
-			promptName := "Prompt"
-			if promptIdx >= 0 && promptIdx < len(cfg.Prompts) {
-				promptName = cfg.Prompts[promptIdx].Name
-			}
-			processMode(promptName, promptIdx, cfg, router, cb, kb, &mu, &cancelLLM, trayStartAnim, trayStopAnim)
+			processMode(promptName, promptIdx, cfg, localRouter, cb, kb, &mu, &cancelLLM, trayStartAnim, trayStopAnim)
 		}); err != nil {
 			slog.Error("Failed to register action hotkey", "key", cfg.Hotkeys.Action, "error", err)
 			fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.Action, err)
@@ -397,18 +400,23 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		// Optional cycle-prompt hotkey.
 		if cfg.Hotkeys.CyclePrompt != "" {
 			if err := mgr.Register("cycle_prompt", cfg.Hotkeys.CyclePrompt, func() {
-				if router == nil {
+				mu.Lock()
+				localRouter := router
+				mu.Unlock()
+				if localRouter == nil {
 					return
 				}
-				idx, name := router.CyclePrompt()
+				idx, name := localRouter.CyclePrompt()
 				slog.Info("Prompt cycled", "index", idx, "name", name)
 				fmt.Printf("Active prompt: %s\n", name)
 				sound.PlayToggle()
 				// Show a brief pop of the indicator pill with the new prompt.
+				mu.Lock()
 				icon := ""
 				if idx >= 0 && idx < len(cfg.Prompts) {
 					icon = cfg.Prompts[idx].Icon
 				}
+				mu.Unlock()
 				gui.PopIndicator(icon, name)
 			}); err != nil {
 				slog.Error("Failed to register cycle-prompt hotkey", "key", cfg.Hotkeys.CyclePrompt, "error", err)

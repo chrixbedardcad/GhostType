@@ -118,6 +118,9 @@ func (r *Router) resolveClient(label string) (llm.Client, error) {
 	if !ok {
 		fallback := r.defaultClient
 		r.mu.Unlock()
+		if fallback == nil {
+			return nil, fmt.Errorf("model %q not found and no default client configured", label)
+		}
 		slog.Warn("Model label not found, falling back to default", "label", label)
 		return fallback, nil
 	}
