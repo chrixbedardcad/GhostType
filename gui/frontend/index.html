@@ -1783,7 +1783,7 @@ async function renderModels() {
     html += '<span class="provider-meta">' + esc(provName) + ' \u00b7 ' + esc(m.model || 'no model') + '</span>';
     html += '</div>';
     html += '<div class="provider-actions">';
-    if (!isDefault) html += '<button class="btn btn-secondary btn-sm" onclick="setModelDefault(\'' + escJS(label) + '\')">Default</button>';
+    if (!isDefault) html += '<button class="btn btn-secondary btn-sm" onclick="setModelDefault(\'' + escJS(label) + '\')">Set Default</button>';
     html += '<button class="btn btn-secondary btn-sm" onclick="editModel(\'' + escJS(label) + '\')">Edit</button>';
     html += '<button class="btn btn-danger btn-sm" onclick="deleteModel(\'' + escJS(label) + '\')">Delete</button>';
     html += '</div></div></div>';
