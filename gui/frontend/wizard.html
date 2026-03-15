@@ -394,7 +394,7 @@
       <div style="font-size:0.82em;color:#a6adc8;line-height:1.5;margin-bottom:12px">
         This lets GhostSpell detect when you press the hotkey, so it can start processing your text.
       </div>
-      <button class="btn btn-primary btn-sm" onclick="openImPane()" style="width:100%">Open Input Monitoring Settings</button>
+      <button class="btn btn-primary btn-sm" onclick="openImPaneAndMark()" style="width:100%">Open Input Monitoring Settings</button>
     </div>
 
     <div style="background:#2a2d42;border-radius:8px;padding:12px;font-size:0.78em;color:#f9e2af;line-height:1.5;margin-bottom:12px">
@@ -439,7 +439,7 @@
       Pick how GhostSpell powers your text. You can always change this later in Settings.
     </div>
 
-    <div class="provider-section-header">Run locally &mdash; free &amp; private</div>
+    <div class="provider-section-header"><span style="font-size:1.2em">&#128274;</span> Local &mdash; free, private, offline</div>
     <div class="local-provider-row">
       <div class="card" onclick="selectCategory('local')" style="border-color:#a6e3a1">
         <div class="card-header">
@@ -473,7 +473,7 @@
       </div>
     </div>
 
-    <div class="provider-section-header">Cloud providers</div>
+    <div class="provider-section-header"><span style="font-size:1.2em">&#9729;&#65039;</span> Cloud &mdash; faster, smarter, requires account</div>
     <div class="provider-grid">
       <div class="card" onclick="selectCloudProvider('gemini')">
         <div class="card-header">
@@ -533,7 +533,7 @@
       Pick a provider for your new model.
     </div>
 
-    <div class="provider-section-header">Run locally &mdash; free &amp; private</div>
+    <div class="provider-section-header"><span style="font-size:1.2em">&#128274;</span> Local &mdash; free, private, offline</div>
     <div class="local-provider-row">
       <div class="card" onclick="selectCategory('local')" style="border-color:#a6e3a1">
         <div class="card-header">
@@ -566,7 +566,7 @@
       </div>
     </div>
 
-    <div class="provider-section-header">Cloud providers</div>
+    <div class="provider-section-header"><span style="font-size:1.2em">&#9729;&#65039;</span> Cloud &mdash; faster, smarter, requires account</div>
     <div class="provider-grid">
       <div class="card" onclick="selectCloudProvider('gemini')">
         <div class="card-header">
@@ -1280,6 +1280,11 @@ function renderLocalModels(container, installedModels, allAvailable) {
       html += '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();localDownloadModel(\'' + escJS(m.name) + '\')" id="local-dl-' + esc(m.name) + '" style="font-size:0.75em;padding:5px 10px">&#9729;&#65039; Download</button>';
     }
     html += '</div>';
+    // Per-model progress bar (hidden until download starts)
+    html += '<div id="dl-wrap-' + esc(m.name) + '" style="display:none;margin-top:6px;width:100%">';
+    html += '<div style="width:100%;background:#313244;border-radius:4px;height:14px;overflow:hidden"><div id="dl-bar-' + esc(m.name) + '" style="width:0%;height:100%;background:linear-gradient(90deg,#89b4fa,#a6e3a1);border-radius:4px;transition:width 0.3s"></div></div>';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px"><span id="dl-text-' + esc(m.name) + '" style="font-size:0.7em;color:#6c7086">Starting...</span><button class="btn btn-sm" onclick="event.stopPropagation();cancelDownload()" style="font-size:0.65em;padding:2px 8px;background:#45475a;color:#f38ba8;border:1px solid #f38ba8">Cancel</button></div>';
+    html += '</div>';
     html += '</div>';
   }
 
@@ -1317,47 +1322,51 @@ async function localSetupAll() {
   await localDownloadModel('qwen3.5-2b');
 }
 
+var _downloadingModel = '';
+
 async function localDownloadModel(name) {
   const btn = document.getElementById('local-dl-' + name);
-  const statusEl = document.getElementById('local-action-status');
-  const progressWrap = document.getElementById('wizard-progress-wrap');
-  const progressBar = document.getElementById('wizard-progress-bar');
+  const wrap = document.getElementById('dl-wrap-' + name);
+  const bar = document.getElementById('dl-bar-' + name);
+  const text = document.getElementById('dl-text-' + name);
   if (btn) { btn.textContent = 'Downloading...'; btn.disabled = true; }
+  if (wrap) wrap.style.display = 'block';
+  if (bar) bar.style.width = '0%';
+  if (text) text.textContent = 'Starting download...';
+  _downloadingModel = name;
 
-  // Show progress bar and status
-  statusEl.className = 'status info';
-  statusEl.textContent = 'Starting download...';
-  progressWrap.style.display = 'block';
-  progressBar.style.width = '0%';
-
-  // Start download (async) and poll progress
   const downloadPromise = goCall('localDownloadModel', name);
   const pollInterval = setInterval(async () => {
     const pRaw = await goCall('localDownloadProgress');
     if (pRaw) {
       try {
         const p = JSON.parse(pRaw);
-        if (p.percent > 0) {
-          progressBar.style.width = Math.min(p.percent, 100).toFixed(1) + '%';
-        }
-        if (p.total > 0) {
-          statusEl.textContent = Math.round(p.downloaded / 1024 / 1024) + ' / ' + Math.round(p.total / 1024 / 1024) + ' MB (' + p.percent.toFixed(0) + '%)';
-        }
+        if (bar && p.percent > 0) bar.style.width = Math.min(p.percent, 100).toFixed(1) + '%';
+        if (text && p.total > 0) text.textContent = Math.round(p.downloaded / 1024 / 1024) + ' / ' + Math.round(p.total / 1024 / 1024) + ' MB (' + p.percent.toFixed(0) + '%)';
       } catch(e) {}
     }
   }, 500);
 
   const result = await downloadPromise;
   clearInterval(pollInterval);
-  progressWrap.style.display = 'none';
-  if (btn) { btn.disabled = false; btn.textContent = 'Download'; }
+  _downloadingModel = '';
+  if (wrap) wrap.style.display = 'none';
+  if (btn) { btn.disabled = false; btn.textContent = '\u2601\uFE0F Download'; }
 
   if (result && result.startsWith('ok')) {
-    setStatus('local-action-status', 'success', name + ' downloaded!');
     localSelectedModel = name;
     localRefresh();
   } else {
     setStatus('local-action-status', 'error', 'Download failed: ' + (result || 'unknown error'));
+  }
+}
+
+function cancelDownload() {
+  // Cancel is handled by closing the download — the Go backend respects context cancellation.
+  // For now, refresh the page to stop polling.
+  if (_downloadingModel) {
+    setStatus('local-action-status', 'info', 'Cancelling...');
+    localRefresh();
   }
 }
 
@@ -1731,6 +1740,8 @@ async function checkPerms() {
   try { return JSON.parse(raw); } catch(e) { return { accessibility: true, postEvent: true, isMac: false }; }
 }
 
+var _imPaneOpened = false; // tracks if user clicked "Open Input Monitoring Settings"
+
 function updatePermUI(perms) {
   const axEl = document.getElementById('perm-ax-status');
   const imEl = document.getElementById('perm-im-status');
@@ -1739,8 +1750,19 @@ function updatePermUI(perms) {
     axEl.className = 'perm-status ' + (perms.accessibility ? 'granted' : 'denied');
   }
   if (imEl) {
-    imEl.textContent = perms.postEvent ? 'Granted' : 'Not granted';
-    imEl.className = 'perm-status ' + (perms.postEvent ? 'granted' : 'denied');
+    if (perms.postEvent) {
+      imEl.textContent = 'Granted';
+      imEl.className = 'perm-status granted';
+    } else if (_imPaneOpened) {
+      // User opened settings — macOS won't report the change until restart.
+      imEl.textContent = 'Restart required';
+      imEl.className = 'perm-status';
+      imEl.style.color = '#f9e2af'; // yellow
+      imEl.style.borderColor = '#f9e2af';
+    } else {
+      imEl.textContent = 'Not granted';
+      imEl.className = 'perm-status denied';
+    }
   }
 }
 
@@ -1764,6 +1786,19 @@ async function openAxPane() {
 
 async function openImPane() {
   await goCall('openInputMonitoringPane');
+}
+
+async function openImPaneAndMark() {
+  _imPaneOpened = true;
+  await openImPane();
+  // Immediately update the UI to show "Restart required" yellow state.
+  const imEl = document.getElementById('perm-im-status');
+  if (imEl) {
+    imEl.textContent = 'Restart required';
+    imEl.className = 'perm-status';
+    imEl.style.color = '#f9e2af';
+    imEl.style.borderColor = '#f9e2af';
+  }
 }
 
 // Step 0a → 0b: Accessibility granted → move to Input Monitoring
