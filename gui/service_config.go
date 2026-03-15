@@ -269,23 +269,38 @@ func (s *SettingsService) ResetModels() string {
 	s.cfgCopy.Models = make(map[string]config.ModelEntry)
 	s.cfgCopy.DefaultModel = ""
 
-	// Create one model per configured provider with the recommended model.
+	// Create one model per configured provider with the best available model.
 	for _, p := range priority {
 		if _, ok := s.cfgCopy.Providers[p.provider]; !ok {
 			continue
 		}
-		models := KnownModels(p.provider)
-		if len(models) == 0 {
-			continue
-		}
-		// Pick the recommended model, or the first one.
-		modelName := models[0].Name
-		for _, m := range models {
-			if m.Tag == "recommended" {
-				modelName = m.Name
-				break
+
+		var modelName string
+
+		// For GhostAI (local), pick the best DOWNLOADED model instead of
+		// the recommended one (which might not be downloaded yet).
+		if p.provider == "local" {
+			installed, err := llm.InstalledLocalModels()
+			if err == nil && len(installed) > 0 {
+				modelName = installed[0].Name
 			}
 		}
+
+		// Fallback: pick the recommended model from the curated list.
+		if modelName == "" {
+			models := KnownModels(p.provider)
+			if len(models) == 0 {
+				continue
+			}
+			modelName = models[0].Name
+			for _, m := range models {
+				if m.Tag == "recommended" {
+					modelName = m.Name
+					break
+				}
+			}
+		}
+
 		s.cfgCopy.Models[p.label] = config.ModelEntry{
 			Provider: p.provider,
 			Model:    modelName,
