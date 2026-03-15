@@ -1242,11 +1242,17 @@ function showCloudSetup(type) {
   var names = {anthropic:'Anthropic Claude', gemini:'Google Gemini', xai:'xAI Grok', deepseek:'DeepSeek'};
   var descs = {anthropic:'Premium quality, best multilingual support.', gemini:'Free tier: 250 requests/day.', xai:'$25 free credits at signup.', deepseek:'Affordable, strong reasoning models.'};
   var links = {anthropic:'https://console.anthropic.com/settings/keys', gemini:'https://aistudio.google.com/apikey', xai:'https://console.x.ai/team/default/api-keys', deepseek:'https://platform.deepseek.com/api_keys'};
-  document.getElementById('cloud-setup-title').textContent = names[type] + ' Setup';
+  var logos = {
+    anthropic: '<svg width="28" height="28" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:6px"><path d="M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z" fill="#D4A574"/></svg>',
+    gemini: '<svg width="28" height="28" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:6px"><defs><linearGradient id="gmc" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#4285F4"/><stop offset=".33" stop-color="#9B72CB"/><stop offset=".66" stop-color="#D96570"/><stop offset="1" stop-color="#F9AB00"/></linearGradient></defs><path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81" fill="url(#gmc)"/></svg>',
+    xai: '<svg width="28" height="28" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:6px"><path d="M14.234 10.162 22.977 0h-2.072l-7.591 8.824L7.251 0H.258l9.168 13.343L.258 24H2.33l8.016-9.318L16.749 24h6.993zm-2.837 3.299-.929-1.329L3.076 1.56h3.182l5.965 8.532.929 1.329 7.754 11.09h-3.182z" fill="#cdd6f4"/></svg>',
+    deepseek: '<svg width="28" height="28" viewBox="60 100 400 350" style="vertical-align:middle;margin-right:6px"><path d="M440.898 139.167c-4.001-1.961-5.723 1.776-8.062 3.673-.801.612-1.479 1.407-2.154 2.141-5.848 6.246-12.681 10.349-21.607 9.859-13.048-.734-24.192 3.368-34.04 13.348-2.093-12.307-9.048-19.658-19.635-24.37-5.54-2.449-11.141-4.9-15.02-10.227-2.708-3.795-3.447-8.021-4.801-12.185-.861-2.509-1.725-5.082-4.618-5.512-3.139-.49-4.372 2.142-5.601 4.349-4.925 9.002-6.833 18.921-6.647 28.962.432 22.597 9.972 40.597 28.932 53.397 2.154 1.47 2.707 2.939 2.032 5.082-1.293 4.41-2.832 8.695-4.186 13.105-.862 2.817-2.157 3.429-5.172 2.205-10.402-4.346-19.391-10.778-27.332-18.553-13.481-13.044-25.668-27.434-40.873-38.702a177.614 177.614 0 00-10.834-7.409c-15.512-15.063 2.032-27.434 6.094-28.902 4.247-1.532 1.478-6.797-12.251-6.736-13.727.061-26.285 4.653-42.288 10.777-2.34.92-4.801 1.593-7.326 2.142-14.527-2.756-29.608-3.368-45.367-1.593-29.671 3.305-53.368 17.329-70.788 41.272-20.928 28.785-25.854 61.482-19.821 95.59 6.34 35.943 24.683 65.704 52.876 88.974 29.239 24.123 62.911 35.943 101.32 33.677 23.329-1.346 49.307-4.468 78.607-29.27 7.387 3.673 15.142 5.144 28.008 6.246 9.911.92 19.452-.49 26.839-2.019 11.573-2.449 10.773-13.166 6.586-15.124-33.915-15.797-26.47-9.368-33.24-14.573 17.235-20.39 43.213-41.577 53.369-110.222.8-5.448.121-8.877 0-13.287-.061-2.692.553-3.734 3.632-4.041 8.494-.981 16.742-3.305 24.314-7.471 21.975-12.002 30.84-31.719 32.933-55.355.307-3.612-.061-7.348-3.879-9.245v-.003z" fill="#4D6BFE"/></svg>'
+  };
+  document.getElementById('cloud-setup-title').innerHTML = (logos[type] || '') + names[type] + ' Setup';
   document.getElementById('cloud-setup-desc').textContent = descs[type] || '';
   var link = document.getElementById('prov-cloud-key-link');
   link.onclick = function() { wails.Browser.OpenURL(links[type]); return false; };
-  link.textContent = 'Get ' + names[type].split(' ')[0] + ' API Key \u2192';
+  link.innerHTML = '&#127760; Get ' + names[type].split(' ')[0] + ' API Key &#8599;';
   // Load existing key if configured
   document.getElementById('prov-cloud-apikey').value = '';
   var prov = (configData.providers || {})[type];
@@ -1785,16 +1791,20 @@ async function renderModels() {
       provName = openaiIsOAuth ? 'ChatGPT Login' : 'OpenAI';
     }
     var hasProvider = !!(configData.providers || {})[m.provider];
+    // Build a larger logo for the model entry (28px instead of 22px in PROVIDER_SVGS).
+    var bigLogo = (PROVIDER_SVGS[m.provider] || '').replace(/width="22"/g, 'width="28"').replace(/height="22"/g, 'height="28"');
     html += '<div class="provider-entry"' + (!hasProvider ? ' style="opacity:0.6"' : '') + '>';
+    html += '<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">';
+    html += '<div style="flex-shrink:0">' + bigLogo + '</div>';
     html += '<div class="provider-info">';
     html += '<span class="provider-label">' + esc(label) + (isDefault ? ' <span class="badge badge-rec">DEFAULT</span>' : '') + (!hasProvider ? ' <span style="color:#f38ba8;font-size:0.75em">(provider not configured)</span>' : '') + '</span>';
-    html += '<span class="provider-meta">' + (PROVIDER_SVGS[m.provider] || '') + esc(provName) + ' \u00b7 ' + esc(m.model || 'no model') + '</span>';
+    html += '<span class="provider-meta">' + esc(provName) + ' \u00b7 ' + esc(m.model || 'no model') + '</span>';
     html += '</div>';
     html += '<div class="provider-actions">';
     if (!isDefault) html += '<button class="btn btn-secondary btn-sm" onclick="setModelDefault(\'' + escJS(label) + '\')">Default</button>';
     html += '<button class="btn btn-secondary btn-sm" onclick="editModel(\'' + escJS(label) + '\')">Edit</button>';
     html += '<button class="btn btn-danger btn-sm" onclick="deleteModel(\'' + escJS(label) + '\')">Delete</button>';
-    html += '</div></div>';
+    html += '</div></div></div>';
   });
   container.innerHTML = html;
 }
