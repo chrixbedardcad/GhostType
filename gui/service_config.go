@@ -230,6 +230,11 @@ func (s *SettingsService) SetDefault(label string) string {
 func (s *SettingsService) TestConnection(provider, apiKey, model, endpoint string) string {
 	guiLog("[GUI] JS called: TestConnection(provider=%s, model=%s, endpoint=%q)", provider, model, endpoint)
 
+	// Pick a default model if none specified.
+	if model == "" {
+		model = defaultTestModel(provider)
+	}
+
 	// Ollama and local need much longer timeout — first request loads model into memory.
 	// They also need more max_tokens because thinking models (Qwen3/3.5, DeepSeek)
 	// can consume 200-400 tokens on <think> blocks even with /no_think — larger
@@ -244,13 +249,25 @@ func (s *SettingsService) TestConnection(provider, apiKey, model, endpoint strin
 		guiLog("[GUI] %s detected — using %s timeout, %d max_tokens", provider, timeout, maxTokens)
 	}
 
+	// If API key is empty, check if there's a saved refresh token (OAuth).
+	refreshToken := ""
+	if apiKey == "" {
+		if prov, ok := s.cfgCopy.Providers[provider]; ok {
+			refreshToken = prov.RefreshToken
+			if apiKey == "" {
+				apiKey = prov.APIKey
+			}
+		}
+	}
+
 	def := config.LLMProviderDef{
-		Provider:    provider,
-		APIKey:      apiKey,
-		Model:       model,
-		APIEndpoint: endpoint,
-		MaxTokens:   maxTokens,
-		TimeoutMs:   timeoutMs,
+		Provider:     provider,
+		APIKey:       apiKey,
+		Model:        model,
+		APIEndpoint:  endpoint,
+		RefreshToken: refreshToken,
+		MaxTokens:    maxTokens,
+		TimeoutMs:    timeoutMs,
 	}
 
 	client, err := llm.NewClientFromDef(def)

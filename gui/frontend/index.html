@@ -1343,20 +1343,22 @@ async function testProviderConnection(type) {
     return;
   }
 
-  // Cloud providers: find a model label that uses this provider type
+  // Cloud providers: try finding a model label first, or test with default model.
   var models = configData.models || {};
   var label = '';
   for (var l in models) {
     if (models[l].provider === type) { label = l; break; }
   }
-  if (!label) {
-    if (resultEl) { resultEl.className = 'provider-test-result fail'; resultEl.textContent = '\u2718 No model configured — add one in Models tab'; resultEl.style.display = 'block'; }
-    return;
-  }
-  // Disable test buttons temporarily
   var testBtn = document.getElementById('prov-test-' + type);
   if (testBtn) { testBtn.disabled = true; testBtn.textContent = 'Testing...'; }
-  var result = await goCall('testProvider', label);
+  var result;
+  if (label) {
+    result = await goCall('testProvider', label);
+  } else {
+    // No model entry yet — test directly with provider credentials and a default model.
+    var prov = (configData.providers || {})[type] || {};
+    result = await goCall('testConnection', type, prov.api_key || '', '', '');
+  }
   if (testBtn) { testBtn.textContent = 'Test'; setTimeout(function() { testBtn.disabled = false; }, 3000); }
   if (resultEl) {
     if (result && result.startsWith('ok')) {
@@ -1770,7 +1772,7 @@ const PROVIDER_SVGS = {
   xai:       '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path d="M14.234 10.162 22.977 0h-2.072l-7.591 8.824L7.251 0H.258l9.168 13.343L.258 24H2.33l8.016-9.318L16.749 24h6.993zm-2.837 3.299-.929-1.329L3.076 1.56h3.182l5.965 8.532.929 1.329 7.754 11.09h-3.182z" fill="#cdd6f4"/></svg>',
   deepseek:  '<svg width="22" height="22" viewBox="60 100 400 350" style="vertical-align:middle;margin-right:4px"><path d="M440.898 139.167c-4.001-1.961-5.723 1.776-8.062 3.673-.801.612-1.479 1.407-2.154 2.141-5.848 6.246-12.681 10.349-21.607 9.859-13.048-.734-24.192 3.368-34.04 13.348-2.093-12.307-9.048-19.658-19.635-24.37-5.54-2.449-11.141-4.9-15.02-10.227-2.708-3.795-3.447-8.021-4.801-12.185-.861-2.509-1.725-5.082-4.618-5.512-3.139-.49-4.372 2.142-5.601 4.349-4.925 9.002-6.833 18.921-6.647 28.962.432 22.597 9.972 40.597 28.932 53.397 2.154 1.47 2.707 2.939 2.032 5.082-1.293 4.41-2.832 8.695-4.186 13.105-.862 2.817-2.157 3.429-5.172 2.205-10.402-4.346-19.391-10.778-27.332-18.553-13.481-13.044-25.668-27.434-40.873-38.702a177.614 177.614 0 00-10.834-7.409c-15.512-15.063 2.032-27.434 6.094-28.902 4.247-1.532 1.478-6.797-12.251-6.736-13.727.061-26.285 4.653-42.288 10.777-2.34.92-4.801 1.593-7.326 2.142-14.527-2.756-29.608-3.368-45.367-1.593-29.671 3.305-53.368 17.329-70.788 41.272-20.928 28.785-25.854 61.482-19.821 95.59 6.34 35.943 24.683 65.704 52.876 88.974 29.239 24.123 62.911 35.943 101.32 33.677 23.329-1.346 49.307-4.468 78.607-29.27 7.387 3.673 15.142 5.144 28.008 6.246 9.911.92 19.452-.49 26.839-2.019 11.573-2.449 10.773-13.166 6.586-15.124-33.915-15.797-26.47-9.368-33.24-14.573 17.235-20.39 43.213-41.577 53.369-110.222.8-5.448.121-8.877 0-13.287-.061-2.692.553-3.734 3.632-4.041 8.494-.981 16.742-3.305 24.314-7.471 21.975-12.002 30.84-31.719 32.933-55.355.307-3.612-.061-7.348-3.879-9.245v-.003z" fill="#4D6BFE"/></svg>',
   anthropic: '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path d="M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z" fill="#D4A574"/></svg>',
-  openai:    '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729z" fill="#10A37F"/></svg>',
+  openai:    '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z" fill="#cdd6f4"/></svg>',
   ollama:    '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path d="M16.361 10.26a.894.894 0 0 0-.558.47l-.072.148.001.207c0 .193.004.217.059.353.076.193.152.312.291.448.24.238.51.3.872.205a.86.86 0 0 0 .517-.436.752.752 0 0 0 .08-.498c-.064-.453-.33-.782-.724-.897a1.06 1.06 0 0 0-.466 0z" fill="#cdd6f4"/></svg>',
   local:     '<img src="/ghostAI.png" width="22" height="22" style="vertical-align:middle;margin-right:4px">',
 };
@@ -1823,7 +1825,12 @@ async function renderModels() {
     }
     var hasProvider = !!(configData.providers || {})[m.provider];
     // Build a larger logo for the model entry (28px instead of 22px in PROVIDER_SVGS).
-    var bigLogo = (PROVIDER_SVGS[m.provider] || '').replace(/width="22"/g, 'width="28"').replace(/height="22"/g, 'height="28"');
+    var svgSrc = PROVIDER_SVGS[m.provider] || '';
+    // ChatGPT Login models use green logo; OpenAI API Key uses white
+    if (m.provider === 'openai' && openaiIsOAuth) {
+      svgSrc = svgSrc.replace('fill="#cdd6f4"', 'fill="#10A37F"');
+    }
+    var bigLogo = svgSrc.replace(/width="22"/g, 'width="28"').replace(/height="22"/g, 'height="28"');
     html += '<div class="provider-entry"' + (!hasProvider ? ' style="opacity:0.6"' : '') + '>';
     html += '<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">';
     html += '<div style="flex-shrink:0">' + bigLogo + '</div>';
@@ -1916,10 +1923,14 @@ async function onModelProviderChange() {
   var isLocal = provider === 'local' || provider === 'ollama' || provider === 'lmstudio';
   // Load models for provider dropdown
   await loadModelFormModels(provider);
-  // Auto-fill label
+  // Always update label to match the provider — helps avoid stale labels
+  // when switching between providers.
   var nameEl = document.getElementById('model-form-name');
-  if (!nameEl.value.trim()) {
-    var autoLabels = {anthropic:'claude', openai:'chatgpt', gemini:'gemini', xai:'grok', deepseek:'deepseek', ollama:'ollama', local:'GhostAI', lmstudio:'lmstudio'};
+  var openaiProv = (configData.providers || {}).openai;
+  var autoLabels = {anthropic:'claude', gemini:'gemini', xai:'grok', deepseek:'deepseek', ollama:'ollama', local:'GhostAI', lmstudio:'lmstudio'};
+  if (provider === 'openai') {
+    nameEl.value = (openaiProv && openaiProv.refresh_token) ? 'chatgpt' : 'openai';
+  } else {
     nameEl.value = autoLabels[provider] || provider;
   }
 }
