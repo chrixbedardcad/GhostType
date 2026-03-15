@@ -16,6 +16,7 @@ import (
 	"github.com/chrixbedardcad/GhostSpell/config"
 	"github.com/chrixbedardcad/GhostSpell/gui"
 	"github.com/chrixbedardcad/GhostSpell/hotkey"
+	"github.com/chrixbedardcad/GhostSpell/internal/version"
 	"github.com/chrixbedardcad/GhostSpell/mode"
 	"github.com/chrixbedardcad/GhostSpell/sound"
 	"github.com/chrixbedardcad/GhostSpell/tray"
@@ -514,6 +515,19 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		registeredHotkeys = cfg.Hotkeys
 		hotkeyReady = true
 		hkMu.Unlock()
+
+		// Auto-open Settings after an update to show the "What's New" popup.
+		if cfg.LastSeenVersion != version.Version && cfg.LastSeenVersion != "" {
+			slog.Info("Version changed, auto-opening Settings for What's New", "last", cfg.LastSeenVersion, "current", version.Version)
+			go func() {
+				time.Sleep(1500 * time.Millisecond) // let the tray settle
+				gui.ShowSettings(settingsSvc, cfg, configPath, func() {
+					if router != nil {
+						router.ResetClients()
+					}
+				})
+			}()
+		}
 
 		return nil
 	}
