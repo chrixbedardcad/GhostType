@@ -10,6 +10,7 @@ import "log/slog"
 var cheapModels = map[string]string{
 	"anthropic": "claude-haiku-4-5-20251001",
 	"openai":    "gpt-4o-mini",
+	"chatgpt":   "gpt-4o-mini",
 	"gemini":    "gemini-2.5-flash-lite",
 	"xai":       "grok-3-mini",
 	"deepseek":  "deepseek-chat",

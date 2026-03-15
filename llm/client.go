@@ -47,7 +47,7 @@ func NewClientFromDef(def config.LLMProviderDef) (Client, error) {
 
 	// Auto-refresh OpenAI OAuth tokens: if API key is empty but a refresh
 	// token exists, exchange it for a fresh API key before creating the client.
-	if def.Provider == "openai" && def.APIKey == "" && def.RefreshToken != "" {
+	if (def.Provider == "openai" || def.Provider == "chatgpt") && def.APIKey == "" && def.RefreshToken != "" {
 		if RefreshOpenAIKeyFunc != nil {
 			slog.Info("[llm] OpenAI API key empty, refreshing from OAuth token")
 			key, err := RefreshOpenAIKeyFunc(def.RefreshToken)
@@ -65,7 +65,7 @@ func NewClientFromDef(def config.LLMProviderDef) (Client, error) {
 	switch def.Provider {
 	case "anthropic":
 		return newAnthropicFromDef(def), nil
-	case "openai":
+	case "openai", "chatgpt":
 		return newOpenAIFromDef(def), nil
 	case "gemini":
 		return newGeminiFromDef(def), nil

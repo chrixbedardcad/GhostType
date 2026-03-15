@@ -1006,14 +1006,14 @@ async function doOAuth() {
         // Store refresh token — setRefreshToken creates the provider entry
         // if it doesn't exist AND preserves any existing API key.
         if (data.refresh_token) {
-          const r1 = await goCall('setRefreshToken', 'openai', data.refresh_token);
+          const r1 = await goCall('setRefreshToken', 'chatgpt', data.refresh_token);
           if (!r1 || !r1.startsWith('ok')) {
             setStatus('oauth-status', 'error', r1 || 'Failed to save provider');
             return;
           }
         }
         // Save model entry
-        const r2 = await goCall('saveModel', 'chatgpt', 'openai', 'gpt-5-mini', '');
+        const r2 = await goCall('saveModel', 'chatgpt', 'chatgpt', 'gpt-5-mini', '');
         if (!r2 || !r2.startsWith('ok')) {
           setStatus('oauth-status', 'error', r2 || 'Failed to save model');
           return;
@@ -1025,7 +1025,7 @@ async function doOAuth() {
           window.location.href = '/index.html';
           return;
         }
-        showDone('chatgpt', 'openai', 'gpt-5-mini');
+        showDone('chatgpt', 'chatgpt', 'gpt-5-mini');
         goToStep(4);
       } catch (e) {
         setStatus('oauth-status', 'error', 'Failed to parse authorization result');

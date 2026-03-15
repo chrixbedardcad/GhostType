@@ -52,7 +52,7 @@ func newOpenAIFromDef(def config.LLMProviderDef) *OpenAIClient {
 		endpoint:     endpoint,
 		maxTokens:    maxTokens,
 		timeoutMs:    timeoutMs,
-		providerName: "openai",
+		providerName: def.Provider,
 		httpClient:   newPooledHTTPClient(timeoutMs),
 	}
 }
@@ -109,7 +109,7 @@ func (c *OpenAIClient) Send(ctx context.Context, req Request) (*Response, error)
 	}
 	// OpenAI uses max_completion_tokens (required for reasoning models).
 	// Gemini and xAI use the standard max_tokens field.
-	if c.providerName == "openai" {
+	if c.providerName == "openai" || c.providerName == "chatgpt" {
 		body.MaxCompletionTokens = maxTokens
 	} else {
 		body.MaxTokens = maxTokens

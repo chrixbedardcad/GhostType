@@ -21,7 +21,7 @@ func KnownModels(provider string) []ModelInfo {
 			{Name: "claude-sonnet-4-20250514"},
 			{Name: "claude-opus-4-20250514"},
 		}
-	case "openai":
+	case "openai", "chatgpt":
 		return []ModelInfo{
 			{Name: "gpt-5-mini", Tag: "recommended"},
 			{Name: "gpt-5.4", Tag: "best"},

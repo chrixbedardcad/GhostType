@@ -112,16 +112,15 @@ func (s *SettingsService) DismissWhatsNew() string {
 const whatsNewHTML = `
 <h3>What's New in GhostSpell</h3>
 <ul>
+<li><strong>ChatGPT Login is now independent</strong> — fully separate provider from OpenAI API Key. No more conflicts. Both can coexist.</li>
 <li><strong>Ask prompt</strong> — new default prompt for answering questions (❓)</li>
 <li><strong>Cycle prompt pop</strong> — indicator pill briefly shows the new prompt when you cycle with Ctrl+Shift+T</li>
-<li><strong>Cancel indicator</strong> — shows 🛑 Cancelled when you press the hotkey again to cancel</li>
-<li><strong>macOS permissions redesign</strong> — Accessibility and Input Monitoring are now two clear separate steps with automatic restart</li>
+<li><strong>macOS permissions redesign</strong> — Accessibility and Input Monitoring are now two clear separate steps</li>
 <li><strong>Emoji picker</strong> — full categorized emoji picker for prompt icons</li>
-<li><strong>GhostAI improvements</strong> — thinking models now use full context window, better answer extraction, keep-model-in-memory on by default</li>
-<li><strong>ChatGPT Login</strong> — separate provider card with OAuth status, auto-refresh tokens</li>
+<li><strong>GhostAI improvements</strong> — thinking models use full context window, better answer extraction</li>
+<li><strong>What's New popup</strong> — this popup! Shows automatically after each update</li>
 <li><strong>Provider logos</strong> — all setup pages and model entries show provider logos</li>
-<li><strong>Tab descriptions</strong> — Providers, Models, Prompts tabs explain what each concept means</li>
-<li><strong>External links</strong> — 🌐↗ indicators on all links that open a browser</li>
+<li><strong>Clean external links</strong> — standardized pill buttons for all links that open a browser</li>
 </ul>
 `
 

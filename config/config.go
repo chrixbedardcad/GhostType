@@ -34,7 +34,7 @@ type LLMProviderDef struct {
 }
 
 // ProviderConfig holds connection credentials for one AI provider.
-// Keys: "anthropic", "openai", "gemini", "xai", "deepseek", "ollama", "local", "lmstudio"
+// Keys: "anthropic", "openai", "chatgpt", "gemini", "xai", "deepseek", "ollama", "local", "lmstudio"
 type ProviderConfig struct {
 	APIKey       string `json:"api_key,omitempty"`
 	APIEndpoint  string `json:"api_endpoint,omitempty"`
@@ -547,6 +547,31 @@ func applyDefaults(cfg *Config) {
 		}
 	}
 
+	// Migrate OAuth refresh_token from providers.openai to providers.chatgpt.
+	// Before v0.20.0, both API key and OAuth shared providers.openai.
+	if openai, ok := cfg.Providers["openai"]; ok && openai.RefreshToken != "" {
+		if _, hasChatGPT := cfg.Providers["chatgpt"]; !hasChatGPT {
+			slog.Info("Migrating OAuth refresh_token from openai to chatgpt provider")
+			cfg.Providers["chatgpt"] = ProviderConfig{
+				RefreshToken: openai.RefreshToken,
+			}
+			// Clear refresh_token from openai (keep API key if present).
+			openai.RefreshToken = ""
+			if openai.APIKey == "" && openai.APIEndpoint == "" {
+				delete(cfg.Providers, "openai")
+			} else {
+				cfg.Providers["openai"] = openai
+			}
+			// Update model entries that point to "openai" but were created via OAuth.
+			for name, me := range cfg.Models {
+				if me.Provider == "openai" && (name == "chatgpt" || strings.Contains(strings.ToLower(name), "chatgpt")) {
+					me.Provider = "chatgpt"
+					cfg.Models[name] = me
+				}
+			}
+		}
+	}
+
 	// Fill missing TimeoutMs per model from provider or global value.
 	for name, me := range cfg.Models {
 		if me.TimeoutMs == 0 {
@@ -567,6 +592,7 @@ func Validate(cfg *Config) error {
 	validProviders := map[string]bool{
 		"anthropic": true,
 		"openai":    true,
+		"chatgpt":   true,
 		"gemini":    true,
 		"xai":       true,
 		"deepseek":  true,
