@@ -2484,11 +2484,44 @@ async function checkForUpdate() {
 }
 
 async function doUpdate() {
-  setStatus('update-status', 'info', 'Updating... GhostSpell will restart automatically.');
-  const result = await goCall('updateNow');
+  var statusEl = document.getElementById('update-status');
+  statusEl.className = 'status info';
+  statusEl.innerHTML = '<div style="margin-bottom:8px"><strong>Downloading update...</strong></div>'
+    + '<div style="width:100%;background:#313244;border-radius:6px;height:18px;overflow:hidden">'
+    + '<div id="update-dl-bar" style="width:0%;height:100%;background:linear-gradient(90deg,#89b4fa,#a6e3a1);border-radius:6px;transition:width 0.3s"></div></div>'
+    + '<div id="update-dl-text" style="font-size:0.78em;color:#6c7086;margin-top:4px">Starting...</div>';
+
+  var result = await goCall('updateNow');
   if (result && result.startsWith('error')) {
     setStatus('update-status', 'error', 'Update failed: ' + result);
+    return;
   }
+
+  // Poll download progress.
+  var pollInterval = setInterval(async function() {
+    var raw = await goCall('getUpdateProgress');
+    if (!raw) return;
+    try {
+      var p = JSON.parse(raw);
+      var bar = document.getElementById('update-dl-bar');
+      var text = document.getElementById('update-dl-text');
+
+      if (p.status === 'downloading') {
+        if (bar && p.percent > 0) bar.style.width = Math.min(p.percent, 100).toFixed(1) + '%';
+        if (text && p.total > 0) text.textContent = Math.round(p.downloaded / 1024 / 1024) + ' / ' + Math.round(p.total / 1024 / 1024) + ' MB (' + p.percent.toFixed(0) + '%)';
+      } else if (p.status === 'installing') {
+        if (bar) bar.style.width = '100%';
+        if (text) text.textContent = 'Installing... GhostSpell will restart automatically.';
+      } else if (p.status === 'done') {
+        if (bar) bar.style.width = '100%';
+        if (text) text.textContent = 'Restarting...';
+        clearInterval(pollInterval);
+      } else if (p.status === 'error') {
+        clearInterval(pollInterval);
+        setStatus('update-status', 'error', 'Update failed: ' + (p.error || 'unknown'));
+      }
+    } catch(e) {}
+  }, 500);
 }
 
 // ---- Boot ----
