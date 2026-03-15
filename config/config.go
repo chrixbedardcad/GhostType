@@ -86,6 +86,7 @@ type Config struct {
 	SoundEnabled      *bool  `json:"sound_enabled"`
 	LogLevel          string `json:"log_level"`
 	LogFile           string `json:"log_file"`
+	LastSeenVersion   string `json:"last_seen_version,omitempty"`
 }
 
 // NeedsSetup returns true if no usable provider is configured.

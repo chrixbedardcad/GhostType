@@ -90,6 +90,41 @@ func (s *SettingsService) GetVersion() string {
 	return version.Version
 }
 
+// GetWhatsNew returns the changelog for the current version if the user
+// hasn't seen it yet. Returns empty string if already dismissed.
+func (s *SettingsService) GetWhatsNew() string {
+	if s.cfgCopy.LastSeenVersion == version.Version {
+		return "" // already seen
+	}
+	return whatsNewHTML
+}
+
+// DismissWhatsNew marks the current version as seen so the popup won't show again.
+func (s *SettingsService) DismissWhatsNew() string {
+	s.cfgCopy.LastSeenVersion = version.Version
+	if err := s.validateAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// whatsNewHTML is the changelog shown after an update. Update this with each release.
+const whatsNewHTML = `
+<h3>What's New in GhostSpell</h3>
+<ul>
+<li><strong>Ask prompt</strong> — new default prompt for answering questions (❓)</li>
+<li><strong>Cycle prompt pop</strong> — indicator pill briefly shows the new prompt when you cycle with Ctrl+Shift+T</li>
+<li><strong>Cancel indicator</strong> — shows 🛑 Cancelled when you press the hotkey again to cancel</li>
+<li><strong>macOS permissions redesign</strong> — Accessibility and Input Monitoring are now two clear separate steps with automatic restart</li>
+<li><strong>Emoji picker</strong> — full categorized emoji picker for prompt icons</li>
+<li><strong>GhostAI improvements</strong> — thinking models now use full context window, better answer extraction, keep-model-in-memory on by default</li>
+<li><strong>ChatGPT Login</strong> — separate provider card with OAuth status, auto-refresh tokens</li>
+<li><strong>Provider logos</strong> — all setup pages and model entries show provider logos</li>
+<li><strong>Tab descriptions</strong> — Providers, Models, Prompts tabs explain what each concept means</li>
+<li><strong>External links</strong> — 🌐↗ indicators on all links that open a browser</li>
+</ul>
+`
+
 // GetKnownModels returns a curated model list for the given provider.
 func (s *SettingsService) GetKnownModels(provider string) string {
 	guiLog("[GUI] JS called: GetKnownModels(%s)", provider)

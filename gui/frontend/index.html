@@ -396,6 +396,23 @@
   </div>
 </div>
 
+<!-- What's New popup overlay -->
+<div id="whats-new-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:none;align-items:center;justify-content:center">
+  <div style="background:#1e1e2e;border:1px solid #45475a;border-radius:12px;padding:24px;max-width:440px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.4)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <img src="/ghost-icon.png" width="36" height="36">
+      <div>
+        <div style="font-size:1.05em;font-weight:600;color:#cdd6f4">GhostSpell Updated!</div>
+        <div style="font-size:0.78em;color:#6c7086" id="whats-new-ver"></div>
+      </div>
+    </div>
+    <div id="whats-new-body" style="font-size:0.85em;color:#bac2de;line-height:1.6"></div>
+    <div style="text-align:right;margin-top:16px">
+      <button class="btn btn-primary btn-sm" onclick="dismissWhatsNew()" style="padding:8px 24px">Got it!</button>
+    </div>
+  </div>
+</div>
+
 <div class="tab-bar">
   <button class="active" onclick="switchTab('about')">About</button>
   <button onclick="switchTab('general')">General</button>
@@ -1085,12 +1102,26 @@ function switchTab(name) {
 }
 
 // ---- Init ----
+async function dismissWhatsNew() {
+  document.getElementById('whats-new-overlay').style.display = 'none';
+  await goCall('dismissWhatsNew');
+}
+
 async function init() {
   const ver = await goCall('getVersion');
   if (ver) {
     document.getElementById('app-version').textContent = 'v' + ver;
     document.getElementById('about-version').textContent = 'v' + ver;
   }
+
+  // Show "What's New" popup if the version changed since last seen.
+  var whatsNew = await goCall('getWhatsNew');
+  if (whatsNew) {
+    document.getElementById('whats-new-ver').textContent = 'Version ' + (ver || '');
+    document.getElementById('whats-new-body').innerHTML = whatsNew;
+    document.getElementById('whats-new-overlay').style.display = 'flex';
+  }
+
   const raw = await goCall('getConfig');
   if (raw) configData = JSON.parse(raw);
   renderModels();
