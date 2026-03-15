@@ -1512,8 +1512,13 @@ async function onProvLocalRefresh() {
       html += '<button class="btn btn-secondary btn-sm" onclick="provLocalSelectModel(\'' + escJS(m.name) + '\')" style="font-size:0.75em">' + (selected ? '\u2714 Selected' : 'Select') + '</button>';
       html += '<button class="btn btn-danger btn-sm" onclick="provLocalDeleteModel(\'' + escJS(m.name) + '\')" style="font-size:0.75em" title="Delete model">Remove</button>';
     } else {
-      html += '<button class="btn btn-primary btn-sm" onclick="provLocalDownloadModel(\'' + escJS(m.name) + '\')" style="font-size:0.75em">Download</button>';
+      html += '<button class="btn btn-primary btn-sm" onclick="provLocalDownloadModel(\'' + escJS(m.name) + '\')" id="prov-dl-btn-' + esc(m.name) + '" style="font-size:0.75em">Download</button>';
     }
+    html += '</div>';
+    // Per-model download progress bar (hidden until download starts)
+    html += '<div id="prov-dl-wrap-' + esc(m.name) + '" style="display:none;grid-column:1/-1;margin-top:4px">';
+    html += '<div style="width:100%;background:#313244;border-radius:4px;height:14px;overflow:hidden"><div id="prov-dl-bar-' + esc(m.name) + '" style="width:0%;height:100%;background:linear-gradient(90deg,#89b4fa,#a6e3a1);border-radius:4px;transition:width 0.3s"></div></div>';
+    html += '<div id="prov-dl-text-' + esc(m.name) + '" style="font-size:0.7em;color:#6c7086;margin-top:2px">Starting...</div>';
     html += '</div>';
     html += '</div>';
   }
@@ -1538,11 +1543,14 @@ async function provLocalSelectModel(name) {
 }
 
 async function provLocalDownloadModel(name) {
-  var btn = event ? event.target : null;
+  var btn = document.getElementById('prov-dl-btn-' + name);
+  var wrap = document.getElementById('prov-dl-wrap-' + name);
+  var bar = document.getElementById('prov-dl-bar-' + name);
+  var text = document.getElementById('prov-dl-text-' + name);
   if (btn) { btn.textContent = 'Downloading...'; btn.disabled = true; }
-  var statusEl = document.getElementById('prov-local-action-status');
-  statusEl.className = 'status info';
-  statusEl.innerHTML = '<div style="width:100%;background:#313244;border-radius:4px;height:18px;overflow:hidden;margin-top:4px"><div id="dl-progress-bar-p" style="width:0%;height:100%;background:linear-gradient(90deg,#89b4fa,#a6e3a1);border-radius:4px;transition:width 0.3s"></div></div><div id="dl-progress-text-p" style="font-size:0.78em;margin-top:2px">Starting download...</div>';
+  if (wrap) wrap.style.display = 'block';
+  if (bar) bar.style.width = '0%';
+  if (text) text.textContent = 'Starting download...';
 
   var downloadPromise = goCall('localDownloadModel', name);
   var pollInterval = setInterval(async function() {
@@ -1550,21 +1558,19 @@ async function provLocalDownloadModel(name) {
     if (pRaw) {
       try {
         var p = JSON.parse(pRaw);
-        var bar = document.getElementById('dl-progress-bar-p');
-        var txt = document.getElementById('dl-progress-text-p');
-        if (bar) bar.style.width = Math.max(2, Math.min(p.percent, 100)).toFixed(1) + '%';
-        if (txt && p.total > 0) txt.textContent = Math.round(p.downloaded / 1024 / 1024) + ' / ' + Math.round(p.total / 1024 / 1024) + ' MB (' + p.percent.toFixed(0) + '%)';
+        if (bar && p.percent > 0) bar.style.width = Math.max(2, Math.min(p.percent, 100)).toFixed(1) + '%';
+        if (text && p.total > 0) text.textContent = Math.round(p.downloaded / 1024 / 1024) + ' / ' + Math.round(p.total / 1024 / 1024) + ' MB (' + p.percent.toFixed(0) + '%)';
       } catch(e) {}
     }
   }, 500);
   var result = await downloadPromise;
   clearInterval(pollInterval);
-  if (btn) btn.disabled = false;
+  if (wrap) wrap.style.display = 'none';
   if (result && result.startsWith('ok')) {
-    statusEl.className = 'status success'; statusEl.textContent = name + ' downloaded!';
     provLocalSelectModel(name);
   } else {
-    statusEl.className = 'status error'; statusEl.textContent = 'Failed: ' + (result || 'unknown');
+    var statusEl = document.getElementById('prov-local-action-status');
+    if (statusEl) { statusEl.className = 'status error'; statusEl.textContent = 'Failed: ' + (result || 'unknown'); }
   }
 }
 
