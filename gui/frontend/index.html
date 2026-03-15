@@ -359,7 +359,7 @@
     border-radius: 8px; padding: 16px; margin-top: 20px; text-align: center;
   }
 
-  /* --- Provider cards (AI Providers tab) --- */
+  /* --- Provider cards (Providers tab) --- */
   .provider-card { background: #313244; border: 1px solid #45475a; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
   .provider-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
   .provider-card-header strong { font-size: 0.9em; }
@@ -399,7 +399,7 @@
 <div class="tab-bar">
   <button class="active" onclick="switchTab('about')">About</button>
   <button onclick="switchTab('general')">General</button>
-  <button onclick="switchTab('providers')">AI Providers</button>
+  <button onclick="switchTab('providers')">Providers</button>
   <button onclick="switchTab('models')">Models</button>
   <button onclick="switchTab('prompts')">Prompts</button>
   <button onclick="switchTab('hotkeys')">Hotkeys</button>
@@ -415,7 +415,7 @@
 
     <!-- Default view: Provider grid -->
     <div id="providers-grid">
-      <h2 style="margin-bottom:12px">AI Providers</h2>
+      <h2 style="margin-bottom:12px">Providers</h2>
 
       <div class="providers-section-label">Run locally &mdash; free &amp; private</div>
 
@@ -554,16 +554,21 @@
       <h2><img src="/ghostAI.png" width="24" height="24" style="vertical-align:middle;margin-right:6px"> GhostAI Setup</h2>
       <p style="font-size:0.82em;color:#a6adc8;margin-bottom:12px">Runs 100% on your machine &mdash; private, offline, no account needed.</p>
 
+      <div style="background:#313244;border-radius:8px;padding:12px;margin-bottom:12px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.85em;cursor:pointer">
+          <input type="checkbox" id="prov-local-keepalive" onchange="saveProviderKeepAlive(this.checked)" checked>
+          <div>
+            <div style="color:#cdd6f4;font-weight:500">Keep model in memory</div>
+            <div style="font-size:0.82em;color:#6c7086;margin-top:2px">Faster responses &mdash; the model stays loaded between requests instead of unloading after 5 minutes of inactivity. Uses more RAM (~1&ndash;3 GB depending on model).</div>
+          </div>
+        </label>
+      </div>
+
       <div id="prov-local-status-bar" class="ollama-status-bar checking">
         <span class="ollama-status-dot"></span>
         <span id="prov-local-status-text">Checking...</span>
       </div>
       <div id="prov-local-models"></div>
-
-      <label style="margin-top:10px;display:flex;align-items:center;gap:8px;font-size:0.85em">
-        <input type="checkbox" id="prov-local-keepalive" onchange="saveProviderKeepAlive(this.checked)">
-        Keep model in memory between requests
-      </label>
 
       <div class="btn-row" style="margin-top:10px">
         <button class="btn btn-secondary" id="prov-local-test-btn" onclick="testProviderConnection('local')">Test Connection</button>
@@ -671,7 +676,7 @@
 
     <div id="model-empty" style="display:none">
       <div class="empty-state">No models configured.<br>
-      <span style="font-size:0.85em;color:#6c7086">Set up a provider first in the <a href="#" onclick="switchTab('providers');return false" style="color:#89b4fa">AI Providers</a> tab, then add a model here.</span></div>
+      <span style="font-size:0.85em;color:#6c7086">Set up a provider first in the <a href="#" onclick="switchTab('providers');return false" style="color:#89b4fa">Providers</a> tab, then add a model here.</span></div>
     </div>
 
     <!-- Simplified add/edit form -->
@@ -822,7 +827,7 @@
       </div>
     </div>
 
-    <!-- Keep Model Loaded is now under AI Providers > GhostAI Setup -->
+    <!-- Keep Model Loaded is now under Providers > GhostAI Setup -->
 
     <hr class="section-divider">
 
@@ -920,6 +925,24 @@
     </div>
 
     <div class="help-section">
+      <h2>Key Concepts</h2>
+      <table class="help-table">
+        <tr>
+          <td style="vertical-align:top"><strong>Provider</strong></td>
+          <td>The AI service that processes your text. Can be a <strong>cloud service</strong> (OpenAI, Anthropic, Gemini, xAI, DeepSeek) that requires an API key or login, or a <strong>local engine</strong> (GhostAI, Ollama, LM Studio) that runs on your machine for full privacy. Set up providers in the <strong>Providers</strong> tab.</td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top"><strong>Model</strong></td>
+          <td>The specific AI brain within a provider. Each provider offers different models with trade-offs in speed, quality, and cost. For example, OpenAI has GPT-5-mini (fast) and GPT-5.4 (best quality). GhostAI has Qwen3.5-2B (light) and Qwen3.5-4B (more capable). Configure models in the <strong>Models</strong> tab.</td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top"><strong>Prompt</strong></td>
+          <td>The instruction that tells the AI <em>what to do</em> with your text. "Correct" fixes spelling, "Polish" improves clarity, "Ask" answers questions. You can create custom prompts for any task. Each prompt can optionally use a different model. Manage prompts in the <strong>Prompts</strong> tab.</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="help-section">
       <h2>Default Prompts</h2>
       <table class="help-table">
         <tr><td>✏️</td><td><strong>Correct</strong> — fixes spelling and grammar only, preserves tone and style.</td></tr>
@@ -928,8 +951,9 @@
         <tr><td>📝</td><td><strong>Elaborate</strong> — expands terse text with more detail and context.</td></tr>
         <tr><td>✂️</td><td><strong>Shorten</strong> — condenses the text, removes filler and redundancy.</td></tr>
         <tr><td>🌐</td><td><strong>Translate</strong> — translates the text to English.</td></tr>
+        <tr><td>❓</td><td><strong>Ask</strong> — answers questions clearly and concisely.</td></tr>
       </table>
-      <p>Add, edit, reorder, or delete prompts in the Prompts tab. Each prompt can use a different AI provider.</p>
+      <p>Add, edit, reorder, or delete prompts in the Prompts tab. Each prompt can use a different model.</p>
     </div>
 
     <div class="help-section">
@@ -948,7 +972,7 @@
       <p>• Works in any application — browsers, editors, chat apps, email.</p>
       <p>• The text is always processed in its original language (except the Translate prompt).</p>
       <p>• Clipboard contents are preserved and restored after processing.</p>
-      <p>• You can set up multiple AI providers (OpenAI, ChatGPT Login, Anthropic, Gemini, xAI, DeepSeek, Ollama, GhostAI) in the AI Providers tab.</p>
+      <p>• You can set up multiple AI providers (OpenAI, ChatGPT Login, Anthropic, Gemini, xAI, DeepSeek, Ollama, GhostAI) in the Providers tab.</p>
       <p>• For local/private processing, use GhostAI (built-in) — your text never leaves your machine.</p>
     </div>
 
@@ -1031,12 +1055,12 @@ async function goCall(fn, ...args) {
 }
 
 // ---- Tabs ----
-var TAB_NAMES = {about:'About', general:'General', providers:'AI Providers', models:'Models', prompts:'Prompts', hotkeys:'Hotkeys', debug:'Debug', help:'Help'};
+var TAB_NAMES = {about:'About', general:'General', providers:'Providers', models:'Models', prompts:'Prompts', hotkeys:'Hotkeys', debug:'Debug', help:'Help'};
 function switchTab(name) {
   document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
-  // Find the tab button by matching text (handles "AI Providers" => "providers")
+  // Find the tab button by matching text (handles "Providers" => "providers")
   var tabLabel = TAB_NAMES[name] || name;
   document.querySelectorAll('.tab-bar button').forEach(b => {
     if (b.textContent.trim() === tabLabel) b.classList.add('active');
@@ -1227,7 +1251,7 @@ async function saveCloudProvider(type) {
   var statusId = type === 'openai' ? 'prov-openai-status' : 'prov-cloud-status';
   var key = document.getElementById(type === 'openai' ? 'prov-openai-apikey' : 'prov-cloud-apikey').value.trim();
   if (!key) { setStatus(statusId, 'error', 'API key required'); return; }
-  // AI Providers tab ONLY saves credentials — model entries are created in the Models tab.
+  // Providers tab ONLY saves credentials — model entries are created in the Models tab.
   var result = await goCall('saveProviderConfig', type, key, '', '', false);
   if (result && result.startsWith('ok')) {
     setStatus(statusId, 'success', 'Provider saved! Add a model in the Models tab.');
@@ -1477,7 +1501,8 @@ async function onProvLocalRefresh() {
 async function provLocalSelectModel(name) {
   provSelectedModel['local'] = name;
   // Save provider credentials.
-  var r1 = await goCall('saveProviderConfig', 'local', '', '', '', false);
+  var keepAlive = document.getElementById('prov-local-keepalive') ? document.getElementById('prov-local-keepalive').checked : true;
+  var r1 = await goCall('saveProviderConfig', 'local', '', '', '', keepAlive);
   if (!r1 || !r1.startsWith('ok')) return;
   // Also create/update the model entry so GhostAI is usable immediately.
   var r2 = await goCall('saveModel', 'GhostAI', 'local', name, '');
@@ -1646,7 +1671,7 @@ function provOllamaNotInstalled(container) {
 
 async function saveOllamaProvider() {
   var endpoint = document.getElementById('prov-ollama-endpoint').value.trim();
-  // AI Providers tab ONLY saves provider credentials — model entries are in Models tab.
+  // Providers tab ONLY saves provider credentials — model entries are in Models tab.
   var result = await goCall('saveProviderConfig', 'ollama', '', endpoint, '', false);
   if (result && result.startsWith('ok')) {
     setStatus('prov-ollama-status', 'success', 'Ollama saved! Add a model in the Models tab.');
@@ -1679,7 +1704,7 @@ async function refreshLMStudioSetup() {
 async function saveLMStudioProvider() {
   var endpoint = document.getElementById('prov-lmstudio-endpoint').value.trim();
   if (!endpoint) { setStatus('prov-lmstudio-status', 'error', 'Endpoint required'); return; }
-  // AI Providers tab ONLY saves provider credentials — model entries are in Models tab.
+  // Providers tab ONLY saves provider credentials — model entries are in Models tab.
   var result = await goCall('saveProviderConfig', 'lmstudio', '', endpoint, '', false);
   if (result && result.startsWith('ok')) {
     setStatus('prov-lmstudio-status', 'success', 'LM Studio saved! Add a model in the Models tab.');
@@ -1925,7 +1950,7 @@ async function saveModelForm() {
   if (!provider) { setStatus('model-form-status', 'error', 'Select a provider'); return; }
   if (!label) { setStatus('model-form-status', 'error', 'Label required'); return; }
   if (!model) { setStatus('model-form-status', 'error', 'Select a model'); return; }
-  // Models tab saves ONLY the model entry — provider credentials are in AI Providers tab.
+  // Models tab saves ONLY the model entry — provider credentials are in Providers tab.
   var result = await goCall('saveModel', label, provider, model, original);
   if (result && result.startsWith('ok')) {
     document.getElementById('model-form').style.display = 'none';

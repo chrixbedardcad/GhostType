@@ -1371,7 +1371,7 @@ async function localFinish() {
 async function saveLocalProvider(modelName) {
   const label = 'GhostAI';
   // Save provider credentials
-  const r1 = await goCall('saveProviderConfig', 'local', '', '', '', false);
+  const r1 = await goCall('saveProviderConfig', 'local', '', '', '', true);
   if (!r1 || !r1.startsWith('ok')) {
     const statusEl = document.getElementById('local-action-status');
     statusEl.className = 'status error';
