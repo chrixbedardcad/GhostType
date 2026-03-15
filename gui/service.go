@@ -280,6 +280,13 @@ func (s *SettingsService) ClearDebugLog() string {
 	if err := os.Truncate(path, 0); err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}
+	// Write a header entry so the cleared log starts with context.
+	header := fmt.Sprintf("=== Log cleared at %s ===\nGhostSpell v%s | %s/%s\n",
+		time.Now().Format("2006-01-02 15:04:05"),
+		version.Version,
+		runtime.GOOS, runtime.GOARCH)
+	os.WriteFile(path, []byte(header), 0644)
+	slog.Info("Debug log cleared", "version", version.Version, "os", runtime.GOOS, "arch", runtime.GOARCH)
 	return "ok"
 }
 
