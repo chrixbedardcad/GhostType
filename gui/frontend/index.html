@@ -822,19 +822,7 @@
       </div>
     </div>
 
-    <div class="section" id="local-keepalive-section" style="display:none">
-      <h2>GhostAI Engine</h2>
-      <div class="toggle-row">
-        <div>
-          <div class="label">Keep Model Loaded</div>
-          <div class="sublabel">Stay on: keep the model in memory between requests (no 5-min idle unload). Uses more RAM but faster responses.</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="pref-keepalive" onchange="onToggleKeepAlive(this.checked)">
-          <span class="slider"></span>
-        </label>
-      </div>
-    </div>
+    <!-- Keep Model Loaded is now under AI Providers > GhostAI Setup -->
 
     <hr class="section-divider">
 
@@ -1072,13 +1060,6 @@ async function init() {
   if (raw) configData = JSON.parse(raw);
   renderModels();
   initHotkeyCapture();
-
-  // Show keep-alive toggle if a local provider is configured.
-  const localProv = (configData.providers || {}).local;
-  if (localProv) {
-    document.getElementById('local-keepalive-section').style.display = 'block';
-    document.getElementById('pref-keepalive').checked = !!localProv.keep_alive;
-  }
 
   // Show macOS permissions section and check status.
   const permsResult = await goCall('checkPermissions');
@@ -2286,16 +2267,6 @@ async function onOpenPermissions() {
 
 async function onToggleSound(enabled) { await goCall('setSoundEnabled', enabled); }
 async function onToggleClipboard(enabled) { await goCall('setPreserveClipboard', enabled); }
-async function onToggleKeepAlive(enabled) {
-  // Find a model label that uses the local provider.
-  const models = configData.models || {};
-  let localLabel = '';
-  for (const [label, m] of Object.entries(models)) {
-    if (m.provider === 'local') { localLabel = label; break; }
-  }
-  if (!localLabel) return;
-  await goCall('setLocalKeepAlive', localLabel, enabled);
-}
 async function onMaxCharsChange(val) { await goCall('setMaxInputChars', parseInt(val) || 0); }
 async function onLogLevelChange(level) { await goCall('setLogLevel', level); }
 

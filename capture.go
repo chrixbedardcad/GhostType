@@ -83,17 +83,28 @@ func captureText(
 	}
 	time.Sleep(50 * time.Millisecond)
 
-	// Try copying the current selection (if any).
+	// Try copying the current selection (if any). Some apps are slow to
+	// process Copy (especially games, Electron apps, remote desktop). Retry
+	// clipboard read up to 3 times with increasing delays to catch late copies.
 	slog.Debug("captureText: sending Copy keystroke...")
 	if err := kb.Copy(); err != nil {
 		return captureResult{Method: captureViaCGEvent, Err: fmt.Errorf("copy: %w", err)}
 	}
-	time.Sleep(100 * time.Millisecond)
 
-	slog.Debug("captureText: reading clipboard...")
-	text, err := cb.Read()
-	if err != nil {
-		return captureResult{Method: captureViaCGEvent, Err: fmt.Errorf("read clipboard: %w", err)}
+	var text string
+	var err error
+	for attempt := 0; attempt < 3; attempt++ {
+		delay := time.Duration(100+attempt*50) * time.Millisecond // 100ms, 150ms, 200ms
+		time.Sleep(delay)
+		var readErr error
+		text, readErr = cb.Read()
+		if readErr != nil {
+			return captureResult{Method: captureViaCGEvent, Err: fmt.Errorf("read clipboard: %w", readErr)}
+		}
+		if text != "" {
+			break
+		}
+		slog.Debug("captureText: clipboard still empty, retrying", "attempt", attempt+1)
 	}
 	slog.Info("captureText: clipboard after Copy", "len", len(text), "empty", text == "")
 

@@ -318,12 +318,13 @@ func (s *SettingsService) TestProviderConnection(providerType string) string {
 	}
 
 	def := config.LLMProviderDef{
-		Provider:    providerType,
-		APIKey:      prov.APIKey,
-		Model:       model,
-		APIEndpoint: prov.APIEndpoint,
-		MaxTokens:   maxTokens,
-		TimeoutMs:   timeoutMs,
+		Provider:     providerType,
+		APIKey:       prov.APIKey,
+		Model:        model,
+		APIEndpoint:  prov.APIEndpoint,
+		RefreshToken: prov.RefreshToken,
+		MaxTokens:    maxTokens,
+		TimeoutMs:    timeoutMs,
 	}
 
 	client, err := llm.NewClientFromDef(def)
@@ -382,12 +383,13 @@ func (s *SettingsService) TestProvider(label string) string {
 	}
 
 	def := config.LLMProviderDef{
-		Provider:    me.Provider,
-		APIKey:      prov.APIKey,
-		Model:       me.Model,
-		APIEndpoint: prov.APIEndpoint,
-		MaxTokens:   maxTokens,
-		TimeoutMs:   timeoutMs,
+		Provider:     me.Provider,
+		APIKey:       prov.APIKey,
+		Model:        me.Model,
+		APIEndpoint:  prov.APIEndpoint,
+		RefreshToken: prov.RefreshToken,
+		MaxTokens:    maxTokens,
+		TimeoutMs:    timeoutMs,
 	}
 
 	client, err := llm.NewClientFromDef(def)

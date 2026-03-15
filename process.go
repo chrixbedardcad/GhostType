@@ -51,11 +51,11 @@ func processMode(
 		}
 		mu.Unlock()
 		sound.StopWorkingLoop()
+		sound.PlayCancel() // Play cancel sound immediately — before GUI cleanup for sharp feedback.
 		if stopAnim != nil {
 			stopAnim()
 		}
 		gui.HideIndicator()
-		sound.PlayCancel()
 		gui.PopIndicator("\U0001F6D1", "Cancelled")
 		return
 	}
