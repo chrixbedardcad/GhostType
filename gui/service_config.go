@@ -239,7 +239,7 @@ func (s *SettingsService) TestConnection(provider, apiKey, model, endpoint strin
 	timeoutMs := 10000
 	if provider == "ollama" || provider == "local" {
 		timeout = 120 * time.Second
-		maxTokens = 512
+		maxTokens = 128
 		timeoutMs = 120000
 		guiLog("[GUI] %s detected — using %s timeout, %d max_tokens", provider, timeout, maxTokens)
 	}
@@ -266,8 +266,8 @@ func (s *SettingsService) TestConnection(provider, apiKey, model, endpoint strin
 
 	start := time.Now()
 	_, err = client.Send(tctx, llm.Request{
-		Prompt:    "Reply with OK",
-		Text:      "test",
+		Prompt:    "Fix spelling. Return ONLY the corrected text.",
+		Text:      "helo wrld",
 		MaxTokens: maxTokens,
 	})
 	elapsed := time.Since(start)
@@ -340,8 +340,8 @@ func (s *SettingsService) TestProviderConnection(providerType string) string {
 
 	start := time.Now()
 	_, err = client.Send(tctx, llm.Request{
-		Prompt:    "Reply with OK",
-		Text:      "test",
+		Prompt:    "Fix spelling. Return ONLY the corrected text.",
+		Text:      "helo wrld",
 		MaxTokens: maxTokens,
 	})
 	elapsed := time.Since(start)
@@ -405,8 +405,8 @@ func (s *SettingsService) TestProvider(label string) string {
 
 	start := time.Now()
 	_, err = client.Send(tctx, llm.Request{
-		Prompt:    "Reply with OK",
-		Text:      "test",
+		Prompt:    "Fix spelling. Return ONLY the corrected text.",
+		Text:      "helo wrld",
 		MaxTokens: maxTokens,
 	})
 	elapsed := time.Since(start)
