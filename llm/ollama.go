@@ -85,6 +85,7 @@ type ollamaRequest struct {
 	System  string         `json:"system,omitempty"`
 	Prompt  string         `json:"prompt"`
 	Stream  bool           `json:"stream"`
+	Think   *bool          `json:"think,omitempty"`
 	Options ollamaOptions  `json:"options,omitempty"`
 }
 
@@ -106,13 +107,16 @@ func (c *OllamaClient) Send(ctx context.Context, req Request) (*Response, error)
 	}
 
 	// Use the system field for instructions, user text as prompt.
-	// Prepend /no_think to suppress chain-of-thought on thinking models
-	// (qwen3, deepseek-r1, etc.).
+	// Disable thinking via Ollama's native think:false parameter (v0.9+).
+	// This works for all thinking models (Qwen3, Qwen3.5, DeepSeek).
+	// The old /no_think prefix only worked for Qwen3, not Qwen3.5.
+	thinkFalse := false
 	body := ollamaRequest{
 		Model:  c.model,
-		System: "/no_think\n" + req.Prompt,
+		System: req.Prompt,
 		Prompt: req.Text,
 		Stream: false,
+		Think:  &thinkFalse,
 		Options: ollamaOptions{
 			NumPredict: maxTok,
 		},
