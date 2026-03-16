@@ -72,7 +72,8 @@ gh release view --repo chrixbedardcad/GhostSpell --json tagName -q .tagName
 
 </details>
 
-### Uninstall
+<details>
+<summary>Uninstall</summary>
 
 > [!CAUTION]
 > **This will remove GhostSpell and all its data.** Back up `config.json` first if you want to keep your settings.
@@ -86,6 +87,8 @@ curl -fsSL https://raw.githubusercontent.com/chrixbedardcad/GhostSpell/main/scri
 ```cmd
 powershell -c "irm https://raw.githubusercontent.com/chrixbedardcad/GhostSpell/main/scripts/uninstall.ps1 | iex"
 ```
+
+</details>
 
 ---
 
