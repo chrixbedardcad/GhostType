@@ -80,29 +80,9 @@
   <div class="timer" id="t">0s</div>
 </div>
 <script>
-// Read prompt icon and name from URL query parameters.
-// Go passes them via SetURL: /indicator.html?i=💎&n=Polish
-// Pop mode (no timer): /indicator.html?i=💎&n=Polish&pop=1
-var _p = new URLSearchParams(window.location.search);
-var _icon = _p.get('i') || '';
-var _name = _p.get('n') || '';
-var _pop = _p.get('pop') === '1';
-
-document.getElementById('pi').textContent = _icon;
-document.getElementById('pn').textContent = _name;
-
-if (_pop) {
-  // Pop mode: hide timer and separator, just show prompt info.
-  document.getElementById('sep').style.display = 'none';
-  document.getElementById('t').style.display = 'none';
-} else {
-  // Processing mode: start the elapsed timer.
-  var _start = Date.now();
-  setInterval(function() {
-    var s = Math.floor((Date.now() - _start) / 1000);
-    document.getElementById('t').textContent = s + 's';
-  }, 1000);
-}
+// Timer and prompt are controlled entirely by ExecJS from Go.
+// No auto-start — the page just renders the static ghost animation.
+// Go calls ExecJS to set prompt icon/name and start/stop the timer.
 </script>
 </body>
 </html>
