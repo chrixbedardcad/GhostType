@@ -16,6 +16,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 0; /* hidden until ShowIndicator navigates with params */
   }
   .pill {
     display: flex;
@@ -80,6 +81,12 @@
   <div class="timer" id="t">0s</div>
 </div>
 <script>
+// Only show content when navigated with URL params (ShowIndicator).
+// Initial load has no params → body stays opacity:0 (invisible to user,
+// visible to WebView2 so ExecJS works).
+if (window.location.search) {
+  document.body.style.opacity = '1';
+}
 var _p = new URLSearchParams(window.location.search);
 var _icon = _p.get('i') || '';
 var _name = _p.get('n') || '';

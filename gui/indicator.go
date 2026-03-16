@@ -15,7 +15,7 @@ var (
 	indicatorMu  sync.Mutex
 )
 
-const offScreenX = -9999
+// No off-screen positioning needed — opacity:0 in CSS handles visibility.
 
 func CreateIndicator(app *application.App) {
 	indicatorMu.Lock()
@@ -31,8 +31,6 @@ func CreateIndicator(app *application.App) {
 	indicatorWin = app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Name:              "ghostspell-indicator",
 		Title:             "",
-		X:                 offScreenX,
-		Y:                 0,
 		Width:             260,
 		Height:            52,
 		Frameless:         true,
@@ -53,9 +51,8 @@ func CreateIndicator(app *application.App) {
 			WindowLevel: application.MacWindowLevelFloating,
 		},
 	})
-	// Move off-screen immediately — window is already visible (Hidden:false)
-	// so WebView2 starts rendering. No Show() needed.
-	indicatorWin.SetPosition(offScreenX, 0)
+	// Window is visible (Hidden:false) but content is invisible (CSS opacity:0).
+	// WebView2 renders the page, ExecJS works, but user sees nothing.
 	slog.Info("[gui] Indicator overlay window created (off-screen)")
 }
 
@@ -104,8 +101,8 @@ func HideIndicator() {
 	}
 
 	slog.Debug("[indicator] HideIndicator called")
-	// Move off-screen. The page stays loaded but invisible.
-	win.SetPosition(offScreenX, 0)
+	// Navigate to bare URL (no params) → page renders with opacity:0 (invisible).
+	win.SetURL("/indicator.html")
 }
 
 func PopIndicator(promptIcon, promptName string) {
@@ -131,7 +128,7 @@ func PopIndicator(promptIcon, promptName string) {
 		w := indicatorWin
 		indicatorMu.Unlock()
 		if w != nil {
-			w.SetPosition(offScreenX, 0)
+			w.SetURL("/indicator.html")
 		}
 	}()
 }
