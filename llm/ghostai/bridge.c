@@ -298,6 +298,16 @@ char* ghost_engine_complete(ghost_engine* e,
     char piece_buf[256];
     int n_gen = 0;
 
+    /*
+     * Early stop after </think>: once the model closes its thinking block,
+     * the actual answer follows. Allow a generous budget (256 tokens) for
+     * the answer, then stop — prevents runaway generation if thinking
+     * wasn't fully suppressed by the template.
+     */
+    int post_think_budget = -1; /* -1 = not tracking (no </think> seen yet) */
+    const char* think_close = "</think>";
+    const int think_close_len = 8;
+
     for (int i = 0; i < max_tokens; i++) {
         /* Check abort between tokens. */
         if (abort_flag && *abort_flag) {
@@ -336,6 +346,21 @@ char* ghost_engine_complete(ghost_engine* e,
         }
 
         n_gen++;
+
+        /* Early stop: detect </think> in the output buffer. */
+        if (post_think_budget < 0 && out_len >= think_close_len) {
+            /* Search only the recent portion of the buffer. */
+            int search_start = out_len - think_close_len - piece_len;
+            if (search_start < 0) search_start = 0;
+            if (strstr(output + search_start, think_close) != NULL) {
+                post_think_budget = 256;
+            }
+        }
+        if (post_think_budget >= 0) {
+            if (--post_think_budget <= 0) {
+                break;
+            }
+        }
 
         /* Feed new token back for next iteration. */
         struct llama_batch next = llama_batch_get_one(&new_token, 1);

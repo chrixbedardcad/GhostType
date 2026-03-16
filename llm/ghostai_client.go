@@ -49,11 +49,12 @@ func newGhostAIFromDef(def LLMProviderDefCompat) (client *GhostAIClient, err err
 
 	config := ghostai.DefaultConfig()
 	config.MaxTokens = maxTokens
-	// Give thinking models (Qwen3/3.5, DeepSeek) more context for <think>
-	// blocks. The default 2048 is too tight when thinking overhead is 200-400+
-	// tokens on top of the actual output.
+	// Thinking models get extra context as a safety margin. With thinking
+	// properly disabled via template (empty <think> block for Qwen3.5,
+	// /no_think for Qwen3), this mostly serves as headroom for the
+	// </think> early stop safety net in bridge.c.
 	if isThinkingModel(def.Model) {
-		config.ContextSize = 4096
+		config.ContextSize = 2048
 	}
 
 	engine := ghostai.New(config)
@@ -119,19 +120,26 @@ func (c *GhostAIClient) Send(ctx context.Context, req Request) (resp *Response, 
 		maxTokens = c.maxTokens
 	}
 	thinking := isThinkingModel(c.modelName)
+
+	// Dynamic token cap: allow ~3x input length + generous buffer.
+	// With thinking properly disabled via template (see below), the model
+	// outputs directly without <think> blocks, so we don't need the full
+	// context window. Keep a safety margin of 512 minimum for complex text.
+	inputWords := len(strings.Fields(req.Text))
+	dynamicMax := inputWords*3 + 128
+	if dynamicMax < 512 {
+		dynamicMax = 512
+	}
 	if thinking {
-		// Thinking models need generous room — the <think> block can easily
-		// consume 500-2000 tokens before the model produces the actual answer.
-		// Use the full context window (like Ollama/LM Studio do) so the model
-		// can finish thinking and produce the answer without being cut off.
-		maxTokens = c.engine.Config().ContextSize
-	} else {
-		// Non-thinking models: cap to ~2x input length to avoid wasted generation.
-		inputWords := len(strings.Fields(req.Text))
-		dynamicMax := int(float64(inputWords)*2) + 64
-		if dynamicMax < maxTokens {
-			maxTokens = dynamicMax
+		// Thinking models: even with thinking disabled, allow generous room.
+		// The </think> early stop in bridge.c acts as a safety net if
+		// thinking somehow triggers despite the template disable.
+		if dynamicMax < 1024 {
+			dynamicMax = 1024
 		}
+	}
+	if dynamicMax < maxTokens {
+		maxTokens = dynamicMax
 	}
 	if maxTokens < 64 {
 		maxTokens = 64
@@ -139,11 +147,9 @@ func (c *GhostAIClient) Send(ctx context.Context, req Request) (resp *Response, 
 
 	// Format using the model's chat template (ChatML for Qwen, etc.).
 	// System = instruction prompt, User = the text to process.
-	// /no_think goes in the system message — putting it in the user message
-	// contaminates the input text (small models echo it back as part of the
-	// corrected text instead of recognizing it as a directive).
 	systemMsg := req.Prompt
-	if thinking {
+	if thinking && !isQwen35(c.modelName) {
+		// Qwen3 (not 3.5) supports the /no_think soft switch in system message.
 		systemMsg = "/no_think\n" + req.Prompt
 	}
 	prompt, err := c.engine.ApplyChat(systemMsg, req.Text)
@@ -151,6 +157,15 @@ func (c *GhostAIClient) Send(ctx context.Context, req Request) (resp *Response, 
 		slog.Warn("[ghost-ai] chat template failed, using raw format", "error", err)
 		// Fallback to raw format if template fails.
 		prompt = systemMsg + "\n\nUser: " + req.Text
+	}
+
+	// For Qwen3.5: inject an empty <think> block after the assistant turn
+	// start to disable thinking at the template level. This is the official
+	// Qwen3.5 mechanism (enable_thinking=false) — the model sees the empty
+	// block and skips reasoning, going straight to the answer.
+	// Qwen3.5 does NOT support the /no_think soft switch.
+	if isQwen35(c.modelName) {
+		prompt += "<think>\n\n</think>\n\n"
 	}
 
 	text, stats, err := c.engine.Complete(ctx, prompt, maxTokens)
@@ -187,10 +202,17 @@ func (c *GhostAIClient) Send(ctx context.Context, req Request) (resp *Response, 
 	}, nil
 }
 
-// isThinkingModel returns true for models that generate <think> blocks.
+// isThinkingModel returns true for models that can generate <think> blocks.
 func isThinkingModel(name string) bool {
 	n := strings.ToLower(name)
 	return strings.Contains(n, "qwen3") || strings.Contains(n, "deepseek")
+}
+
+// isQwen35 returns true for Qwen3.5 models (not Qwen3).
+// Qwen3.5 does NOT support the /no_think soft switch — it requires
+// template-level disable via an empty <think></think> block.
+func isQwen35(name string) bool {
+	return strings.Contains(strings.ToLower(name), "qwen3.5")
 }
 
 // cleanLocalModelResponse strips ChatML artifacts, thinking tags, and reasoning
