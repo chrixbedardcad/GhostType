@@ -75,8 +75,7 @@ gh release view --repo chrixbedardcad/GhostSpell --json tagName -q .tagName
 <details>
 <summary>Uninstall</summary>
 
-> [!CAUTION]
-> **This will remove GhostSpell and all its data.** Back up `config.json` first if you want to keep your settings.
+> **⚠️ Warning:** This will remove GhostSpell and all its data. Back up `config.json` first if you want to keep your settings.
 
 **macOS / Linux:**
 ```bash
