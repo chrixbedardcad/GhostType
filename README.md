@@ -72,6 +72,21 @@ gh release view --repo chrixbedardcad/GhostSpell --json tagName -q .tagName
 
 </details>
 
+### Uninstall
+
+> [!CAUTION]
+> **This will remove GhostSpell and all its data.** Back up `config.json` first if you want to keep your settings.
+
+**macOS / Linux:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/chrixbedardcad/GhostSpell/main/scripts/uninstall.sh | bash
+```
+
+**Windows:**
+```cmd
+powershell -c "irm https://raw.githubusercontent.com/chrixbedardcad/GhostSpell/main/scripts/uninstall.ps1 | iex"
+```
+
 ---
 
 ## Quick Start
@@ -278,23 +293,6 @@ go build -tags "production ghostai" -o ghostspell .
 **Tests:**
 ```bash
 go test -tags webkit2_41 ./...
-```
-
----
-
-## Uninstall
-
-> [!CAUTION]
-> **This will remove GhostSpell and all its data.** Back up `config.json` first if you want to keep your settings.
-
-**macOS / Linux:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/chrixbedardcad/GhostSpell/main/scripts/uninstall.sh | bash
-```
-
-**Windows:**
-```cmd
-powershell -c "irm https://raw.githubusercontent.com/chrixbedardcad/GhostSpell/main/scripts/uninstall.ps1 | iex"
 ```
 
 ---
