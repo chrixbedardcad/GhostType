@@ -1824,7 +1824,6 @@ async function openImPaneAndMark() {
 async function axNext() {
   const perms = await checkPerms();
   if (!perms.accessibility) {
-    // Not granted — cannot proceed. Show warning.
     var statusEl = document.getElementById('perm-ax-status');
     if (statusEl) {
       statusEl.textContent = 'Required — click "Open Accessibility Settings" above';
@@ -1832,7 +1831,16 @@ async function axNext() {
     }
     return;
   }
-  goToStep('perm-im');
+  // Accessibility granted. Test if hotkeys actually work (CGEventTap).
+  // On older macOS, Accessibility covers Input Monitoring too.
+  // Only show the Input Monitoring step if the tap test fails.
+  if (perms.postEvent) {
+    // Hotkeys work — skip Input Monitoring, go to model selection.
+    goToStep(1);
+  } else {
+    // Hotkeys don't work — need Input Monitoring.
+    goToStep('perm-im');
+  }
 }
 
 // Step 0b → models or restart: Input Monitoring
