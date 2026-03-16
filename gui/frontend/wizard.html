@@ -308,7 +308,7 @@
       <div style="font-size:0.82em;color:#cdd6f4;line-height:1.7">
         <div style="margin-bottom:5px"><span style="color:#a6e3a1">&#10003;</span> <strong>6 built-in modes</strong> &mdash; Correct, Polish, Funny, Elaborate, Shorten, Translate</div>
         <div style="margin-bottom:5px"><span style="color:#a6e3a1">&#10003;</span> <strong>Your models, your rules</strong> &mdash; local AI, ChatGPT, Gemini, and more</div>
-        <div style="margin-bottom:5px"><span style="color:#a6e3a1">&#10003;</span> <strong>Private by default</strong> &mdash; GhostAI runs 100% on your machine</div>
+        <div style="margin-bottom:5px"><span style="color:#a6e3a1">&#10003;</span> <strong>Private by default</strong> &mdash; GhostSpell Local runs 100% on your machine</div>
         <div><span style="color:#a6e3a1">&#10003;</span> <strong>Works everywhere</strong> &mdash; any text field, any application</div>
       </div>
     </div>
@@ -460,8 +460,8 @@
     <div class="local-provider-row">
       <div class="card" onclick="selectCategory('local')" style="border-color:#a6e3a1">
         <div class="card-header">
-          <span class="card-icon"><img src="/ghostAI.png" width="28" height="28" style="vertical-align:middle"></span>
-          <span class="card-title">GhostAI <span class="badge badge-free">FREE</span> <span class="badge badge-rec">RECOMMENDED</span></span>
+          <span class="card-icon"><img src="/ghostspell-local.svg" width="28" height="28" style="vertical-align:middle"></span>
+          <span class="card-title">GhostSpell Local <span class="badge badge-free">FREE</span> <span class="badge badge-rec">RECOMMENDED</span></span>
         </div>
         <div class="card-desc">
           Runs 100% on your machine &mdash; private, offline, no account needed.<br>
@@ -554,8 +554,8 @@
     <div class="local-provider-row">
       <div class="card" onclick="selectCategory('local')" style="border-color:#a6e3a1">
         <div class="card-header">
-          <span class="card-icon"><img src="/ghostAI.png" width="28" height="28" style="vertical-align:middle"></span>
-          <span class="card-title">GhostAI <span class="badge badge-free">FREE</span></span>
+          <span class="card-icon"><img src="/ghostspell-local.svg" width="28" height="28" style="vertical-align:middle"></span>
+          <span class="card-title">GhostSpell Local <span class="badge badge-free">FREE</span></span>
         </div>
         <div class="card-desc">
           Runs 100% on your machine &mdash; private, offline, no account needed.
@@ -718,9 +718,9 @@
   <!-- ============ STEP 2d: LOCAL AI SETUP ============ -->
   <div class="step-section" id="step-2d">
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
-      <img src="/ghostAI.png" width="48" height="48" style="flex-shrink:0">
+      <img src="/ghostspell-local.svg" width="48" height="48" style="flex-shrink:0">
       <div>
-        <h2 style="font-size:1.1em;margin-bottom:2px;color:#bac2de">GhostAI Setup</h2>
+        <h2 style="font-size:1.1em;margin-bottom:2px;color:#bac2de">GhostSpell Local Setup</h2>
         <div style="font-size:0.82em;color:#6c7086;line-height:1.4">
           Runs 100% on your machine &mdash; private, offline, no account needed.
         </div>
@@ -1231,10 +1231,10 @@ async function localRefresh() {
 
   if (models.length > 0) {
     bar.className = 'ollama-status-bar running';
-    text.textContent = 'GhostAI ready';
+    text.textContent = 'GhostSpell Local ready';
   } else {
     bar.className = 'ollama-status-bar installed';
-    text.textContent = 'GhostAI engine built-in — pick a model';
+    text.textContent = 'GhostSpell Local engine built-in — pick a model';
   }
   renderLocalModels(body, models, available);
 }
@@ -1265,7 +1265,7 @@ function renderLocalModels(container, installedModels, allAvailable) {
   }
 
   let html = '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;margin-bottom:4px">'
-    + '<img src="/ghostAI.png" width="22" height="22">'
+    + '<img src="/ghostspell-local.svg" width="22" height="22">'
     + '<span style="font-size:0.88em;color:#bac2de">Select a model</span>'
     + '</div>';
 
@@ -1335,7 +1335,7 @@ async function localDeleteModelWizard(name) {
 }
 
 async function localSetupAll() {
-  // GhostAI engine is built-in — just download the default model.
+  // GhostSpell Local engine is built-in — just download the default model.
   await localDownloadModel('qwen3.5-2b');
 }
 
@@ -1400,7 +1400,7 @@ async function localFinish() {
 }
 
 async function saveLocalProvider(modelName) {
-  const label = 'GhostAI';
+  const label = 'GhostSpell Local';
   // Save provider credentials
   const r1 = await goCall('saveProviderConfig', 'local', '', '', '', true);
   if (!r1 || !r1.startsWith('ok')) {
@@ -1706,7 +1706,7 @@ async function lmsFinish() {
 // ==================== STEP 4: DONE ====================
 function showDone(label, provider, model) {
   const summary = document.getElementById('done-summary');
-  const providerName = PROVIDERS[provider] ? PROVIDERS[provider].name : (provider === 'local' ? 'GhostAI (Built-in)' : provider === 'ollama' ? 'Ollama (Local)' : provider === 'lmstudio' ? 'LM Studio (Local)' : provider);
+  const providerName = PROVIDERS[provider] ? PROVIDERS[provider].name : (provider === 'local' ? 'GhostSpell Local (Built-in)' : provider === 'ollama' ? 'Ollama (Local)' : provider === 'lmstudio' ? 'LM Studio (Local)' : provider);
   summary.innerHTML = `
     <div class="row"><span class="lbl">Provider</span><span class="val">${esc(providerName)}</span></div>
     <div class="row"><span class="lbl">Model</span><span class="val">${esc(model)}</span></div>

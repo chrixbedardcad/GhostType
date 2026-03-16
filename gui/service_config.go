@@ -91,7 +91,7 @@ func (s *SettingsService) SaveProviderConfig(providerType, apiKey, endpoint, ref
 				}
 			}
 			labels := map[string]string{
-				"local": "GhostAI", "chatgpt": "chatgpt", "openai": "openai",
+				"local": "GhostSpell Local", "chatgpt": "chatgpt", "openai": "openai",
 				"anthropic": "claude", "gemini": "gemini", "xai": "grok",
 				"deepseek": "deepseek", "ollama": "ollama", "lmstudio": "lmstudio",
 			}
@@ -254,7 +254,7 @@ func (s *SettingsService) ResetModels() string {
 		provider string
 		label    string
 	}{
-		{"local", "GhostAI"},
+		{"local", "GhostSpell Local"},
 		{"chatgpt", "chatgpt"},
 		{"openai", "openai"},
 		{"anthropic", "claude"},
