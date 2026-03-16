@@ -535,14 +535,18 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		hkMu.Unlock()
 
 		// Auto-open Settings after an update to show the "What's New" popup.
-		if cfg.LastSeenVersion != version.Version && cfg.LastSeenVersion != "" {
+		// Don't auto-open if the wizard just ran (needsSetup was true) — the
+		// wizard already showed everything the user needs.
+		if !needsSetup && cfg.LastSeenVersion != version.Version && cfg.LastSeenVersion != "" {
 			slog.Info("Version changed, auto-opening Settings for What's New", "last", cfg.LastSeenVersion, "current", version.Version)
 			go func() {
-				time.Sleep(1500 * time.Millisecond) // let the tray settle
+				time.Sleep(1500 * time.Millisecond)
 				gui.ShowSettings(settingsSvc, cfg, configPath, func() {
+					mu.Lock()
 					if router != nil {
 						router.ResetClients()
 					}
+					mu.Unlock()
 				})
 			}()
 		}

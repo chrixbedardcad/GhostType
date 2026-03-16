@@ -65,8 +65,8 @@ func ShowWizardOnApp(svc *SettingsService, app *application.App, cfg *config.Con
 
 	win := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:  "GhostSpell Setup",
-		Width:  600,
-		Height: 640,
+		Width:  620,
+		Height: 750,
 		URL:    "/wizard.html",
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
