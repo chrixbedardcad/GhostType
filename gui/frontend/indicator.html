@@ -98,9 +98,12 @@ document.getElementById('pn').textContent = _name;
 if (_pop) {
   document.getElementById('sep').style.display = 'none';
   document.getElementById('t').style.display = 'none';
-} else {
+} else if (window.location.search) {
+  // Only start timer when navigated with params (ShowIndicator).
+  // Store interval ID on window so HideIndicator's navigation clears it
+  // by loading a fresh page (no params = no timer started).
   var _start = Date.now();
-  setInterval(function() {
+  window._iv = setInterval(function() {
     document.getElementById('t').textContent = Math.floor((Date.now() - _start) / 1000) + 's';
   }, 1000);
 }

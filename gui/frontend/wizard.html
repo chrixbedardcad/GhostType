@@ -1354,18 +1354,22 @@ async function localDownloadModel(name) {
 
   const downloadPromise = goCall('localDownloadModel', name);
   const pollInterval = setInterval(async () => {
-    const pRaw = await goCall('localDownloadProgress');
-    if (pRaw) {
-      try {
+    try {
+      const pRaw = await goCall('localDownloadProgress');
+      if (pRaw) {
         const p = JSON.parse(pRaw);
         if (bar && p.percent > 0) bar.style.width = Math.min(p.percent, 100).toFixed(1) + '%';
         if (text && p.total > 0) text.textContent = Math.round(p.downloaded / 1024 / 1024) + ' / ' + Math.round(p.total / 1024 / 1024) + ' MB (' + p.percent.toFixed(0) + '%)';
-      } catch(e) {}
-    }
+      }
+    } catch(e) {}
   }, 500);
 
-  const result = await downloadPromise;
-  clearInterval(pollInterval);
+  let result;
+  try {
+    result = await downloadPromise;
+  } finally {
+    clearInterval(pollInterval); // guaranteed cleanup
+  }
   _downloadingModel = '';
   if (wrap) wrap.style.display = 'none';
   if (btn) { btn.disabled = false; btn.textContent = '\u2601\uFE0F Download'; }
@@ -1798,6 +1802,11 @@ function startPermPolling() {
 function stopPermPolling() {
   if (permPollTimer) { clearInterval(permPollTimer); permPollTimer = null; }
 }
+
+// Cleanup all intervals when the wizard window closes.
+window.addEventListener('beforeunload', function() {
+  stopPermPolling();
+});
 
 async function openAxPane() {
   await goCall('openAccessibilityPane');

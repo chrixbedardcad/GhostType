@@ -173,10 +173,10 @@ func (m *WindowsManager) Listen() error {
 		m.mu.Unlock()
 	}()
 
-	// Heartbeat goroutine — logs listener state every 30s to confirm the
+	// Heartbeat goroutine — logs listener state every 5 minutes to confirm the
 	// message loop thread is alive and hotkeys are still registered.
 	go func() {
-		ticker := time.NewTicker(30 * time.Second)
+		ticker := time.NewTicker(5 * time.Minute)
 		defer ticker.Stop()
 		for {
 			select {
