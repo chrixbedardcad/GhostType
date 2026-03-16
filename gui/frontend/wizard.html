@@ -1837,14 +1837,9 @@ async function axNext() {
 
 // Step 0b → models or restart: Input Monitoring
 async function imNext() {
-  const perms = await checkPerms();
-  if (perms.accessibility && perms.postEvent) {
-    // Both granted — no restart needed, go to models
-    goToStep(1);
-  } else {
-    // At least one missing — restart required for macOS to activate
-    goToStep('restart');
-  }
+  // Input Monitoring ALWAYS requires restart — macOS cannot validate
+  // the permission without relaunching. Always go to restart page.
+  goToStep('restart');
 }
 
 // skipPermissions removed — permissions are mandatory on macOS.

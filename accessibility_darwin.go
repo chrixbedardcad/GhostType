@@ -19,6 +19,13 @@ int axIsTrusted() {
 int cgPostEventAllowed() {
     return CGPreflightPostEventAccess();
 }
+
+// cgListenEventAllowed uses CGPreflightListenEventAccess (macOS 10.15+) to
+// check whether the process has Input Monitoring permission (can listen for
+// global keyboard events via CGEventTap).
+int cgListenEventAllowed() {
+    return CGPreflightListenEventAccess();
+}
 */
 import "C"
 
@@ -38,12 +45,15 @@ func checkAccessibility() bool {
 }
 
 // checkPostEventAccess returns true if CGEventPost will actually deliver events.
-// This uses CGPreflightPostEventAccess (macOS 10.15+) which is more accurate
-// than AXIsProcessTrusted() — it catches stale TCC entries where the checkbox
-// appears ON in System Settings but the permission is revoked due to a binary
-// signature change (common after updates without code signing).
 func checkPostEventAccess() bool {
 	return C.cgPostEventAllowed() != 0
+}
+
+// checkInputMonitoring returns true if the process has Input Monitoring permission
+// (can listen for global keyboard events via CGEventTap). This uses
+// CGPreflightListenEventAccess (macOS 10.15+).
+func checkInputMonitoring() bool {
+	return C.cgListenEventAllowed() != 0
 }
 
 // openAccessibilitySettings opens the macOS System Settings to the

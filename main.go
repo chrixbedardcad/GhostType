@@ -192,10 +192,10 @@ func main() {
 	// These are mandatory — the app cannot function without them.
 	if runtime.GOOS == "darwin" {
 		axOK := checkAccessibility()
-		postOK := checkPostEventAccess()
-		if !axOK || !postOK {
-			slog.Info("macOS permissions missing, forcing setup wizard", "accessibility", axOK, "postEvent", postOK)
-			fmt.Printf("macOS permissions: accessibility=%v postEvent=%v — opening wizard\n", axOK, postOK)
+		imOK := checkInputMonitoring()
+		if !axOK || !imOK {
+			slog.Info("macOS permissions missing, forcing setup wizard", "accessibility", axOK, "inputMonitoring", imOK)
+			fmt.Printf("macOS permissions: accessibility=%v inputMonitoring=%v — opening wizard\n", axOK, imOK)
 			needsSetup = true
 		}
 	}

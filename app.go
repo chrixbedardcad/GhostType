@@ -76,7 +76,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 
 	// Wire permission callbacks for the Settings GUI.
 	settingsSvc.CheckAccessibilityFn = checkAccessibility
-	settingsSvc.CheckPostEventAccessFn = checkPostEventAccess
+	settingsSvc.CheckPostEventAccessFn = checkInputMonitoring
 	settingsSvc.OpenPermissionsFn = openAccessibilitySettings
 	settingsSvc.OpenAccessibilityPaneFn = openAccessibilityPane
 	settingsSvc.OpenInputMonitoringPaneFn = openInputMonitoringPane
