@@ -26,6 +26,25 @@ int cgPostEventAllowed() {
 int cgListenEventAllowed() {
     return CGPreflightListenEventAccess();
 }
+
+// cgCanCreateEventTap tries to create a real CGEventTap and immediately
+// destroys it. This is the only 100% reliable way to check Input Monitoring.
+// Returns 1 if the tap was created successfully, 0 if it failed (permission denied).
+int cgCanCreateEventTap() {
+    CFMachPortRef tap = CGEventTapCreate(
+        kCGSessionEventTap,
+        kCGHeadInsertEventTap,
+        kCGEventTapOptionListenOnly,
+        CGEventMaskBit(kCGEventKeyDown),
+        NULL,  // no callback needed — just testing if creation succeeds
+        NULL
+    );
+    if (tap == NULL) {
+        return 0; // Input Monitoring not granted
+    }
+    CFRelease(tap);
+    return 1;
+}
 */
 import "C"
 
@@ -49,11 +68,12 @@ func checkPostEventAccess() bool {
 	return C.cgPostEventAllowed() != 0
 }
 
-// checkInputMonitoring returns true if the process has Input Monitoring permission
-// (can listen for global keyboard events via CGEventTap). This uses
-// CGPreflightListenEventAccess (macOS 10.15+).
+// checkInputMonitoring returns true if the process has Input Monitoring permission.
+// Uses a real CGEventTap creation test — the only 100% reliable method.
+// CGPreflightListenEventAccess is unreliable on some macOS versions (returns
+// true even when the permission is not granted).
 func checkInputMonitoring() bool {
-	return C.cgListenEventAllowed() != 0
+	return C.cgCanCreateEventTap() != 0
 }
 
 // openAccessibilitySettings opens the macOS System Settings to the
