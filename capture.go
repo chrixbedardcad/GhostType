@@ -113,7 +113,28 @@ func captureText(
 		return captureResult{Text: text, HasAX: true, Method: captureViaCGEvent}
 	}
 
-	// No selection — fall back to select-all + copy.
+	// --- Strategy 2.5: AX-routed Copy (browsers/sandboxed apps) ---
+	// CGEventPost Copy failed — before falling back to SelectAll, try
+	// AXUIElementPostKeyboardEvent which routes Cmd+C through the
+	// Accessibility framework by PID. This captures the selection on
+	// browsers where CGEventPost is blocked by the sandbox.
+	slog.Debug("captureText: CGEventPost Copy empty, trying AX Copy for selection")
+	if err := cb.Clear(); err == nil {
+		time.Sleep(30 * time.Millisecond)
+		if err := kb.CopyAX(); err == nil {
+			time.Sleep(150 * time.Millisecond)
+			axText, readErr := cb.Read()
+			if readErr == nil && axText != "" {
+				slog.Info("Selection detected via AX Copy", "prompt", promptName, "len", len(axText))
+				return captureResult{Text: axText, HasAX: true, Method: captureViaAXKeystroke}
+			}
+			slog.Debug("captureText: AX Copy also empty")
+		} else {
+			slog.Debug("captureText: AX Copy not available", "error", err)
+		}
+	}
+
+	// No selection detected by any Copy method — fall back to select-all.
 	slog.Debug("No selection detected, falling back to select-all", "prompt", promptName)
 	if err := kb.SelectAll(); err != nil {
 		return captureResult{Method: captureViaCGEvent, Err: fmt.Errorf("select all: %w", err)}
