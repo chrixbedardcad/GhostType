@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync/atomic"
@@ -272,6 +273,18 @@ func (s *SettingsService) ClearStats() string {
 	if s.ClearStatsFn != nil {
 		s.ClearStatsFn()
 	}
+	return "ok"
+}
+
+// OpenStatsFile opens the stats.json file in the OS default editor.
+func (s *SettingsService) OpenStatsFile() string {
+	guiLog("[GUI] JS called: OpenStatsFile")
+	dir := filepath.Dir(s.configPath)
+	path := filepath.Join(dir, "stats.json")
+	if _, err := os.Stat(path); err != nil {
+		return "error: stats file not found"
+	}
+	OpenFile(path)
 	return "ok"
 }
 

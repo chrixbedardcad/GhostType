@@ -929,6 +929,7 @@
       <h2 style="margin-bottom:0">Usage Stats</h2>
       <div style="display:flex;gap:6px">
         <button class="btn btn-primary btn-sm" onclick="runBenchmark()" id="bench-btn">Run Benchmark</button>
+        <button class="btn btn-secondary btn-sm" onclick="openStatsFile()">Open stats.json</button>
         <button class="btn btn-secondary btn-sm" onclick="clearStats()">Clear Stats</button>
       </div>
     </div>
@@ -2525,6 +2526,7 @@ async function clearStats() {
   await goCall('clearStats');
   renderStats();
 }
+async function openStatsFile() { await goCall('openStatsFile'); }
 
 // ---- Benchmark ----
 var _benchPollTimer = null;
