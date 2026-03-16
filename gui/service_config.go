@@ -670,6 +670,16 @@ func (s *SettingsService) SetMaxInputChars(limit int) string {
 	return "ok"
 }
 
+// SetIndicatorPosition sets the ghost indicator position.
+func (s *SettingsService) SetIndicatorPosition(pos string) string {
+	guiLog("[GUI] JS called: SetIndicatorPosition(%s)", pos)
+	s.cfgCopy.IndicatorPosition = pos
+	if err := s.validateAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
 // SetHotkey updates a named hotkey binding.
 func (s *SettingsService) SetHotkey(name, binding string) string {
 	guiLog("[GUI] JS called: SetHotkey(%s, %s)", name, binding)

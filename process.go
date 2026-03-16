@@ -168,7 +168,8 @@ func processMode(
 	if promptIdx >= 0 && promptIdx < len(cfg.Prompts) {
 		promptIcon = cfg.Prompts[promptIdx].Icon
 	}
-	gui.ShowIndicator(promptIcon, promptName)
+	modelLabel := cfg.DefaultModel
+	gui.ShowIndicator(promptIcon, promptName, modelLabel)
 
 	// Immediately restore focus to the target app. The indicator is visible
 	// (visual feedback) but the target app has focus for keyboard simulation.

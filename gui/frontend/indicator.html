@@ -79,6 +79,7 @@
   <span class="prompt-name" id="pn"></span>
   <div class="sep" id="sep"></div>
   <div class="timer" id="t">0s</div>
+  <span id="ml" style="font-size:10px;color:rgba(255,255,255,0.4);margin-left:2px"></span>
 </div>
 <script>
 // Only show content when navigated with URL params (ShowIndicator).
@@ -90,10 +91,12 @@ if (window.location.search) {
 var _p = new URLSearchParams(window.location.search);
 var _icon = _p.get('i') || '';
 var _name = _p.get('n') || '';
+var _model = _p.get('m') || '';
 var _pop = _p.get('pop') === '1';
 
 document.getElementById('pi').textContent = _icon;
 document.getElementById('pn').textContent = _name;
+document.getElementById('ml').textContent = _model;
 
 if (_pop) {
   document.getElementById('sep').style.display = 'none';

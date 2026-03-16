@@ -188,6 +188,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				}
 				mu.Unlock()
 				sound.SetEnabled(*cfg.SoundEnabled)
+				gui.SetIndicatorPosition(cfg.IndicatorPosition)
 				slog.Info("Live config reloaded after settings save")
 				refreshTrayMenu()
 				refreshHotkeys()
@@ -284,6 +285,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	// measure — on macOS, AlwaysOnTop + Frameless windows have occasionally
 	// appeared visible despite the Hidden flag (#137).
 	gui.CreateIndicator(wailsApp)
+	gui.SetIndicatorPosition(cfg.IndicatorPosition)
 	gui.HideIndicator()
 
 	// When debug auto-disables after 30min, log it.

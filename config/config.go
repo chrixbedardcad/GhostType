@@ -84,6 +84,7 @@ type Config struct {
 	MaxInputChars     int    `json:"max_input_chars"`
 	PreserveClipboard bool   `json:"preserve_clipboard"`
 	SoundEnabled      *bool  `json:"sound_enabled"`
+	IndicatorPosition string `json:"indicator_position,omitempty"` // center, top-right, top-left, bottom-right, bottom-left, hidden
 	LogLevel          string `json:"log_level"`
 	LogFile           string `json:"log_file"`
 	LastSeenVersion   string `json:"last_seen_version,omitempty"`
@@ -479,6 +480,9 @@ func applyDefaults(cfg *Config) {
 	}
 	if cfg.SoundEnabled == nil {
 		cfg.SoundEnabled = boolPtr(true)
+	}
+	if cfg.IndicatorPosition == "" {
+		cfg.IndicatorPosition = "center"
 	}
 	if cfg.Hotkeys.Action == "" {
 		cfg.Hotkeys.Action = defaultActionHotkey

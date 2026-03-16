@@ -56,21 +56,47 @@ func CreateIndicator(app *application.App) {
 	slog.Info("[gui] Indicator overlay window created (off-screen)")
 }
 
-func getIndicatorPosition() (int, int) {
-	app := application.Get()
-	if app != nil {
-		screen := app.Screen.GetPrimary()
-		if screen != nil {
-			// Center horizontally, position in the upper third vertically.
-			x := screen.WorkArea.X + (screen.WorkArea.Width-260)/2
-			y := screen.WorkArea.Y + screen.WorkArea.Height/3
-			return x, y
-		}
-	}
-	return 100, 100
+// indicatorPos stores the configured position. Set by the app at startup.
+var indicatorPos = "center"
+
+// SetIndicatorPosition sets the configured position for the indicator.
+func SetIndicatorPosition(pos string) {
+	indicatorMu.Lock()
+	indicatorPos = pos
+	indicatorMu.Unlock()
 }
 
-func ShowIndicator(promptIcon, promptName string) {
+func getIndicatorPosition() (int, int) {
+	app := application.Get()
+	if app == nil {
+		return 100, 100
+	}
+	screen := app.Screen.GetPrimary()
+	if screen == nil {
+		return 100, 100
+	}
+
+	w := 260
+	h := 52
+	indicatorMu.Lock()
+	pos := indicatorPos
+	indicatorMu.Unlock()
+
+	switch pos {
+	case "top-left":
+		return screen.WorkArea.X + 20, screen.WorkArea.Y + 20
+	case "top-right":
+		return screen.WorkArea.X + screen.WorkArea.Width - w - 20, screen.WorkArea.Y + 20
+	case "bottom-left":
+		return screen.WorkArea.X + 20, screen.WorkArea.Y + screen.WorkArea.Height - h - 20
+	case "bottom-right":
+		return screen.WorkArea.X + screen.WorkArea.Width - w - 20, screen.WorkArea.Y + screen.WorkArea.Height - h - 20
+	default: // "center"
+		return screen.WorkArea.X + (screen.WorkArea.Width-w)/2, screen.WorkArea.Y + screen.WorkArea.Height/3
+	}
+}
+
+func ShowIndicator(promptIcon, promptName, modelLabel string) {
 	indicatorMu.Lock()
 	win := indicatorWin
 	indicatorMu.Unlock()
@@ -78,12 +104,17 @@ func ShowIndicator(promptIcon, promptName string) {
 		return
 	}
 
-	slog.Debug("[indicator] ShowIndicator called", "prompt", promptName, "icon", promptIcon)
+	slog.Debug("[indicator] ShowIndicator called", "prompt", promptName, "icon", promptIcon, "model", modelLabel)
 
-	// Navigate to the indicator page with prompt data in URL params.
-	// The window is always "visible" (off-screen), so SetURL + render
-	// works reliably on both Windows WebView2 and macOS WebKit.
-	u := "/indicator.html?i=" + url.QueryEscape(promptIcon) + "&n=" + url.QueryEscape(promptName)
+	// Check if indicator is hidden.
+	indicatorMu.Lock()
+	pos := indicatorPos
+	indicatorMu.Unlock()
+	if pos == "hidden" {
+		return
+	}
+
+	u := "/indicator.html?i=" + url.QueryEscape(promptIcon) + "&n=" + url.QueryEscape(promptName) + "&m=" + url.QueryEscape(modelLabel)
 	win.SetURL(u)
 	time.Sleep(150 * time.Millisecond) // let page load
 
