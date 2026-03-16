@@ -38,7 +38,7 @@ func CreateIndicator(app *application.App) {
 		BackgroundType:    bgType,
 		BackgroundColour:  application.RGBA{Red: 0, Green: 0, Blue: 0, Alpha: 0},
 		DisableResize:     true,
-		Hidden:            true, // starts hidden, shown after positioning off-screen
+		Hidden:            false, // must stay visible for WebView2 to render
 		IgnoreMouseEvents: ignoreMouse,
 		URL:               "/indicator.html",
 		Windows: application.WindowsWindow{
@@ -51,11 +51,9 @@ func CreateIndicator(app *application.App) {
 			WindowLevel: application.MacWindowLevelFloating,
 		},
 	})
-	// Position off-screen first, wait for the position to take effect,
-	// then make visible. This prevents the flash at the default position.
+	// Move off-screen immediately — window is already visible (Hidden:false)
+	// so WebView2 starts rendering. No Show() needed.
 	indicatorWin.SetPosition(offScreenX, 0)
-	time.Sleep(100 * time.Millisecond)
-	indicatorWin.Show()
 	slog.Info("[gui] Indicator overlay window created (off-screen)")
 }
 
