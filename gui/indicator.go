@@ -31,8 +31,8 @@ func CreateIndicator(app *application.App) {
 	indicatorWin = app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Name:              "ghostspell-indicator",
 		Title:             "",
-		Width:             260,
-		Height:            52,
+		Width:             1,
+		Height:            1,
 		Frameless:         true,
 		AlwaysOnTop:       true,
 		BackgroundType:    bgType,
@@ -57,7 +57,7 @@ func CreateIndicator(app *application.App) {
 }
 
 // indicatorPos stores the configured position. Set by the app at startup.
-var indicatorPos = "center"
+var indicatorPos = "top-right"
 
 // SetIndicatorPosition sets the configured position for the indicator.
 func SetIndicatorPosition(pos string) {
