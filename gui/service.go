@@ -9,6 +9,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/chrixbedardcad/GhostSpell/llm"
 	"runtime"
 	"strings"
 	"sync/atomic"
@@ -131,8 +133,27 @@ const whatsNewHTML = `
 `
 
 // GetKnownModels returns a curated model list for the given provider.
+// For LM Studio, dynamically queries the server for loaded models.
 func (s *SettingsService) GetKnownModels(provider string) string {
 	guiLog("[GUI] JS called: GetKnownModels(%s)", provider)
+
+	// LM Studio: query the server for real loaded models.
+	if provider == "lmstudio" {
+		endpoint := ""
+		if prov, ok := s.cfgCopy.Providers["lmstudio"]; ok {
+			endpoint = prov.APIEndpoint
+		}
+		if _, modelNames, err := llm.LMStudioStatus(endpoint); err == nil && len(modelNames) > 0 {
+			var models []ModelInfo
+			for _, name := range modelNames {
+				models = append(models, ModelInfo{Name: name})
+			}
+			data, _ := json.Marshal(models)
+			return string(data)
+		}
+		// Fallback to static list if server not reachable.
+	}
+
 	models := KnownModels(provider)
 	data, _ := json.Marshal(models)
 	return string(data)
