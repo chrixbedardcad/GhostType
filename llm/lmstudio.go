@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/chrixbedardcad/GhostSpell/config"
@@ -21,6 +22,13 @@ func newLMStudioFromDef(def config.LLMProviderDef) *OpenAIClient {
 	endpoint := def.APIEndpoint
 	if endpoint == "" {
 		endpoint = defaultLMStudioEndpoint
+	}
+	// Normalize: strip trailing paths users accidentally add.
+	// Users often enter "http://127.0.0.1:1234/v1/models" or
+	// "http://127.0.0.1:1234/v1/chat/completions" — we need just the base.
+	endpoint = strings.TrimRight(endpoint, "/")
+	for _, suffix := range []string{"/chat/completions", "/models", "/completions"} {
+		endpoint = strings.TrimSuffix(endpoint, suffix)
 	}
 	maxTokens := def.MaxTokens
 	if maxTokens == 0 {

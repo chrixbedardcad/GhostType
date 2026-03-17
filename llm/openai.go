@@ -94,10 +94,9 @@ type openaiResponse struct {
 			ReasoningTokens int `json:"reasoning_tokens"`
 		} `json:"completion_tokens_details"`
 	} `json:"usage"`
-	Error *struct {
-		Message string `json:"message"`
-		Type    string `json:"type"`
-	} `json:"error"`
+	Error   json.RawMessage `json:"error,omitempty"` // OpenAI: {"message":...}, LM Studio: "string"
+	ErrorOK bool            `json:"-"`               // set after parsing
+	ErrorMsg string         `json:"-"`               // extracted error message
 }
 
 func (c *OpenAIClient) Send(ctx context.Context, req Request) (*Response, error) {
@@ -161,8 +160,22 @@ func (c *OpenAIClient) Send(ctx context.Context, req Request) (*Response, error)
 		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
-	if apiResp.Error != nil {
-		return nil, fmt.Errorf("API error (%s): %s", apiResp.Error.Type, apiResp.Error.Message)
+	// Parse error field — OpenAI uses {"message":..., "type":...},
+	// LM Studio uses a plain string. Handle both formats.
+	if len(apiResp.Error) > 0 && string(apiResp.Error) != "null" {
+		// Try OpenAI format first.
+		var errObj struct {
+			Message string `json:"message"`
+			Type    string `json:"type"`
+		}
+		if json.Unmarshal(apiResp.Error, &errObj) == nil && errObj.Message != "" {
+			return nil, fmt.Errorf("API error (%s): %s", errObj.Type, errObj.Message)
+		}
+		// Fall back to plain string (LM Studio format).
+		var errStr string
+		if json.Unmarshal(apiResp.Error, &errStr) == nil && errStr != "" {
+			return nil, fmt.Errorf("API error: %s", errStr)
+		}
 	}
 
 	if len(apiResp.Choices) == 0 {
