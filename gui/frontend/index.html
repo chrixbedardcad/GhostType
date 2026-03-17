@@ -768,7 +768,7 @@
       </div>
     </div>
     <div style="font-size:0.82em;color:#a6adc8;line-height:1.5;margin-bottom:10px" id="models-subtitle">
-      Click <strong style="color:#a6e3a1">Load</strong> to activate a model. Click <strong style="color:#cdd6f4">Benchmark All</strong> to measure speed.
+      Click <strong style="color:#a6e3a1">Activate</strong> to set a model as default. Click <strong style="color:#cdd6f4">Benchmark All</strong> to measure speed.
     </div>
 
     <!-- Filter bar -->
@@ -2211,9 +2211,9 @@ function renderModelGrid(models) {
 
     // Load button (right side)
     if (m.provider_active && !m.is_default) {
-      html += '<button class="btn btn-primary btn-sm" style="flex-shrink:0;font-size:0.72em;padding:4px 12px" onclick="event.stopPropagation();setModelDefaultByModel(\'' + escJS(m.provider) + '\',\'' + escJS(m.model) + '\')">Load</button>';
+      html += '<button class="btn btn-primary btn-sm" style="flex-shrink:0;font-size:0.72em;padding:4px 12px" onclick="event.stopPropagation();setModelDefaultByModel(\'' + escJS(m.provider) + '\',\'' + escJS(m.model) + '\')">Activate</button>';
     } else if (m.is_default) {
-      html += '<div style="flex-shrink:0;font-size:0.72em;color:#a6e3a1;font-weight:600;min-width:50px;text-align:center">Loaded</div>';
+      html += '<div style="flex-shrink:0;font-size:0.72em;color:#a6e3a1;font-weight:600;min-width:50px;text-align:center">Active</div>';
     }
 
     html += '</div>';
