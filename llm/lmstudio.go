@@ -39,9 +39,17 @@ func newLMStudioFromDef(def config.LLMProviderDef) *OpenAIClient {
 		timeoutMs = 120000
 	}
 
+	// LM Studio auto-selects the loaded model when model is empty.
+	// Config stores "default" as a placeholder (passes validation),
+	// but we send "" so LM Studio uses whatever model is loaded.
+	model := def.Model
+	if model == "default" {
+		model = ""
+	}
+
 	return &OpenAIClient{
 		apiKey:       def.APIKey, // often empty for local LM Studio
-		model:        def.Model,
+		model:        model,
 		endpoint:     endpoint + "/chat/completions",
 		maxTokens:    maxTokens,
 		timeoutMs:    timeoutMs,
