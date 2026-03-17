@@ -406,6 +406,7 @@
     <h1>GhostSpell Settings</h1>
     <span class="ver" id="app-version"></span>
   </div>
+  <div style="margin-left:auto;text-align:right" id="header-prompt-info"></div>
 </div>
 
 <!-- What's New popup overlay -->
@@ -1262,6 +1263,7 @@ async function init() {
 
   const raw = await goCall('getConfig');
   if (raw) configData = JSON.parse(raw);
+  updateHeaderPrompt();
   renderModels();
   initHotkeyCapture();
 
@@ -1307,6 +1309,21 @@ function escJS(s) {
 async function reloadConfig() {
   const raw = await goCall('getConfig');
   if (raw) configData = JSON.parse(raw);
+  updateHeaderPrompt();
+}
+
+function updateHeaderPrompt() {
+  var el = document.getElementById('header-prompt-info');
+  if (!el || !configData) return;
+  var prompts = configData.prompts || [];
+  var idx = configData.active_prompt || 0;
+  if (idx < 0 || idx >= prompts.length) { el.innerHTML = ''; return; }
+  var p = prompts[idx];
+  var icon = p.icon || '';
+  var name = p.name || 'Correct';
+  var model = configData.default_model || '';
+  el.innerHTML = '<div style="font-size:0.82em;color:#a6adc8">' + (icon ? '<span style="margin-right:3px">' + esc(icon) + '</span>' : '') + '<strong style="color:#cdd6f4">' + esc(name) + '</strong></div>' +
+    (model ? '<div style="font-size:0.68em;color:#6c7086">' + esc(model) + '</div>' : '');
 }
 
 // ===========================================================================
