@@ -22,6 +22,7 @@ type CatalogModel struct {
 	Name          string   `json:"name"`
 	Description   string   `json:"description"`
 	CostTier      string   `json:"cost_tier"`
+	CostNote      string   `json:"cost_note,omitempty"` // e.g. "250 req/day", "$25 free credits"
 	CostPer1K     float64  `json:"cost_per_1k_tokens"`
 	IFEvalScore   float64  `json:"ifeval_score"`
 	Tags          []string `json:"tags"`

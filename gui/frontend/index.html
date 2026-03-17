@@ -2207,6 +2207,7 @@ function renderModelGrid(models) {
     }
     html += '<div style="flex-shrink:0;text-align:right;min-width:90px">';
     if (costDisplay) html += '<div style="font-size:0.72em;font-weight:600;color:' + costColor + '">' + costDisplay + '</div>';
+    if (m.cost_note) html += '<div style="font-size:0.58em;color:#6c7086;margin-top:1px">' + esc(m.cost_note) + '</div>';
     if (liveStatus === 'testing') {
       html += '<div style="font-size:0.82em;color:#89b4fa;font-weight:600">testing...</div>';
     } else if (liveStatus === 'pending') {
