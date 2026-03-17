@@ -750,11 +750,12 @@
     <div class="toolbar">
       <h2 style="margin-bottom:0">Models</h2>
       <div style="display:flex;gap:6px">
+        <button class="btn btn-primary btn-sm" onclick="runModelsBenchmark()" id="models-bench-btn">Benchmark All</button>
         <button class="btn btn-secondary btn-sm" onclick="resetModels()">Reset Models</button>
       </div>
     </div>
     <div style="font-size:0.82em;color:#a6adc8;line-height:1.5;margin-bottom:10px">
-      Click any model to set it as your default. Models are auto-populated from your configured providers.
+      Click any model to set it as your default. Click <strong style="color:#cdd6f4">Benchmark All</strong> to measure speed.
     </div>
 
     <!-- Filter bar -->
@@ -2029,6 +2030,32 @@ async function setModelDefaultByModel(provider, model) {
   if (result && !result.startsWith('error')) {
     renderModels();
   }
+}
+
+async function runModelsBenchmark() {
+  var btn = document.getElementById('models-bench-btn');
+  btn.disabled = true;
+  btn.textContent = 'Running...';
+  var result = await goCall('runBenchmark');
+  if (result && result.startsWith('error')) {
+    btn.disabled = false;
+    btn.textContent = 'Benchmark All';
+    alert(result);
+    return;
+  }
+  // Poll until done.
+  var poll = setInterval(async function() {
+    var raw = await goCall('getBenchmarkResult');
+    if (!raw || raw === '{}') return;
+    var b;
+    try { b = JSON.parse(raw); } catch(e) { return; }
+    if (b.done || !b.running) {
+      clearInterval(poll);
+      btn.disabled = false;
+      btn.textContent = 'Benchmark All';
+      renderModels(); // Refresh to show new speed data.
+    }
+  }, 1000);
 }
 
 var _resetModelsConfirming = false;
