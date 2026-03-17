@@ -37,7 +37,13 @@ go.work.sum
 # Ghost-AI build artifacts (llama.cpp source + static libraries)
 build/
 
+# Debug artifacts
+Debug/
+
+# Built binaries
+GhostType
+GhostSpell
+
 # Editor/IDE
 # .idea/
 # .vscode/
-GhostType

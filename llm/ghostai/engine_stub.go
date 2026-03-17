@@ -2,9 +2,8 @@
 
 package ghostai
 
-// stubBackend is used when Ghost-AI is not compiled in.
-// All methods return ErrNotAvailable. The subprocess fallback (llm/local.go)
-// handles local inference in this case.
+// stubBackend is used when Ghost-AI is not compiled in (build without -tags ghostai).
+// All methods return ErrNotAvailable.
 type stubBackend struct{}
 
 func newBackend(_ Config) engineBackend {
