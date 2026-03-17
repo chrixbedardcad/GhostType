@@ -4,12 +4,22 @@ package main
 
 /*
 #cgo CFLAGS: -x objective-c
-#cgo LDFLAGS: -framework ApplicationServices -framework CoreGraphics
+#cgo LDFLAGS: -framework ApplicationServices -framework CoreGraphics -framework Foundation
 #include <ApplicationServices/ApplicationServices.h>
 #include <CoreGraphics/CoreGraphics.h>
+#import <Foundation/Foundation.h>
 
 int axIsTrusted() {
     return AXIsProcessTrusted();
+}
+
+// axRequestAccess calls AXIsProcessTrustedWithOptions with kAXTrustedCheckOptionPrompt.
+// This triggers the native macOS Accessibility prompt dialog on first call, which
+// pre-lists the app in System Settings > Accessibility. Much better UX than manually
+// navigating to the settings pane. The prompt only fires once per process launch.
+int axRequestAccess() {
+    NSDictionary *options = @{(__bridge id)kAXTrustedCheckOptionPrompt: @YES};
+    return AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)options);
 }
 
 // cgPostEventAllowed uses CGPreflightPostEventAccess (macOS 10.15+) to check
@@ -62,6 +72,14 @@ import (
 	"fmt"
 	"os/exec"
 )
+
+// requestAccessibility triggers the native macOS Accessibility prompt dialog.
+// This pre-lists GhostSpell in System Settings > Accessibility, making it easy
+// for users to toggle it ON. The prompt only fires once per process launch.
+// Returns true if already trusted.
+func requestAccessibility() bool {
+	return C.axRequestAccess() != 0
+}
 
 // checkAccessibility returns true if the process has working Accessibility permission.
 // Uses a real CGEventCreateKeyboardEvent test — the strongest validation.

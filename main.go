@@ -222,15 +222,26 @@ func main() {
 
 	// On macOS, check Accessibility and Input Monitoring permissions.
 	// These are mandatory — the app cannot function without them.
-	// After updates, macOS invalidates permissions when the binary hash changes.
-	// Always show the wizard when permissions are missing — the wizard polls
-	// for re-grant in real time and skips the restart step if permissions
-	// come back while the wizard is open (#193).
+	//
+	// Strategy (per Apple best practices):
+	// 1. Call AXIsProcessTrustedWithOptions(prompt:YES) to trigger the native
+	//    macOS permission dialog. This pre-lists GhostSpell in System Settings
+	//    and is the recommended approach for Accessibility.
+	// 2. Validate with real CGEventCreateKeyboardEvent/CGEventTapCreate tests
+	//    (not just API checks which can be stale after binary updates).
+	// 3. If permissions are missing, show the wizard for guided setup.
+	//
+	// The #1 fix for permission-loss-after-update is proper Developer ID
+	// code signing (not ad-hoc). With a stable signing identity, TCC carries
+	// permissions across updates automatically.
 	if runtime.GOOS == "darwin" {
+		// Trigger native Accessibility prompt (fires once per launch, pre-lists app).
+		requestAccessibility()
+
 		axOK := checkAccessibility()
 		imOK := checkInputMonitoring()
+		slog.Info("macOS permissions", "accessibility", axOK, "inputMonitoring", imOK)
 		if !axOK || !imOK {
-			slog.Info("macOS permissions missing, showing wizard", "accessibility", axOK, "inputMonitoring", imOK)
 			fmt.Printf("macOS permissions: accessibility=%v inputMonitoring=%v — opening wizard\n", axOK, imOK)
 			needsSetup = true
 		}
