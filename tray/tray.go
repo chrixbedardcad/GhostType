@@ -53,6 +53,9 @@ type Config struct {
 	// OnUpdateClick is called when the "Update available" menu item is clicked.
 	OnUpdateClick func()
 
+	// GetDefaultModelName returns the display name of the active/default model.
+	GetDefaultModelName func() string
+
 	// GetInitError returns a non-empty string when the LLM failed to init at startup.
 	// Used to show a warning in the tray menu so users know to fix their model config.
 	GetInitError func() string
@@ -241,6 +244,13 @@ func (ts *trayState) refreshMenu() {
 
 	// Version header (disabled).
 	menu.Add(fmt.Sprintf("GhostSpell v%s", version.Version)).SetEnabled(false)
+
+	// Active model indicator (disabled).
+	if ts.cfg.GetDefaultModelName != nil {
+		if modelName := ts.cfg.GetDefaultModelName(); modelName != "" {
+			menu.Add(fmt.Sprintf("Model: %s", modelName)).SetEnabled(false)
+		}
+	}
 
 	// Update available item.
 	ts.updateMu.Lock()

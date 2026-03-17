@@ -265,6 +265,17 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 			}
 			return icons
 		},
+		GetDefaultModelName: func() string {
+			mu.Lock()
+			defer mu.Unlock()
+			if cfg.DefaultModel == "" {
+				return ""
+			}
+			if me, ok := cfg.Models[cfg.DefaultModel]; ok {
+				return cfg.DefaultModel + " (" + me.Model + ")"
+			}
+			return cfg.DefaultModel
+		},
 		GetModelLabels: func() []tray.ModelLabel {
 			mu.Lock()
 			defer mu.Unlock()
