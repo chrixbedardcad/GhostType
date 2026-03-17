@@ -150,7 +150,7 @@ func (c *OpenAIClient) Send(ctx context.Context, req Request) (*Response, error)
 
 	if resp.StatusCode != http.StatusOK {
 		slog.Debug(c.providerName+": HTTP error", "status", resp.StatusCode, "body", string(respBody))
-		return nil, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(respBody))
+		return nil, fmt.Errorf("%s", friendlyAPIError(resp.StatusCode, respBody, c.providerName))
 	}
 
 	slog.Debug(c.providerName+": raw response body", "body", string(respBody))
@@ -210,4 +210,67 @@ func (c *OpenAIClient) Send(ctx context.Context, req Request) (*Response, error)
 		Provider: c.providerName,
 		Model:    c.model,
 	}, nil
+}
+
+// friendlyAPIError converts a raw API error response into a user-friendly message.
+func friendlyAPIError(statusCode int, body []byte, provider string) string {
+	// Try to extract the error message from the JSON response.
+	var parsed struct {
+		Error struct {
+			Message string `json:"message"`
+			Code    any    `json:"code"`
+			Status  string `json:"status"`
+		} `json:"error"`
+	}
+	// Gemini wraps in an array: [{error:{...}}]
+	if len(body) > 0 && body[0] == '[' {
+		var arr []json.RawMessage
+		if json.Unmarshal(body, &arr) == nil && len(arr) > 0 {
+			json.Unmarshal(arr[0], &parsed)
+		}
+	} else {
+		json.Unmarshal(body, &parsed)
+	}
+
+	msg := parsed.Error.Message
+
+	switch statusCode {
+	case 429:
+		if strings.Contains(msg, "quota") || strings.Contains(msg, "rate") || strings.Contains(msg, "RESOURCE_EXHAUSTED") {
+			// Extract retry delay if present.
+			if idx := strings.Index(msg, "retry in "); idx != -1 {
+				delay := msg[idx:]
+				if end := strings.IndexByte(delay, '.'); end != -1 {
+					delay = delay[:end] + "s"
+				}
+				return fmt.Sprintf("Rate limit exceeded — %s (%s)", delay, provider)
+			}
+			if strings.Contains(msg, "limit: 0") {
+				return fmt.Sprintf("This model requires a paid plan — free tier quota is 0 (%s)", provider)
+			}
+			return fmt.Sprintf("Rate limit exceeded — try again shortly (%s)", provider)
+		}
+		return fmt.Sprintf("Too many requests (429) — try again shortly (%s)", provider)
+	case 401:
+		return fmt.Sprintf("Invalid API key — check your %s credentials in Settings", provider)
+	case 403:
+		return fmt.Sprintf("Access denied — your API key may not have permission for this model (%s)", provider)
+	case 404:
+		return fmt.Sprintf("Model not found — check the model name (%s)", provider)
+	case 500, 502, 503:
+		return fmt.Sprintf("%s service error (HTTP %d) — try again later", provider, statusCode)
+	}
+
+	// Fallback: use parsed message if available, otherwise truncate raw body.
+	if msg != "" {
+		if len(msg) > 200 {
+			msg = msg[:200] + "..."
+		}
+		return fmt.Sprintf("%s error (HTTP %d): %s", provider, statusCode, msg)
+	}
+	raw := string(body)
+	if len(raw) > 200 {
+		raw = raw[:200] + "..."
+	}
+	return fmt.Sprintf("API error (HTTP %d): %s", statusCode, raw)
 }

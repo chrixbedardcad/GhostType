@@ -218,6 +218,7 @@
       "name": "Gemini 2.5 Pro",
       "description": "Google's most capable model. Deep reasoning and analysis.",
       "cost_tier": "$$",
+      "cost_note": "requires billing",
       "cost_per_1k_tokens": 0.00125,
       "ifeval_score": 89.2,
       "tags": ["best"],
