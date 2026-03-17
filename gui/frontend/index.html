@@ -1838,31 +1838,51 @@ async function saveOllamaProvider() {
 }
 
 // ---- LM Studio provider setup ----
+var _lmsDetectedModel = '';
 async function refreshLMStudioSetup() {
   var bar = document.getElementById('prov-lmstudio-status-bar');
   var text = document.getElementById('prov-lmstudio-status-text');
   var body = document.getElementById('prov-lmstudio-models');
   bar.style.display = 'flex';
   bar.className = 'ollama-status-bar checking'; text.textContent = 'Checking...'; body.innerHTML = '';
+  _lmsDetectedModel = '';
   var endpoint = document.getElementById('prov-lmstudio-endpoint').value.trim();
-  // Try to list models from the LM Studio endpoint
-  var result = await goCall('testConnection', 'lmstudio', '', '', endpoint);
-  if (result && result.startsWith('ok')) {
-    bar.className = 'ollama-status-bar running'; text.textContent = 'LM Studio connected';
-    body.innerHTML = '<div style="font-size:0.85em;color:#a6e3a1;padding:6px 0">Server is reachable. Click Save to configure.</div>';
-  } else {
+  var raw = await goCall('lmStudioStatus', endpoint);
+  if (!raw) { bar.className = 'ollama-status-bar not-installed'; text.textContent = 'Not reachable'; body.innerHTML = '<div style="font-size:0.85em;color:#bac2de;padding:6px 0">Make sure LM Studio is running and the server is started.</div>'; return; }
+  var s;
+  try { s = JSON.parse(raw); } catch(e) { bar.className = 'ollama-status-bar not-installed'; text.textContent = 'Error'; return; }
+  if (!s.running) {
     bar.className = 'ollama-status-bar not-installed'; text.textContent = 'Not reachable';
-    body.innerHTML = '<div style="font-size:0.85em;color:#bac2de;padding:6px 0">Make sure LM Studio is running and the server is started on the configured endpoint.</div>';
+    body.innerHTML = '<div style="font-size:0.85em;color:#bac2de;padding:6px 0">' + esc(s.error || 'Make sure LM Studio is running and the server is started.') + '</div>';
+    return;
   }
+  bar.className = 'ollama-status-bar running'; text.textContent = 'LM Studio connected';
+  var models = s.models || [];
+  if (models.length === 0) {
+    body.innerHTML = '<div style="font-size:0.85em;color:#f9e2af;padding:6px 0">Server running but no models loaded. Load a model in LM Studio first.</div>';
+    return;
+  }
+  _lmsDetectedModel = models[0];
+  var html = '<div style="font-size:0.85em;color:#a6e3a1;padding:6px 0">Loaded models:</div>';
+  for (var i = 0; i < models.length; i++) {
+    html += '<div style="font-size:0.85em;color:#cdd6f4;padding:3px 0">' + esc(models[i]) + '</div>';
+  }
+  body.innerHTML = html;
 }
 
 async function saveLMStudioProvider() {
   var endpoint = document.getElementById('prov-lmstudio-endpoint').value.trim();
   if (!endpoint) { setStatus('prov-lmstudio-status', 'error', 'Endpoint required'); return; }
-  // Providers tab ONLY saves provider credentials — model entries are in Models tab.
   var result = await goCall('saveProviderConfig', 'lmstudio', '', endpoint, '', false);
   if (result && result.startsWith('ok')) {
-    setStatus('prov-lmstudio-status', 'success', 'LM Studio saved! Add a model in the Models tab.');
+    // Auto-create model with detected model name from LM Studio.
+    if (_lmsDetectedModel) {
+      await goCall('saveModel', 'lmstudio', 'lmstudio', _lmsDetectedModel, '');
+      await goCall('setDefaultModel', 'lmstudio');
+      setStatus('prov-lmstudio-status', 'success', 'LM Studio saved with model: ' + _lmsDetectedModel);
+    } else {
+      setStatus('prov-lmstudio-status', 'success', 'LM Studio saved!');
+    }
     await reloadConfig();
     renderProviders();
   } else {
