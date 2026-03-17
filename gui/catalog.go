@@ -141,14 +141,23 @@ func (s *SettingsService) GetModelCatalog() string {
 		if _, ok := cfg.Providers[me.Provider]; !ok {
 			continue
 		}
+		// Use model name as display name; fall back to label if model is "default".
+		displayName := me.Model
+		if displayName == "" || displayName == "default" {
+			displayName = label
+		}
+		costTier := ""
+		if me.Provider == "local" || me.Provider == "ollama" || me.Provider == "lmstudio" {
+			costTier = "free"
+		}
 		entry := CatalogEntry{
 			CatalogModel: CatalogModel{
 				Provider:    me.Provider,
 				Creator:     me.Provider,
 				Model:       me.Model,
-				Name:        label,
-				Description: "Custom model",
-				CostTier:    "",
+				Name:        displayName,
+				Description: "",
+				CostTier:    costTier,
 				Tags:        []string{},
 			},
 			Enabled:        true,
