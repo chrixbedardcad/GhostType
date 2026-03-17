@@ -182,6 +182,9 @@ func processMode(
 		promptIcon = cfg.Prompts[promptIdx].Icon
 	}
 	modelLabel := cfg.DefaultModel
+	if promptIdx >= 0 && promptIdx < len(cfg.Prompts) && cfg.Prompts[promptIdx].LLM != "" {
+		modelLabel = cfg.Prompts[promptIdx].LLM
+	}
 	gui.ShowIndicator(promptIcon, promptName, modelLabel)
 
 	// Immediately restore focus to the target app. The indicator is visible

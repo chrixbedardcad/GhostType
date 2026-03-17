@@ -310,11 +310,6 @@ func (ts *trayState) refreshMenu() {
 		})
 	}
 
-	// Models section.
-	menu.AddSeparator()
-	// Model list removed — too many models for a menu. Use Settings > Models tab instead.
-
-	// Settings and Exit — together, no separator between them.
 	menu.AddSeparator()
 	settingsItem := menu.Add("Settings")
 	settingsItem.OnClick(func(ctx *application.Context) {

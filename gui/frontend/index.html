@@ -658,10 +658,15 @@
       </div>
       <div id="prov-ollama-body"></div>
 
+      <div id="prov-ollama-models"></div>
+
       <div class="btn-row" style="margin-top:10px">
         <button class="btn btn-secondary" onclick="refreshOllamaSetup()">Refresh</button>
+        <button class="btn btn-secondary" id="prov-ollama-test-btn" onclick="testProviderConnection('ollama')">Test Connection</button>
         <button class="btn btn-primary" onclick="saveOllamaProvider()">Save</button>
+        <button class="btn btn-secondary btn-sm" id="prov-remove-ollama" onclick="removeProvider('ollama')" style="margin-left:auto;font-size:0.72em;color:#6c7086">Remove Provider</button>
       </div>
+      <div id="prov-ollama-test-result" class="status"></div>
       <div id="prov-ollama-status" class="status"></div>
       <div id="prov-ollama-action-status" class="status" style="margin-top:6px"></div>
     </div>
@@ -697,6 +702,7 @@
         <button class="btn btn-secondary" onclick="refreshLMStudioSetup()">Refresh</button>
         <button class="btn btn-secondary" id="prov-lmstudio-test-btn" onclick="testProviderConnection('lmstudio')">Test Connection</button>
         <button class="btn btn-primary" onclick="saveLMStudioProvider()">Save</button>
+        <button class="btn btn-secondary btn-sm" id="prov-remove-lmstudio" onclick="removeProvider('lmstudio')" style="margin-left:auto;font-size:0.72em;color:#6c7086">Remove Provider</button>
       </div>
       <div id="prov-lmstudio-test-result" class="status"></div>
       <div id="prov-lmstudio-status" class="status"></div>
@@ -720,6 +726,7 @@
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="testOpenAIApiKey()">Test Connection</button>
         <button class="btn btn-primary" onclick="saveCloudProvider('openai')">Save</button>
+        <button class="btn btn-secondary btn-sm" id="prov-remove-openai" onclick="removeProvider('openai')" style="margin-left:auto;font-size:0.72em;color:#6c7086">Remove Provider</button>
       </div>
       <div id="prov-openai-status" class="status"></div>
       <div id="prov-openai-models"></div>
@@ -742,6 +749,7 @@
       <div class="btn-row">
         <button class="btn btn-secondary" id="prov-cloud-test-btn" onclick="testCloudProvider()">Test Connection</button>
         <button class="btn btn-primary" onclick="saveCloudProvider(currentCloudProvider)">Save</button>
+        <button class="btn btn-secondary btn-sm" id="prov-remove-cloud" onclick="removeProvider(currentCloudProvider)" style="margin-left:auto;font-size:0.72em;color:#6c7086">Remove Provider</button>
       </div>
       <div id="prov-cloud-status" class="status"></div>
       <div id="prov-cloud-models"></div>
@@ -764,21 +772,21 @@
     </div>
 
     <!-- Filter bar -->
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
-      <input type="text" id="model-search" placeholder="Search models..." oninput="filterModels()" style="flex:1;min-width:120px;padding:6px 10px;background:#313244;border:1px solid #45475a;border-radius:6px;color:#cdd6f4;font-size:0.82em;outline:none">
-      <select id="model-filter-provider" onchange="filterModels()" style="padding:6px 10px;background:#313244;border:1px solid #45475a;border-radius:6px;color:#cdd6f4;font-size:0.82em;cursor:pointer">
-        <option value="">All Providers</option>
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px">
+      <input type="text" id="model-search" placeholder="Search..." oninput="filterModels()" style="flex:1;min-width:80px;padding:5px 8px;background:#313244;border:1px solid #45475a;border-radius:6px;color:#cdd6f4;font-size:0.78em;outline:none">
+      <select id="model-filter-provider" onchange="filterModels()" style="padding:5px 6px;background:#313244;border:1px solid #45475a;border-radius:6px;color:#a6adc8;font-size:0.72em;cursor:pointer;max-width:110px">
+        <option value="">Provider</option>
       </select>
-      <select id="model-filter-cost" onchange="filterModels()" style="padding:6px 10px;background:#313244;border:1px solid #45475a;border-radius:6px;color:#cdd6f4;font-size:0.82em;cursor:pointer">
-        <option value="">All Costs</option>
+      <select id="model-filter-cost" onchange="filterModels()" style="padding:5px 6px;background:#313244;border:1px solid #45475a;border-radius:6px;color:#a6adc8;font-size:0.72em;cursor:pointer;max-width:70px">
+        <option value="">Cost</option>
         <option value="free">Free</option>
         <option value="$">$</option>
         <option value="$$">$$</option>
         <option value="$$$">$$$</option>
       </select>
-      <select id="model-filter-sort" onchange="filterModels()" style="padding:6px 10px;background:#313244;border:1px solid #45475a;border-radius:6px;color:#cdd6f4;font-size:0.82em;cursor:pointer">
-        <option value="default">Default First</option>
-        <option value="name">Name A-Z</option>
+      <select id="model-filter-sort" onchange="filterModels()" style="padding:5px 6px;background:#313244;border:1px solid #45475a;border-radius:6px;color:#a6adc8;font-size:0.72em;cursor:pointer;max-width:90px">
+        <option value="default">Active first</option>
+        <option value="name">A-Z</option>
         <option value="speed">Fastest</option>
         <option value="cost">Cheapest</option>
       </select>
@@ -1138,7 +1146,10 @@
 
     <div class="update-box">
       <div id="update-auto-status" style="margin-bottom:10px"></div>
-      <button class="btn btn-primary" onclick="checkForUpdate()" id="update-btn">Check for Updates</button>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="btn btn-primary" onclick="checkForUpdate()" id="update-btn">Check for Updates</button>
+        <button class="btn btn-secondary" onclick="wails.Browser.OpenURL('https://github.com/chrixbedardcad/GhostSpell/releases/latest')">What's New</button>
+      </div>
       <div class="status" id="update-status"></div>
     </div>
 
@@ -1418,6 +1429,25 @@ async function saveCloudProvider(type) {
     renderProviders();
   } else {
     setStatus(statusId, 'error', result || 'Failed');
+  }
+}
+
+var _removeConfirming = {};
+async function removeProvider(type) {
+  if (!_removeConfirming[type]) {
+    _removeConfirming[type] = true;
+    var btn = document.getElementById('prov-remove-' + type);
+    if (btn) { btn.textContent = 'Confirm Remove?'; btn.style.color = '#f38ba8'; }
+    setTimeout(function() { _removeConfirming[type] = false; if (btn) { btn.textContent = 'Remove Provider'; btn.style.color = ''; } }, 4000);
+    return;
+  }
+  _removeConfirming[type] = false;
+  var result = await goCall('removeProvider', type);
+  if (result && result.startsWith('ok') || result === 'ok') {
+    await reloadConfig();
+    backToProviders();
+  } else {
+    alert(result || 'Failed to remove provider');
   }
 }
 
@@ -1884,6 +1914,8 @@ async function saveLMStudioProvider() {
     }
     await reloadConfig();
     renderProviders();
+    // Refresh model list with activation toggles now that provider is saved.
+    await renderProviderModels('lmstudio', 'prov-lmstudio-models');
   } else {
     setStatus('prov-lmstudio-status', 'error', result || 'Save failed');
   }
@@ -1948,19 +1980,19 @@ const PROVIDER_SVGS = {
 
 // Creator logos — who made the model (distinct from provider who serves it).
 const CREATOR_SVGS = {
-  openai:    '<svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:middle"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729z" fill="#10A37F"/></svg>',
-  anthropic: '<svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:middle"><path d="M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z" fill="#D4A574"/></svg>',
-  google:    '<svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:middle"><path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81" fill="url(#gmi_g)"/></svg>',
-  xai:       '<svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:middle"><path d="M14.234 10.162 22.977 0h-2.072l-7.591 8.824L7.251 0H.258l9.168 13.343L.258 24H2.33l8.016-9.318L16.749 24h6.993zm-2.837 3.299-.929-1.329L3.076 1.56h3.182l5.965 8.532.929 1.329 7.754 11.09h-3.182z" fill="#cdd6f4"/></svg>',
-  deepseek:  '<svg width="18" height="18" viewBox="60 100 400 350" style="vertical-align:middle"><path d="M440.898 139.167c-4.001-1.961-5.723 1.776-8.062 3.673-.801.612-1.479 1.407-2.154 2.141-5.848 6.246-12.681 10.349-21.607 9.859-13.048-.734-24.192 3.368-34.04 13.348-2.093-12.307-9.048-19.658-19.635-24.37-5.54-2.449-11.141-4.9-15.02-10.227-2.708-3.795-3.447-8.021-4.801-12.185-.861-2.509-1.725-5.082-4.618-5.512-3.139-.49-4.372 2.142-5.601 4.349-4.925 9.002-6.833 18.921-6.647 28.962.432 22.597 9.972 40.597 28.932 53.397 2.154 1.47 2.707 2.939 2.032 5.082-1.293 4.41-2.832 8.695-4.186 13.105-.862 2.817-2.157 3.429-5.172 2.205-10.402-4.346-19.391-10.778-27.332-18.553-13.481-13.044-25.668-27.434-40.873-38.702a177.614 177.614 0 00-10.834-7.409c-15.512-15.063 2.032-27.434 6.094-28.902 4.247-1.532 1.478-6.797-12.251-6.736-13.727.061-26.285 4.653-42.288 10.777z" fill="#4D6BFE"/></svg>',
-  alibaba:   '<svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:middle"><circle cx="12" cy="12" r="11" fill="#6C3CE1"/><text x="12" y="16" text-anchor="middle" font-size="12" font-weight="bold" fill="#fff" font-family="Arial,sans-serif">Q</text></svg>',
-  meta:      '<svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:middle"><circle cx="12" cy="12" r="11" fill="#0668E1"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="bold" fill="#fff" font-family="Arial,sans-serif">M</text></svg>',
-  microsoft: '<svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:middle"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="13" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="13" width="10" height="10" fill="#00A4EF"/><rect x="13" y="13" width="10" height="10" fill="#FFB900"/></svg>',
-  nvidia:    '<svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:middle"><circle cx="12" cy="12" r="11" fill="#76B900"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#fff" font-family="Arial,sans-serif">N</text></svg>',
-  mistral:   '<svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:middle"><circle cx="12" cy="12" r="11" fill="#F7931A"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="bold" fill="#fff" font-family="Arial,sans-serif">M</text></svg>',
+  openai:    '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729z" fill="#10A37F"/></svg>',
+  anthropic: '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle"><path d="M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z" fill="#D4A574"/></svg>',
+  google:    '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle"><path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81" fill="url(#gmi_g)"/></svg>',
+  xai:       '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle"><path d="M14.234 10.162 22.977 0h-2.072l-7.591 8.824L7.251 0H.258l9.168 13.343L.258 24H2.33l8.016-9.318L16.749 24h6.993zm-2.837 3.299-.929-1.329L3.076 1.56h3.182l5.965 8.532.929 1.329 7.754 11.09h-3.182z" fill="#cdd6f4"/></svg>',
+  deepseek:  '<svg width="22" height="22" viewBox="60 100 400 350" style="vertical-align:middle"><path d="M440.898 139.167c-4.001-1.961-5.723 1.776-8.062 3.673-.801.612-1.479 1.407-2.154 2.141-5.848 6.246-12.681 10.349-21.607 9.859-13.048-.734-24.192 3.368-34.04 13.348-2.093-12.307-9.048-19.658-19.635-24.37-5.54-2.449-11.141-4.9-15.02-10.227-2.708-3.795-3.447-8.021-4.801-12.185-.861-2.509-1.725-5.082-4.618-5.512-3.139-.49-4.372 2.142-5.601 4.349-4.925 9.002-6.833 18.921-6.647 28.962.432 22.597 9.972 40.597 28.932 53.397 2.154 1.47 2.707 2.939 2.032 5.082-1.293 4.41-2.832 8.695-4.186 13.105-.862 2.817-2.157 3.429-5.172 2.205-10.402-4.346-19.391-10.778-27.332-18.553-13.481-13.044-25.668-27.434-40.873-38.702a177.614 177.614 0 00-10.834-7.409c-15.512-15.063 2.032-27.434 6.094-28.902 4.247-1.532 1.478-6.797-12.251-6.736-13.727.061-26.285 4.653-42.288 10.777z" fill="#4D6BFE"/></svg>',
+  alibaba:   '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle"><circle cx="12" cy="12" r="11" fill="#6C3CE1"/><text x="12" y="16" text-anchor="middle" font-size="12" font-weight="bold" fill="#fff" font-family="Arial,sans-serif">Q</text></svg>',
+  meta:      '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle"><circle cx="12" cy="12" r="11" fill="#0668E1"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="bold" fill="#fff" font-family="Arial,sans-serif">M</text></svg>',
+  microsoft: '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="13" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="13" width="10" height="10" fill="#00A4EF"/><rect x="13" y="13" width="10" height="10" fill="#FFB900"/></svg>',
+  nvidia:    '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle"><circle cx="12" cy="12" r="11" fill="#76B900"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#fff" font-family="Arial,sans-serif">N</text></svg>',
+  mistral:   '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle"><circle cx="12" cy="12" r="11" fill="#F7931A"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="bold" fill="#fff" font-family="Arial,sans-serif">M</text></svg>',
 };
 function getCreatorLogo(creator) {
-  return CREATOR_SVGS[creator] || '<span style="font-size:18px;vertical-align:middle">🤖</span>';
+  return CREATOR_SVGS[creator] || '';
 }
 
 const TAG_BADGES = {
@@ -2012,13 +2044,17 @@ function renderActiveModelSummary() {
   if (!active) { el.style.display = 'none'; return; }
 
   var logo = (PROVIDER_SVGS[active.provider] || '').replace(/width="22"/g, 'width="32"').replace(/height="22"/g, 'height="32"');
-  var creatorLogo = getCreatorLogo(active.creator || active.provider);
+  var creatorLogo = getCreatorLogo(active.creator || '');
+  if (creatorLogo) creatorLogo = creatorLogo.replace(/width="22"/g, 'width="28"').replace(/height="22"/g, 'height="28"');
   var provName = PROVIDER_NAMES[active.provider] || active.provider;
   var speedStr = active.avg_speed_ms > 0 ? (active.avg_speed_ms / 1000).toFixed(1) + 's' : '';
   var speedColor = active.avg_speed_ms > 0 ? (active.avg_speed_ms < 2000 ? '#a6e3a1' : active.avg_speed_ms < 5000 ? '#f9e2af' : '#f38ba8') : '#6c7086';
 
   var html = '<div style="background:#1a3a1a;border:2px solid #a6e3a1;border-radius:10px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px">';
-  html += '<div style="flex-shrink:0;display:flex;align-items:center;gap:4px">' + logo + creatorLogo + '</div>';
+  var summaryLogos = '<div style="flex-shrink:0;display:flex;align-items:center;gap:3px">' + logo;
+  if (creatorLogo && (active.creator || '') !== active.provider) summaryLogos += '<span style="color:#585b70;font-size:0.7em">&rsaquo;</span>' + creatorLogo;
+  summaryLogos += '</div>';
+  html += summaryLogos;
   html += '<div style="flex:1;min-width:0">';
   html += '<div style="font-size:0.72em;color:#a6e3a1;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Active Model</div>';
   html += '<div style="font-size:1em;font-weight:700;color:#cdd6f4">' + esc(active.name) + '</div>';
@@ -2103,9 +2139,12 @@ function renderModelGrid(models) {
 
     html += '<div style="background:#313244;border:' + borderWidth + ' solid ' + borderColor + ';border-radius:8px;padding:10px 14px;opacity:' + opacity + ';transition:border-color 0.15s;display:flex;align-items:center;gap:12px" onmouseenter="this.style.borderColor=\'#89b4fa\'" onmouseleave="this.style.borderColor=\'' + borderColor + '\'">';
 
-    // Provider + Creator logos
-    var creatorLogo = getCreatorLogo(m.creator || m.provider);
-    html += '<div style="flex-shrink:0;display:flex;align-items:center;gap:3px">' + logo + creatorLogo + '</div>';
+    // Provider + Creator logos (provider serves it → creator made it)
+    var creatorLogo = getCreatorLogo(m.creator || '');
+    var logoHtml = '<div style="flex-shrink:0;display:flex;align-items:center;gap:2px">' + logo;
+    if (creatorLogo && (m.creator || '') !== m.provider) logoHtml += '<span style="color:#585b70;font-size:0.6em;margin:0 1px">&rsaquo;</span>' + creatorLogo;
+    logoHtml += '</div>';
+    html += logoHtml;
 
     // Name + description (left side, fills space)
     html += '<div style="flex:1;min-width:0">';

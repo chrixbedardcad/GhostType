@@ -11,6 +11,7 @@ import (
 
 	"github.com/chrixbedardcad/GhostSpell/config"
 	"github.com/chrixbedardcad/GhostSpell/llm"
+	"github.com/chrixbedardcad/GhostSpell/sound"
 )
 
 // BenchmarkResult holds the result of benchmarking all models.
@@ -132,6 +133,8 @@ func (s *SettingsService) RunBenchmark() string {
 	benchResult = result
 	benchMu.Unlock()
 
+	go sound.PlayWorking()
+
 	// Run benchmark in background.
 	go func() {
 		for i := range result.Models {
@@ -227,6 +230,7 @@ func (s *SettingsService) RunBenchmark() string {
 		result.Running = false
 		result.Done = true
 		benchMu.Unlock()
+		go sound.PlaySuccess()
 		slog.Info("[benchmark] complete")
 	}()
 
@@ -283,6 +287,8 @@ func (s *SettingsService) RunBenchmarkFiltered(modelsJSON string) string {
 	benchCancel = cancelFn
 	benchResult = result
 	benchMu.Unlock()
+
+	go sound.PlayWorking()
 
 	go func() {
 		defer func() {
@@ -395,6 +401,7 @@ func (s *SettingsService) RunBenchmarkFiltered(modelsJSON string) string {
 		result.Running = false
 		result.Done = true
 		benchMu.Unlock()
+		go sound.PlaySuccess()
 		slog.Info("[benchmark] filtered complete")
 	}()
 
