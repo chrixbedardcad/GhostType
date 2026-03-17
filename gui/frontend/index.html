@@ -2277,16 +2277,47 @@ function renderModelGrid(models) {
     }
     html += '</div>';
 
-    // Load button (right side)
-    if (m.provider_active && !m.is_default) {
-      html += '<button class="btn btn-primary btn-sm" style="flex-shrink:0;font-size:0.72em;padding:4px 12px" onclick="event.stopPropagation();setModelDefaultByModel(\'' + escJS(m.provider) + '\',\'' + escJS(m.model) + '\')">Activate</button>';
-    } else if (m.is_default) {
-      html += '<div style="flex-shrink:0;font-size:0.72em;color:#a6e3a1;font-weight:600;min-width:50px;text-align:center">Active</div>';
+    // Test + Activate buttons (right side)
+    if (m.provider_active) {
+      html += '<div style="flex-shrink:0;display:flex;gap:4px;align-items:center">';
+      html += '<button class="btn btn-secondary btn-sm" style="font-size:0.65em;padding:3px 8px" onclick="event.stopPropagation();testSingleModel(\'' + escJS(m.provider) + '\',\'' + escJS(m.model) + '\',\'' + escJS(m.name) + '\',this)" id="test-' + escJS(m.provider) + '-' + escJS(m.model) + '">Test</button>';
+      if (!m.is_default) {
+        html += '<button class="btn btn-primary btn-sm" style="font-size:0.72em;padding:4px 12px" onclick="event.stopPropagation();setModelDefaultByModel(\'' + escJS(m.provider) + '\',\'' + escJS(m.model) + '\')">Activate</button>';
+      } else {
+        html += '<div style="font-size:0.72em;color:#a6e3a1;font-weight:600;min-width:50px;text-align:center">Active</div>';
+      }
+      html += '</div>';
     }
 
     html += '</div>';
   });
   container.innerHTML = html;
+}
+
+async function testSingleModel(provider, model, name, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Testing...';
+  var modelsToTest = [{provider: provider, model: model, name: name}];
+  var result = await goCall('runBenchmarkFiltered', JSON.stringify(modelsToTest));
+  if (result && result.startsWith('error')) {
+    btn.textContent = 'Test';
+    btn.disabled = false;
+    alert(result);
+    return;
+  }
+  // Poll until done.
+  var poll = setInterval(async function() {
+    var raw = await goCall('getBenchmarkResult');
+    if (!raw || raw === '{}') return;
+    var b;
+    try { b = JSON.parse(raw); } catch(e) { return; }
+    if (b.done || !b.running) {
+      clearInterval(poll);
+      btn.textContent = 'Test';
+      btn.disabled = false;
+      renderModels();
+    }
+  }, 500);
 }
 
 async function setModelDefaultByModel(provider, model) {
