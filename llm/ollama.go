@@ -14,7 +14,9 @@ import (
 	"github.com/chrixbedardcad/GhostSpell/config"
 )
 
-const defaultOllamaEndpoint = "http://localhost:11434/api/generate"
+// Use 127.0.0.1 instead of localhost: on Windows, Go resolves localhost
+// to IPv6 [::1] first, but Ollama typically listens on IPv4 only.
+const defaultOllamaEndpoint = "http://127.0.0.1:11434/api/generate"
 
 // OllamaClient implements the Client interface for local Ollama.
 type OllamaClient struct {

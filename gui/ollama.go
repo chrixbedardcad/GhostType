@@ -12,11 +12,11 @@ import (
 )
 
 // ollamaBaseURL normalises an endpoint string into a base URL.
-// Defaults to http://localhost:11434 when empty.
+// Defaults to http://127.0.0.1:11434 (IPv4) to avoid IPv6 issues on Windows.
 func ollamaBaseURL(endpoint string) string {
 	endpoint = strings.TrimSpace(endpoint)
 	if endpoint == "" {
-		return "http://localhost:11434"
+		return "http://127.0.0.1:11434"
 	}
 	return strings.TrimRight(endpoint, "/")
 }

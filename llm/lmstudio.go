@@ -10,7 +10,9 @@ import (
 	"github.com/chrixbedardcad/GhostSpell/config"
 )
 
-const defaultLMStudioEndpoint = "http://localhost:1234/v1"
+// Use 127.0.0.1 instead of localhost: on Windows, Go resolves localhost
+// to IPv6 [::1] first, but LM Studio only listens on IPv4.
+const defaultLMStudioEndpoint = "http://127.0.0.1:1234/v1"
 
 // newLMStudioFromDef creates an OpenAI-compatible client pointed at an LM Studio server.
 // LM Studio exposes an OpenAI-compatible API, so we reuse OpenAIClient with a

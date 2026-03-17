@@ -648,7 +648,7 @@
 
       <div class="form-group">
         <label>Server endpoint</label>
-        <input type="text" id="prov-ollama-endpoint" placeholder="http://localhost:11434" value="http://localhost:11434">
+        <input type="text" id="prov-ollama-endpoint" placeholder="http://127.0.0.1:11434" value="http://127.0.0.1:11434">
       </div>
 
       <div id="prov-ollama-status-bar" class="ollama-status-bar checking">
@@ -673,7 +673,7 @@
 
       <div class="form-group">
         <label>Server endpoint</label>
-        <input type="text" id="prov-lmstudio-endpoint" placeholder="http://localhost:1234/v1" value="http://localhost:1234/v1">
+        <input type="text" id="prov-lmstudio-endpoint" placeholder="http://127.0.0.1:1234/v1" value="http://127.0.0.1:1234/v1">
       </div>
 
       <div id="prov-lmstudio-status-bar" class="ollama-status-bar checking" style="display:none">
@@ -1347,12 +1347,12 @@ async function loadProviderSetupValues(type) {
     onProvLocalRefresh();
   } else if (type === 'ollama') {
     if (prov) {
-      document.getElementById('prov-ollama-endpoint').value = prov.api_endpoint || 'http://localhost:11434';
+      document.getElementById('prov-ollama-endpoint').value = prov.api_endpoint || 'http://127.0.0.1:11434';
     }
     refreshOllamaSetup();
   } else if (type === 'lmstudio') {
     if (prov) {
-      document.getElementById('prov-lmstudio-endpoint').value = prov.api_endpoint || 'http://localhost:1234/v1';
+      document.getElementById('prov-lmstudio-endpoint').value = prov.api_endpoint || 'http://127.0.0.1:1234/v1';
     }
     refreshLMStudioSetup();
   } else if (type === 'openai') {
