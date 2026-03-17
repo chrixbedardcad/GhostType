@@ -149,6 +149,13 @@ func (s *SettingsService) GetModelCatalog() string {
 			entry.SpeedTimestamp = si.timestamp
 		}
 
+		// For local provider, only show models that are actually downloaded.
+		if cm.Provider == "local" && entry.ProviderActive {
+			if _, resolveErr := llm.ResolveLocalModelPath(cm.Model); resolveErr != nil {
+				continue // model file not on disk — skip
+			}
+		}
+
 		// Only show models whose provider is active.
 		if entry.ProviderActive {
 			entries = append(entries, entry)

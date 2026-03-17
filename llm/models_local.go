@@ -170,6 +170,11 @@ var legacyModelNames = map[string]string{
 	"qwen3-0.6b": "Qwen3-0.6B-Q4_K_M.gguf",
 }
 
+// ResolveLocalModelPath checks if a local model is downloaded and returns its path.
+func ResolveLocalModelPath(name string) (string, error) {
+	return resolveLocalModel(name)
+}
+
 // resolveLocalModel maps a friendly model name to the GGUF file path.
 func resolveLocalModel(name string) (string, error) {
 	modelsDir, err := LocalModelsDir()
