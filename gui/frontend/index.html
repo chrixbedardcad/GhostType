@@ -2014,10 +2014,30 @@ function renderModelGrid(models) {
     if (m.description) html += '<div style="font-size:0.74em;color:#6c7086;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(m.description) + '</div>';
     html += '</div>';
 
-    // Cost + speed (right side)
+    // Cost + speed (right side) — check live benchmark status.
+    var liveStatus = '';
+    if (_benchLiveData && _benchLiveData.models) {
+      for (var bi = 0; bi < _benchLiveData.models.length; bi++) {
+        var bm = _benchLiveData.models[bi];
+        if (bm.provider === m.provider && bm.model === m.model) {
+          if (bm.status === 'running') liveStatus = 'testing';
+          else if (bm.status === 'success') liveStatus = 'done';
+          else if (bm.status === 'pending') liveStatus = 'pending';
+          else if (bm.status === 'error' || bm.status === 'timeout') liveStatus = 'error';
+          if (bm.duration_ms > 0) { speedStr = (bm.duration_ms / 1000).toFixed(1) + 's'; speedColor = bm.duration_ms < 2000 ? '#a6e3a1' : bm.duration_ms < 5000 ? '#f9e2af' : '#f38ba8'; }
+          break;
+        }
+      }
+    }
     html += '<div style="flex-shrink:0;text-align:right;min-width:80px">';
     if (costDisplay) html += '<div style="font-size:0.72em;font-weight:600;color:' + costColor + '">' + costDisplay + '</div>';
-    if (speedStr) {
+    if (liveStatus === 'testing') {
+      html += '<div style="font-size:0.72em;color:#89b4fa;font-weight:600">testing...</div>';
+    } else if (liveStatus === 'pending') {
+      html += '<div style="font-size:0.68em;color:#585b70">waiting...</div>';
+    } else if (liveStatus === 'error') {
+      html += '<div style="font-size:0.68em;color:#f38ba8">failed</div>';
+    } else if (speedStr) {
       html += '<div style="font-size:0.78em;font-weight:600;color:' + speedColor + '">' + speedStr + '</div>';
     } else {
       html += '<div style="font-size:0.68em;color:#585b70">no benchmark</div>';
@@ -2036,6 +2056,7 @@ async function setModelDefaultByModel(provider, model) {
   }
 }
 
+var _benchLiveData = null;
 async function runModelsBenchmark() {
   var btn = document.getElementById('models-bench-btn');
   btn.disabled = true;
@@ -2044,23 +2065,33 @@ async function runModelsBenchmark() {
   if (result && result.startsWith('error')) {
     btn.disabled = false;
     btn.textContent = 'Benchmark All';
+    _benchLiveData = null;
     alert(result);
     return;
   }
-  // Poll until done — show prompt name.
+  // Poll and update model rows live.
   var poll = setInterval(async function() {
     var raw = await goCall('getBenchmarkResult');
     if (!raw || raw === '{}') return;
     var b;
     try { b = JSON.parse(raw); } catch(e) { return; }
+    _benchLiveData = b;
     if (b.prompt_name) {
-      btn.textContent = 'Running (' + (b.prompt_icon || '') + ' ' + b.prompt_name + ')...';
+      // Find the currently running model.
+      var runningName = '';
+      for (var i = 0; i < (b.models || []).length; i++) {
+        if (b.models[i].status === 'running') { runningName = b.models[i].label; break; }
+      }
+      btn.textContent = runningName ? 'Testing ' + runningName + '...' : 'Running (' + (b.prompt_icon || '') + ' ' + b.prompt_name + ')...';
     }
+    // Refresh the grid to show live status per model.
+    filterModels();
     if (b.done || !b.running) {
       clearInterval(poll);
       btn.disabled = false;
       btn.textContent = 'Benchmark All';
-      renderModels();
+      _benchLiveData = null;
+      renderModels(); // Final refresh with stats data.
     }
   }, 1000);
 }
