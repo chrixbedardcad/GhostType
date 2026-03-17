@@ -181,7 +181,9 @@ jobs:
         if: matrix.goos == 'darwin'
         with:
           name: release-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: GhostSpell-darwin-*.dmg
+          path: |
+            GhostSpell-darwin-*.dmg
+            ghostspell-darwin-*
 
   publish:
     needs: release
