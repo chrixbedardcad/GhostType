@@ -2215,11 +2215,15 @@ function renderModelGrid(models) {
     } else if (liveStatus === 'error') {
       html += '<div style="font-size:0.75em;color:#f38ba8">failed</div>';
     } else if (speedStr) {
+      html += '<div style="font-size:0.55em;color:#585b70;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Benchmark</div>';
       html += '<div style="font-size:0.95em;font-weight:700;color:' + speedColor + '">' + speedStr + '</div>';
-      if (m.speed_prompt) html += '<div style="font-size:0.68em;color:#6c7086;margin-top:1px">' + esc(m.speed_prompt) + '</div>';
-      if (m.speed_ts) html += '<div style="font-size:0.62em;color:#585b70">' + esc(m.speed_ts) + '</div>';
+      if (m.speed_prompt) {
+        var promptLine = (m.speed_icon || '') + ' ' + esc(m.speed_prompt);
+        html += '<div style="font-size:0.68em;color:#6c7086;margin-top:1px">' + promptLine.trim() + '</div>';
+      }
+      if (m.speed_ts) html += '<div style="font-size:0.58em;color:#585b70">' + esc(m.speed_ts) + '</div>';
     } else {
-      html += '<div style="font-size:0.72em;color:#585b70">no benchmark</div>';
+      html += '<div style="font-size:0.68em;color:#585b70">no benchmark</div>';
     }
     html += '</div>';
 

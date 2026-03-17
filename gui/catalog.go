@@ -44,8 +44,9 @@ type CatalogEntry struct {
 	IsDefault      bool   `json:"is_default"`      // is the default model
 	ConfigLabel    string `json:"config_label"`     // label in config, if enabled
 	AvgSpeedMs     int64  `json:"avg_speed_ms"`     // from stats, 0 = no data
-	SpeedPrompt    string `json:"speed_prompt"`     // which prompt was used for the speed
-	SpeedTimestamp string `json:"speed_ts"`         // when the benchmark was run
+	SpeedPrompt    string `json:"speed_prompt"`      // which prompt was used for the speed
+	SpeedIcon      string `json:"speed_icon"`        // icon of the prompt used
+	SpeedTimestamp string `json:"speed_ts"`          // when the benchmark was run
 	ProviderActive bool   `json:"provider_active"`  // provider is configured
 }
 
@@ -98,6 +99,7 @@ func (s *SettingsService) GetModelCatalog() string {
 	type speedInfo struct {
 		ms        int64
 		prompt    string
+		icon      string
 		timestamp string
 	}
 	speedLookup := make(map[string]speedInfo)
@@ -114,7 +116,7 @@ func (s *SettingsService) GetModelCatalog() string {
 		for _, bm := range br.Models {
 			if bm.Status == "success" && bm.DurationMs > 0 {
 				key := bm.Provider + "/" + bm.Model
-				speedLookup[key] = speedInfo{ms: bm.DurationMs, prompt: br.PromptName, timestamp: br.Timestamp}
+				speedLookup[key] = speedInfo{ms: bm.DurationMs, prompt: br.PromptName, icon: br.PromptIcon, timestamp: br.Timestamp}
 			}
 		}
 	}
@@ -147,6 +149,7 @@ func (s *SettingsService) GetModelCatalog() string {
 		if si, ok := speedLookup[key]; ok {
 			entry.AvgSpeedMs = si.ms
 			entry.SpeedPrompt = si.prompt
+			entry.SpeedIcon = si.icon
 			entry.SpeedTimestamp = si.timestamp
 		}
 
@@ -201,6 +204,7 @@ func (s *SettingsService) GetModelCatalog() string {
 		if si, ok := speedLookup[key]; ok {
 			entry.AvgSpeedMs = si.ms
 			entry.SpeedPrompt = si.prompt
+			entry.SpeedIcon = si.icon
 			entry.SpeedTimestamp = si.timestamp
 		}
 		entries = append(entries, entry)
