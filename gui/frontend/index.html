@@ -778,8 +778,8 @@
       </select>
     </div>
 
-    <!-- Tile grid -->
-    <div id="model-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px"></div>
+    <!-- Model list -->
+    <div id="model-grid" style="display:flex;flex-direction:column;gap:6px"></div>
 
     <div id="model-empty" style="display:none">
       <div class="empty-state">No models available.<br>
@@ -1977,11 +1977,7 @@ function renderModelGrid(models) {
 
   var html = '';
   models.forEach(function(m) {
-    var logo = (PROVIDER_SVGS[m.provider] || '').replace(/width="22"/g, 'width="36"').replace(/height="22"/g, 'height="36"');
-    // For local provider, also scale the img tag
-    if (m.provider === 'local') {
-      logo = logo.replace(/width="22"/g, 'width="36"').replace(/height="22"/g, 'height="36"');
-    }
+    var logo = (PROVIDER_SVGS[m.provider] || '').replace(/width="22"/g, 'width="28"').replace(/height="22"/g, 'height="28"');
 
     var borderColor = m.is_default ? '#a6e3a1' : '#45475a';
     var borderWidth = m.is_default ? '2px' : '1px';
@@ -2002,23 +1998,25 @@ function renderModelGrid(models) {
 
     var onclick = m.provider_active ? " onclick=\"setModelDefaultByModel('" + escJS(m.provider) + "','" + escJS(m.model) + "')\"" : '';
 
-    html += '<div style="background:#313244;border:' + borderWidth + ' solid ' + borderColor + ';border-radius:10px;padding:14px;cursor:' + cursor + ';opacity:' + opacity + ';transition:border-color 0.15s;position:relative"' + onclick + ' onmouseenter="this.style.borderColor=\'#89b4fa\'" onmouseleave="this.style.borderColor=\'' + borderColor + '\'">';
+    html += '<div style="background:#313244;border:' + borderWidth + ' solid ' + borderColor + ';border-radius:8px;padding:10px 14px;cursor:' + cursor + ';opacity:' + opacity + ';transition:border-color 0.15s;display:flex;align-items:center;gap:12px"' + onclick + ' onmouseenter="this.style.borderColor=\'#89b4fa\'" onmouseleave="this.style.borderColor=\'' + borderColor + '\'">';
 
-    if (m.is_default) html += '<div style="position:absolute;top:8px;right:8px;background:#a6e3a1;color:#1e1e2e;font-size:0.62em;padding:2px 8px;border-radius:4px;font-weight:700">DEFAULT</div>';
-
-    html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
+    // Logo
     html += '<div style="flex-shrink:0">' + logo + '</div>';
-    html += '<div>';
-    html += '<div style="font-weight:600;font-size:0.92em;color:#cdd6f4">' + esc(m.name) + tagHtml + '</div>';
-    html += '<div style="font-size:0.75em;color:#6c7086">' + esc(PROVIDER_NAMES[m.provider] || m.provider) + ' &middot; ' + esc(m.model) + '</div>';
-    html += '</div></div>';
 
-    if (m.description) html += '<div style="font-size:0.78em;color:#a6adc8;line-height:1.4;margin-bottom:6px">' + esc(m.description) + '</div>';
+    // Name + description (left side, fills space)
+    html += '<div style="flex:1;min-width:0">';
+    html += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">';
+    html += '<span style="font-weight:600;font-size:0.88em;color:#cdd6f4">' + esc(m.name) + '</span>';
+    html += tagHtml;
+    if (m.is_default) html += '<span style="background:#a6e3a1;color:#1e1e2e;font-size:0.6em;padding:1px 6px;border-radius:3px;font-weight:700">DEFAULT</span>';
+    html += '</div>';
+    if (m.description) html += '<div style="font-size:0.74em;color:#6c7086;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(m.description) + '</div>';
+    html += '</div>';
 
-    html += '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">';
-    if (costDisplay) html += '<span style="font-size:0.72em;font-weight:600;color:' + costColor + '">' + costDisplay + '</span>';
-    if (m.cost_per_1k_tokens > 0) html += '<span style="font-size:0.68em;color:#6c7086">$' + m.cost_per_1k_tokens.toFixed(4) + '/1K tok</span>';
-    if (speedStr) html += '<span style="font-size:0.72em;color:' + speedColor + '">' + speedStr + '</span>';
+    // Cost + speed (right side)
+    html += '<div style="flex-shrink:0;text-align:right;min-width:60px">';
+    if (costDisplay) html += '<div style="font-size:0.72em;font-weight:600;color:' + costColor + '">' + costDisplay + '</div>';
+    if (speedStr) html += '<div style="font-size:0.68em;color:' + speedColor + '">' + speedStr + '</div>';
     html += '</div>';
 
     html += '</div>';
