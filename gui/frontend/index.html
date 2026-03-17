@@ -2085,9 +2085,15 @@ function renderActiveModelSummary() {
   html += '</div>';
   html += '<div style="flex-shrink:0;text-align:right">';
   if (speedStr) html += '<div style="font-size:0.88em;font-weight:700;color:' + speedColor + '">' + speedStr + '</div>';
-  var costDisplay = active.cost_tier === 'free' ? 'FREE' : active.cost_tier.toUpperCase();
-  var costColor = active.cost_tier === 'free' ? '#a6e3a1' : active.cost_tier === '$' ? '#89b4fa' : active.cost_tier === '$$' ? '#f9e2af' : '#f38ba8';
-  if (costDisplay) html += '<div style="font-size:0.72em;font-weight:600;color:' + costColor + '">' + costDisplay + '</div>';
+  var aTier = active.cost_tier || '';
+  var aCostDisplay, aCostColor;
+  if (aTier === 'free') { aCostDisplay = 'FREE'; aCostColor = '#a6e3a1'; }
+  else if (aTier === '$') { aCostDisplay = '$'; aCostColor = '#89b4fa'; }
+  else if (aTier === '$$') { aCostDisplay = '$$'; aCostColor = '#f9e2af'; }
+  else if (aTier === '$$$') { aCostDisplay = '$$$'; aCostColor = '#f38ba8'; }
+  else { aCostDisplay = 'PAID'; aCostColor = '#f9e2af'; }
+  if (!aTier && (active.provider === 'local' || active.provider === 'ollama' || active.provider === 'lmstudio')) { aCostDisplay = 'FREE'; aCostColor = '#a6e3a1'; }
+  html += '<div style="font-size:0.72em;font-weight:600;color:' + aCostColor + '">' + aCostDisplay + '</div>';
   html += '</div>';
   html += '</div>';
 
@@ -2146,8 +2152,15 @@ function renderModelGrid(models) {
     var borderWidth = m.is_default ? '2px' : '1px';
     var opacity = m.provider_active ? '1' : '0.45';
 
-    var costDisplay = m.cost_tier === 'free' ? 'FREE' : m.cost_tier.toUpperCase();
-    var costColor = m.cost_tier === 'free' ? '#a6e3a1' : m.cost_tier === '$' ? '#89b4fa' : m.cost_tier === '$$' ? '#f9e2af' : m.cost_tier === '$$$' ? '#f38ba8' : '#6c7086';
+    var tier = m.cost_tier || '';
+    var costDisplay, costColor;
+    if (tier === 'free') { costDisplay = 'FREE'; costColor = '#a6e3a1'; }
+    else if (tier === '$') { costDisplay = '$'; costColor = '#89b4fa'; }
+    else if (tier === '$$') { costDisplay = '$$'; costColor = '#f9e2af'; }
+    else if (tier === '$$$') { costDisplay = '$$$'; costColor = '#f38ba8'; }
+    else { costDisplay = 'PAID'; costColor = '#f9e2af'; }
+    // Local/free providers without a tier override
+    if (!tier && (m.provider === 'local' || m.provider === 'ollama' || m.provider === 'lmstudio')) { costDisplay = 'FREE'; costColor = '#a6e3a1'; }
 
     var speedStr = m.avg_speed_ms > 0 ? (m.avg_speed_ms / 1000).toFixed(1) + 's' : '';
     var speedColor = m.avg_speed_ms > 0 ? (m.avg_speed_ms < 2000 ? '#a6e3a1' : m.avg_speed_ms < 5000 ? '#f9e2af' : '#f38ba8') : '#6c7086';
