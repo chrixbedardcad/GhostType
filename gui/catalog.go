@@ -8,6 +8,7 @@ import (
 
 	"github.com/chrixbedardcad/GhostSpell/config"
 	"github.com/chrixbedardcad/GhostSpell/llm"
+	"github.com/chrixbedardcad/GhostSpell/sound"
 )
 
 //go:embed models_catalog.json
@@ -214,6 +215,7 @@ func (s *SettingsService) SetDefaultByModel(provider, model string) string {
 			if err := s.validateAndSave(); err != nil {
 				return "error: " + err.Error()
 			}
+			go sound.PlayToggle()
 			return "ok"
 		}
 	}
@@ -245,6 +247,7 @@ func (s *SettingsService) SetDefaultByModel(provider, model string) string {
 	if err := s.validateAndSave(); err != nil {
 		return "error: " + err.Error()
 	}
+	go sound.PlayToggle()
 	return "ok"
 }
 
