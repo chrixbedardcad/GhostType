@@ -184,8 +184,9 @@ func launchAndExit(binaryPath string) {
 	switch runtime.GOOS {
 	case "windows":
 		// Wait 2 seconds for the old process to exit, then launch the new binary.
-		script := fmt.Sprintf(`timeout /t 2 /nobreak >nul & start "" "%s"`, binaryPath)
-		cmd = exec.Command("cmd", "/c", script)
+		// Use PowerShell for reliable path handling (cmd /c mangles backslashes).
+		script := fmt.Sprintf(`Start-Sleep -Seconds 2; Start-Process -FilePath '%s'`, binaryPath)
+		cmd = exec.Command("powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", script)
 	case "darwin":
 		// On macOS .app bundles, use 'open' to launch the .app directory.
 		appPath := binaryPath
