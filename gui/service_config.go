@@ -721,6 +721,8 @@ func (s *SettingsService) SetMaxInputChars(limit int) string {
 func (s *SettingsService) SetIndicatorPosition(pos string) string {
 	guiLog("[GUI] JS called: SetIndicatorPosition(%s)", pos)
 	s.cfgCopy.IndicatorPosition = pos
+	// Update the live position immediately (don't wait for onSaved callback).
+	SetIndicatorPosition(pos)
 	if err := s.validateAndSave(); err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}
