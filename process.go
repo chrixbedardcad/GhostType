@@ -390,7 +390,7 @@ func processMode(
 			slog.Info(promptName+" complete (context-aware)", "result_len", len(result))
 			return
 		}
-		slog.Debug("Context-aware: Replace() didn't change the document, falling back to normal paste")
+		slog.Info("Context-aware: Replace() didn't change the document, falling back to normal paste")
 	}
 
 	written := false
