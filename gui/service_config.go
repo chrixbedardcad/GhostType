@@ -724,6 +724,8 @@ func (s *SettingsService) SetIndicatorPosition(pos string) string {
 	if err := s.validateAndSave(); err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}
+	// Show a brief preview at the new position so the user sees the change.
+	go PreviewIndicatorPosition()
 	return "ok"
 }
 

@@ -77,6 +77,42 @@ func SetIndicatorPosition(pos string) {
 	indicatorMu.Unlock()
 }
 
+// PreviewIndicatorPosition briefly shows the indicator at the current position
+// so the user can see where it will appear. Auto-hides after 2 seconds.
+func PreviewIndicatorPosition() {
+	indicatorMu.Lock()
+	pos := indicatorPos
+	if pos == "hidden" {
+		indicatorMu.Unlock()
+		return
+	}
+	ensureIndicatorWindow()
+	win := indicatorWin
+	indicatorMu.Unlock()
+	if win == nil {
+		return
+	}
+
+	win.SetSize(260, 52)
+	u := "/indicator.html?i=%E2%9C%8F%EF%B8%8F&n=Preview&pop=1"
+	win.SetURL(u)
+	time.Sleep(150 * time.Millisecond)
+
+	x, y := getIndicatorPosition()
+	win.SetPosition(x, y)
+
+	go func() {
+		time.Sleep(2 * time.Second)
+		indicatorMu.Lock()
+		w := indicatorWin
+		indicatorMu.Unlock()
+		if w != nil {
+			w.SetURL("/indicator.html")
+			w.SetSize(1, 1)
+		}
+	}()
+}
+
 func getIndicatorPosition() (int, int) {
 	app := application.Get()
 	if app == nil {
