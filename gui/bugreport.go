@@ -9,17 +9,10 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/chrixbedardcad/GhostSpell/internal/sysinfo"
 	"github.com/chrixbedardcad/GhostSpell/internal/version"
 )
-
-// bugReportCooldown is the minimum time between bug reports.
-const bugReportCooldown = 5 * time.Minute
-
-// lastBugReport tracks the last submission time (anti-spam).
-var lastBugReport time.Time
 
 // redactSecrets removes API keys and tokens from log text.
 func redactSecrets(text string) string {
@@ -43,12 +36,6 @@ func redactSecrets(text string) string {
 // The description parameter is the user's bug description which appears first in the issue.
 func (s *SettingsService) SubmitBugReport(description string) string {
 	guiLog("[GUI] JS called: SubmitBugReport")
-
-	// Anti-spam cooldown.
-	if !lastBugReport.IsZero() && time.Since(lastBugReport) < bugReportCooldown {
-		remaining := bugReportCooldown - time.Since(lastBugReport)
-		return fmt.Sprintf("cooldown: Please wait %d minutes before submitting another report.", int(remaining.Minutes())+1)
-	}
 
 	// Collect system info.
 	sys := sysinfo.Collect()
@@ -148,7 +135,6 @@ func (s *SettingsService) SubmitBugReport(description string) string {
 		return "error: failed to open browser — " + err.Error()
 	}
 
-	lastBugReport = time.Now()
 	slog.Info("[bugreport] bug report submitted", "fingerprint", fingerprint)
 	return "ok"
 }
