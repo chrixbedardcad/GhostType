@@ -42,6 +42,7 @@ func (s *SettingsService) validateAndSave() error {
 	if s.onSaved != nil {
 		s.onSaved()
 	}
+	EmitConfigChanged()
 	return nil
 }
 

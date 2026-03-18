@@ -1401,11 +1401,11 @@ async function init() {
     updateHeaderPrompt();
     updateAboutHotkey();
   });
-  // Also poll every 5 seconds while settings is open for live updates.
-  setInterval(async function() {
+  // Listen for config-changed events pushed from Go (replaces 5s polling).
+  wails.Events.On('configChanged', async function() {
     await reloadConfig();
     updateHeaderPrompt();
-  }, 5000);
+  });
 }
 
 // ---- Helpers ----

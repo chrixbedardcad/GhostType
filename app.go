@@ -56,6 +56,8 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		slog.Info("Active prompt changed", "index", idx, "name", name)
 		fmt.Printf("Active prompt: %s\n", name)
 		sound.PlayToggle()
+		// Notify settings UI if open.
+		gui.EmitConfigChanged()
 	}
 
 	// refreshTrayMenu is set after tray.Start() and called after settings save.

@@ -22,6 +22,15 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
+// EmitConfigChanged notifies the settings UI that config state has changed.
+// Replaces the 5-second polling loop with event-driven updates.
+func EmitConfigChanged() {
+	app := application.Get()
+	if app != nil {
+		app.Event.Emit("configChanged")
+	}
+}
+
 // guiLog logs to both slog (log file) and fmt (stdout, if console attached).
 func guiLog(msg string, args ...any) {
 	formatted := fmt.Sprintf(msg, args...)
