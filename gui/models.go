@@ -68,6 +68,7 @@ func KnownModels(provider string) []ModelInfo {
 			{Name: "qwen3.5-2b", Tag: "recommended"},
 			{Name: "qwen3.5-0.8b", Tag: "fast"},
 			{Name: "qwen3.5-4b", Tag: "best"},
+			{Name: "nemotron-nano-4b"},
 		}
 	case "ollama":
 		return []ModelInfo{

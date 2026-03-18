@@ -165,8 +165,9 @@ func processMode(
 		return
 	}
 
-	slog.Info("Captured text", "prompt", promptName, "len", len(cap.Text), "selection", cap.HasAX, "method", cap.Method, "text", cap.Text)
-	fmt.Printf("[%s] Captured: %q\n", promptName, cap.Text)
+	slog.Info("Captured text", "prompt", promptName, "len", len(cap.Text), "selection", cap.HasAX, "method", cap.Method)
+	slog.Debug("Captured text content", "text", cap.Text) // #200: user text at Debug only (privacy)
+	fmt.Printf("[%s] Captured %d chars (method=%d)\n", promptName, len(cap.Text), cap.Method)
 
 	// Save the foreground window HWND before showing the indicator.
 	// On Windows the indicator overlay (AlwaysOnTop, no WS_EX_NOACTIVATE)
@@ -475,6 +476,7 @@ func processMode(
 	// Restore original clipboard.
 	restoreClipboard()
 
-	slog.Info(promptName+" complete", "result", result)
-	fmt.Printf("[%s] Result: %q\n", promptName, result)
+	slog.Info(promptName+" complete", "result_len", len(result))
+	slog.Debug("Result content", "result", result) // #200: user text at Debug only (privacy)
+	fmt.Printf("[%s] Complete (%d chars)\n", promptName, len(result))
 }

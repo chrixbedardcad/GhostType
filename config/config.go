@@ -463,7 +463,7 @@ func WriteDefault(path string, cfg *Config) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, data, 0644)
+	return os.WriteFile(path, data, 0600) // #200: restrict to owner-only (contains API keys)
 }
 
 // applyDefaults fills in zero-value fields with sensible defaults.

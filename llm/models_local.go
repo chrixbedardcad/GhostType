@@ -119,6 +119,14 @@ func AvailableLocalModels() []LocalModel {
 			Tag:      "uncensored",
 			Desc:     "Qwen3.5 4B abliterated — no refusals. High quality without content filters. Needs 4GB+ RAM.",
 		},
+		// --- NVIDIA Nemotron (high efficiency, trained from scratch) ---
+		{
+			Name:     "nemotron-nano-4b",
+			FileName: "NVIDIA-Nemotron-3-Nano-4B-Q4_K_M.gguf",
+			URL:      "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF/resolve/main/NVIDIA-Nemotron-3-Nano-4B-Q4_K_M.gguf",
+			Size:     2_640_000_000,
+			Desc:     "NVIDIA Nemotron 3 Nano 4B. High efficiency, tool-calling, trained from scratch. Needs 4GB+ RAM.",
+		},
 		// --- Other models ---
 		{
 			Name:     "phi-4-mini",

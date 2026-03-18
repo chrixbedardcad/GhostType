@@ -56,6 +56,19 @@
     },
     {
       "provider": "local",
+      "creator": "nvidia",
+      "model": "nemotron-nano-4b",
+      "name": "Nemotron 3 Nano 4B",
+      "description": "NVIDIA's high-efficiency model. Trained from scratch, tool-calling capable. Needs 4GB+ RAM.",
+      "cost_tier": "free",
+      "cost_per_1k_tokens": 0,
+      "ifeval_score": 0,
+      "tags": ["free", "offline"],
+      "context_window": 8192,
+      "thinking": false
+    },
+    {
+      "provider": "local",
       "creator": "microsoft",
       "model": "phi-4-mini",
       "name": "Phi-4 Mini",

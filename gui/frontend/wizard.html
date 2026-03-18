@@ -1862,7 +1862,11 @@ async function openImPaneAndMark() {
   }
 }
 
-// Step 0a → 0b: Accessibility MUST be granted before proceeding.
+// Step 0a → models: Accessibility MUST be granted before proceeding.
+// Input Monitoring is advisory — CGEventTapCreate is unreliable on macOS 13+
+// and can return false even when the permission is granted (#209).
+// If Accessibility works, proceed. Hotkeys will work or the user can fix
+// Input Monitoring from Settings > General later.
 async function axNext() {
   const perms = await checkPerms();
   if (!perms.accessibility) {
@@ -1873,16 +1877,10 @@ async function axNext() {
     }
     return;
   }
-  // Accessibility granted. Test if hotkeys actually work (CGEventTap).
-  // On older macOS, Accessibility covers Input Monitoring too.
-  // Only show the Input Monitoring step if the tap test fails.
-  if (perms.postEvent) {
-    // Hotkeys work — skip Input Monitoring, go to model selection.
-    goToStep(1);
-  } else {
-    // Hotkeys don't work — need Input Monitoring.
-    goToStep('perm-im');
-  }
+  // Accessibility granted — proceed to model selection.
+  // Skip Input Monitoring check: CGEventTapCreate is unreliable on macOS 13+
+  // and blocks users who already granted the permission (#209).
+  goToStep(1);
 }
 
 // Step 0b → models or restart: Input Monitoring
@@ -1999,8 +1997,10 @@ document.addEventListener('DOMContentLoaded', async function() {
   if (platform === 'darwin') {
     isMac = true;
     const perms = await checkPerms();
-    if (perms.accessibility && perms.postEvent) {
-      // Permissions already granted — skip to model selection (#139).
+    if (perms.accessibility) {
+      // Accessibility granted — skip to model selection (#139, #209).
+      // Don't require postEvent (Input Monitoring) — CGEventTapCreate is
+      // unreliable on macOS 13+ and blocks users unnecessarily.
       goToStep(1);
       return;
     }

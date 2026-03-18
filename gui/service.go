@@ -259,7 +259,7 @@ func (s *SettingsService) UpdateNow() string {
 		_ = config.WriteDefault(s.configPath, s.cfgCopy)
 		backupPath := s.configPath + ".bak"
 		if data, err := os.ReadFile(s.configPath); err == nil {
-			os.WriteFile(backupPath, data, 0644)
+			os.WriteFile(backupPath, data, 0600)
 			guiLog("[GUI] UpdateNow: config backed up to %s", backupPath)
 		}
 	}
@@ -539,7 +539,8 @@ func (s *SettingsService) GetSystemRAMGB() int {
 // CheckPermissions returns a JSON object with macOS permission status.
 // On non-macOS platforms, all permissions return true.
 func (s *SettingsService) CheckPermissions() string {
-	guiLog("[GUI] JS called: CheckPermissions")
+	// Debug level — this is polled every 2 seconds by the wizard (#209).
+	slog.Debug("[GUI] CheckPermissions called")
 	ax := true
 	post := true
 	if s.CheckAccessibilityFn != nil {
@@ -554,7 +555,7 @@ func (s *SettingsService) CheckPermissions() string {
 		"isMac":         runtime.GOOS == "darwin",
 	}
 	data, _ := json.Marshal(result)
-	slog.Info("Permission check from GUI", "accessibility", ax, "postEvent", post)
+	slog.Debug("Permission check", "accessibility", ax, "postEvent", post)
 	return string(data)
 }
 
