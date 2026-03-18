@@ -185,7 +185,14 @@ func processMode(
 	if promptIdx >= 0 && promptIdx < len(cfg.Prompts) && cfg.Prompts[promptIdx].LLM != "" {
 		modelLabel = cfg.Prompts[promptIdx].LLM
 	}
-	gui.ShowIndicator(promptIcon, promptName, modelLabel)
+	// Resolve the actual model identifier for the indicator (#204).
+	// modelLabel is the config key (e.g. "GhostSpell Local") — show the
+	// actual model name (e.g. "qwen3.5-2b") which is more informative.
+	indicatorModel := modelLabel
+	if me, ok := cfg.Models[modelLabel]; ok && me.Model != "" {
+		indicatorModel = me.Model
+	}
+	gui.ShowIndicator(promptIcon, promptName, indicatorModel)
 
 	// Immediately restore focus to the target app. The indicator is visible
 	// (visual feedback) but the target app has focus for keyboard simulation.

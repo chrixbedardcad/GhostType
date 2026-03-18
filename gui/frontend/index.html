@@ -978,13 +978,12 @@
     <div class="toolbar">
       <h2 style="margin-bottom:0">Usage Stats</h2>
       <div style="display:flex;gap:6px">
-        <button class="btn btn-primary btn-sm" onclick="runBenchmark()" id="bench-btn">Run Benchmark</button>
         <button class="btn btn-secondary btn-sm" onclick="openStatsFile()">Open stats.json</button>
         <button class="btn btn-secondary btn-sm" onclick="clearStats()">Clear Stats</button>
       </div>
     </div>
     <div style="font-size:0.82em;color:#a6adc8;line-height:1.5;margin-bottom:10px">
-      &#128202; Track how you use GhostSpell &mdash; which models are fastest, which prompts you use most.
+      &#128202; Track how you use GhostSpell &mdash; which models are fastest, which prompts you use most. Run benchmarks from the <strong style="color:#cdd6f4">Models</strong> tab.
     </div>
 
     <div id="stats-summary" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
@@ -1012,11 +1011,7 @@
     <h3 style="font-size:0.9em;color:#bac2de;margin-bottom:8px">Prompt Usage</h3>
     <div id="stats-prompts"></div>
 
-    <div id="bench-results" style="display:none;margin-top:16px">
-      <h3 style="font-size:0.9em;color:#bac2de;margin-bottom:4px">Benchmark Results</h3>
-      <div id="bench-prompt-info" style="font-size:0.78em;color:#6c7086;margin-bottom:8px"></div>
-      <div id="bench-table"></div>
-    </div>
+    <!-- Benchmark moved to Models tab (#204) -->
   </div>
 
   <div id="tab-debug" class="tab-panel">
@@ -2174,7 +2169,7 @@ function renderActiveModelSummary() {
 
   var html = '<div style="background:#1a3a1a;border:2px solid #a6e3a1;border-radius:10px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px">';
   var summaryLogos = '<div style="flex-shrink:0;display:flex;align-items:center;gap:3px">' + logo;
-  if (creatorLogo && (active.creator || '') !== active.provider) summaryLogos += '<span style="color:#585b70;font-size:0.7em">&rsaquo;</span>' + creatorLogo;
+  if (creatorLogo && (active.creator || '') !== active.provider) summaryLogos += '<span style="color:#89b4fa;font-size:1.1em;margin:0 3px">&#10132;</span>' + creatorLogo;
   summaryLogos += '</div>';
   html += summaryLogos;
   html += '<div style="flex:1;min-width:0">';
@@ -2185,7 +2180,6 @@ function renderActiveModelSummary() {
   html += '</div>';
   html += '</div>';
   html += '<div style="flex-shrink:0;text-align:right">';
-  if (speedStr) html += '<div style="font-size:0.88em;font-weight:700;color:' + speedColor + '">' + speedStr + '</div>';
   var aTier = active.cost_tier || '';
   var aCostDisplay, aCostColor;
   if (aTier === 'free') { aCostDisplay = 'FREE'; aCostColor = '#a6e3a1'; }
@@ -2195,6 +2189,14 @@ function renderActiveModelSummary() {
   else { aCostDisplay = 'PAID'; aCostColor = '#f9e2af'; }
   if (!aTier && (active.provider === 'local' || active.provider === 'ollama' || active.provider === 'lmstudio')) { aCostDisplay = 'FREE'; aCostColor = '#a6e3a1'; }
   html += '<div style="font-size:0.72em;font-weight:600;color:' + aCostColor + '">' + aCostDisplay + '</div>';
+  if (speedStr) {
+    html += '<div style="font-size:0.55em;color:#585b70;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-top:4px">Benchmark</div>';
+    html += '<div style="font-size:0.95em;font-weight:700;color:' + speedColor + '">' + speedStr + '</div>';
+  }
+  html += '</div>';
+  // Test button for active model
+  html += '<div style="flex-shrink:0">';
+  html += '<button class="btn btn-secondary btn-sm" style="font-size:0.65em;padding:3px 8px" onclick="event.stopPropagation();testSingleModel(\'' + escJS(active.provider) + '\',\'' + escJS(active.model) + '\',\'' + escJS(active.name) + '\',this)">Test</button>';
   html += '</div>';
   html += '</div>';
 
@@ -2247,10 +2249,13 @@ function renderModelGrid(models) {
 
   var html = '';
   models.forEach(function(m) {
+    // Skip the active model — it's already shown in the green summary box at top (#204).
+    if (m.is_default) return;
+
     var logo = (PROVIDER_SVGS[m.provider] || '').replace(/width="22"/g, 'width="28"').replace(/height="22"/g, 'height="28"');
 
-    var borderColor = m.is_default ? '#a6e3a1' : '#45475a';
-    var borderWidth = m.is_default ? '2px' : '1px';
+    var borderColor = '#45475a';
+    var borderWidth = '1px';
     var opacity = m.provider_active ? '1' : '0.45';
 
     var tier = m.cost_tier || '';
@@ -2277,7 +2282,7 @@ function renderModelGrid(models) {
     // Provider + Creator logos (provider serves it → creator made it)
     var creatorLogo = getCreatorLogo(m.creator || '').replace(/width="22"/g, 'width="28"').replace(/height="22"/g, 'height="28"');
     var logoHtml = '<div style="flex-shrink:0;display:flex;align-items:center;gap:2px">' + logo;
-    if (creatorLogo && (m.creator || '') !== m.provider) logoHtml += '<span style="color:#585b70;font-size:0.7em;margin:0 1px">&rsaquo;</span>' + creatorLogo;
+    if (creatorLogo && (m.creator || '') !== m.provider) logoHtml += '<span style="color:#89b4fa;font-size:1.1em;margin:0 3px">&#10132;</span>' + creatorLogo;
     logoHtml += '</div>';
     html += logoHtml;
 
@@ -2286,7 +2291,6 @@ function renderModelGrid(models) {
     html += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">';
     html += '<span style="font-weight:600;font-size:0.88em;color:#cdd6f4">' + esc(m.name) + '</span>';
     html += tagHtml;
-    if (m.is_default) html += '<span style="background:#a6e3a1;color:#1e1e2e;font-size:0.6em;padding:1px 6px;border-radius:3px;font-weight:700">ACTIVE</span>';
     html += '</div>';
     if (m.description) html += '<div style="font-size:0.74em;color:#6c7086;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(m.description) + '</div>';
     html += '</div>';
@@ -2332,11 +2336,7 @@ function renderModelGrid(models) {
     if (m.provider_active) {
       html += '<div style="flex-shrink:0;display:flex;gap:4px;align-items:center">';
       html += '<button class="btn btn-secondary btn-sm" style="font-size:0.65em;padding:3px 8px" onclick="event.stopPropagation();testSingleModel(\'' + escJS(m.provider) + '\',\'' + escJS(m.model) + '\',\'' + escJS(m.name) + '\',this)" id="test-' + escJS(m.provider) + '-' + escJS(m.model) + '">Test</button>';
-      if (!m.is_default) {
-        html += '<button class="btn btn-primary btn-sm" style="font-size:0.72em;padding:4px 12px" onclick="event.stopPropagation();setModelDefaultByModel(\'' + escJS(m.provider) + '\',\'' + escJS(m.model) + '\')">Activate</button>';
-      } else {
-        html += '<div style="font-size:0.72em;color:#a6e3a1;font-weight:600;min-width:50px;text-align:center">Active</div>';
-      }
+      html += '<button class="btn btn-primary btn-sm" style="font-size:0.72em;padding:4px 12px" onclick="event.stopPropagation();setModelDefaultByModel(\'' + escJS(m.provider) + '\',\'' + escJS(m.model) + '\')">Activate</button>';
       html += '</div>';
     }
 
