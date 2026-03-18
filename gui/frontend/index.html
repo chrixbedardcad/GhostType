@@ -1770,6 +1770,19 @@ async function onProvLocalRefresh() {
     }
   });
 
+  // Build creator lookup from model names for logo display.
+  var _localCreatorMap = {
+    'qwen': 'alibaba', 'nemotron': 'nvidia', 'phi': 'microsoft',
+    'gemma': 'google', 'llama': 'meta', 'mistral': 'mistral', 'deepseek': 'deepseek'
+  };
+  function getLocalCreator(name) {
+    var lower = name.toLowerCase();
+    for (var prefix in _localCreatorMap) {
+      if (lower.indexOf(prefix) >= 0) return _localCreatorMap[prefix];
+    }
+    return '';
+  }
+
   var html = '';
   for (var i = 0; i < allModels.length; i++) {
     var m = allModels[i];
@@ -1780,13 +1793,21 @@ async function onProvLocalRefresh() {
       ? '<span style="background:#a6e3a1;color:#1e1e2e;font-size:0.6em;padding:1px 6px;border-radius:3px;font-weight:700;margin-left:6px">DOWNLOADED</span>'
       : '<span style="background:#89b4fa;color:#1e1e2e;font-size:0.6em;padding:1px 6px;border-radius:3px;font-weight:700;margin-left:6px">AVAILABLE</span>';
 
+    // Creator logo for this model.
+    var creator = getLocalCreator(m.name);
+    var creatorLogo = creator ? getCreatorLogo(creator) : '';
+
     html += '<div class="ollama-model-card" style="cursor:pointer;' + (selected ? 'border-color:#a6e3a1;background:#1a3a1a' : '') + '" onclick="provLocalSelectModel(\'' + escJS(m.name) + '\')">';
-    html += '<div>';
+    // Logo + info row
+    html += '<div style="display:flex;align-items:center;gap:10px">';
+    if (creatorLogo) html += '<div style="flex-shrink:0">' + creatorLogo + '</div>';
+    html += '<div style="flex:1;min-width:0">';
     html += '<div class="model-name">' + esc(m.name) + badge + statusBadge;
     if (selected) html += ' <span style="background:#a6e3a1;color:#1e1e2e;font-size:0.6em;padding:1px 6px;border-radius:3px;font-weight:700">ACTIVE</span>';
     html += '</div>';
-    html += '<div class="model-meta">' + sizeMB + ' MB</div>';
+    html += '<div class="model-meta">' + sizeMB + ' MB' + (creator ? ' &mdash; <span style="color:#89b4fa;text-transform:capitalize">' + esc(creator) + '</span>' : '') + '</div>';
     if (m.desc) html += '<div style="font-size:0.72em;color:#6c7086;margin-top:2px">' + esc(m.desc) + '</div>';
+    html += '</div>';
     html += '</div>';
 
     html += '<div style="display:flex;gap:4px;align-items:center" onclick="event.stopPropagation()">';
