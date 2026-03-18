@@ -318,14 +318,19 @@ func DownloadModel(name string, progressCb func(DownloadProgress)) error {
 		return fmt.Errorf("download %s failed after %d attempts: %w", name, downloadMaxRetries, lastErr)
 	}
 
-	// Verify SHA-256 checksum if available.
-	if model.SHA256 != "" {
-		slog.Info("[ghost-ai] verifying checksum", "name", name)
-		if err := verifyChecksum(tmpPath, model.SHA256); err != nil {
+	// Verify SHA-256 checksum if available, or log computed hash for future use.
+	computedHash, hashErr := computeChecksum(tmpPath)
+	if hashErr != nil {
+		slog.Warn("[ghost-ai] could not compute checksum", "name", name, "error", hashErr)
+	} else if model.SHA256 != "" {
+		if computedHash != model.SHA256 {
 			os.Remove(tmpPath)
-			return fmt.Errorf("checksum verification failed for %s: %w", name, err)
+			return fmt.Errorf("checksum verification failed for %s: expected %s, got %s", name, model.SHA256, computedHash)
 		}
 		slog.Info("[ghost-ai] checksum verified", "name", name)
+	} else {
+		slog.Warn("[ghost-ai] no expected checksum for model — integrity not verified",
+			"name", name, "sha256", computedHash)
 	}
 
 	// Rename temp to final.
@@ -430,6 +435,21 @@ func downloadWithResume(model *LocalModel, tmpPath string, attempt int, progress
 	}
 
 	return f.Close()
+}
+
+// computeChecksum computes and returns the SHA-256 hex string of a file.
+func computeChecksum(path string) (string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return "", fmt.Errorf("reading file for checksum: %w", err)
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
 // verifyChecksum computes SHA-256 of a file and compares to expected hex string.

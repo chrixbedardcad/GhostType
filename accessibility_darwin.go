@@ -48,20 +48,32 @@ int cgCanCreateKeyEvent() {
     return 1; // Accessibility working
 }
 
+// noopTapCallback is a minimal CGEventTapCallBack that returns the event
+// unchanged. Required because CGEventTapCreate with a NULL callback is
+// undefined behavior and returns NULL on macOS 13+ even when Input Monitoring
+// IS granted (#209).
+static CGEventRef noopTapCallback(CGEventTapProxy proxy, CGEventType type,
+                                   CGEventRef event, void *userInfo) {
+    (void)proxy; (void)type; (void)userInfo;
+    return event;
+}
+
 // cgCanCreateEventTap tests Input Monitoring by actually creating a CGEventTap
 // and immediately destroying it. CGPreflightListenEventAccess is unreliable
 // (returns true on macOS 13+ even when permission is NOT granted).
 // Creating a real tap is the ONLY 100% reliable method (#172, v0.23.1).
+// Uses a proper callback to avoid NULL-callback undefined behavior (#209).
 int cgCanCreateEventTap() {
     CFMachPortRef tap = CGEventTapCreate(
         kCGSessionEventTap,
         kCGHeadInsertEventTap,
         kCGEventTapOptionListenOnly,
         CGEventMaskBit(kCGEventKeyDown),
-        NULL, NULL);
+        noopTapCallback, NULL);
     if (tap == NULL) {
         return 0; // Input Monitoring NOT granted
     }
+    CFMachPortInvalidate(tap);
     CFRelease(tap);
     return 1; // Input Monitoring granted
 }

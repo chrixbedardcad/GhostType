@@ -170,21 +170,32 @@ func captureText(
 
 	// No selection detected by any Copy method — fall back to select-all.
 	slog.Debug("No selection detected, falling back to select-all", "prompt", promptName)
+	if err := cb.Clear(); err != nil {
+		return captureResult{Method: captureViaCGEvent, Err: fmt.Errorf("clear clipboard (select-all): %w", err)}
+	}
 	if err := kb.SelectAll(); err != nil {
 		return captureResult{Method: captureViaCGEvent, Err: fmt.Errorf("select all: %w", err)}
 	}
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond) // longer settle for slow apps like MS Word (#212)
 
 	slog.Debug("captureText: sending Copy after select-all...")
 	if err := kb.Copy(); err != nil {
 		return captureResult{Method: captureViaCGEvent, Err: fmt.Errorf("copy after select-all: %w", err)}
 	}
-	time.Sleep(100 * time.Millisecond)
 
-	slog.Debug("captureText: reading clipboard after select-all...")
-	text, err = cb.Read()
-	if err != nil {
-		return captureResult{Method: captureViaCGEvent, Err: fmt.Errorf("read clipboard after select-all: %w", err)}
+	// Retry clipboard read — some apps (MS Word, Electron, RDP) are slow to
+	// populate the clipboard after SelectAll+Copy too (#212).
+	for attempt := 0; attempt < 3; attempt++ {
+		delay := time.Duration(150+attempt*100) * time.Millisecond // 150, 250, 350ms
+		time.Sleep(delay)
+		text, err = cb.Read()
+		if err != nil {
+			return captureResult{Method: captureViaCGEvent, Err: fmt.Errorf("read clipboard after select-all: %w", err)}
+		}
+		if text != "" {
+			break
+		}
+		slog.Debug("captureText: clipboard still empty after select-all, retrying", "attempt", attempt+1)
 	}
 	slog.Info("captureText: clipboard after SelectAll+Copy", "len", len(text))
 
