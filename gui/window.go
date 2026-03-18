@@ -123,10 +123,11 @@ func ShowSettings(svc *SettingsService, cfg *config.Config, configPath string, o
 
 	guiLog("[GUI] Creating settings window on running tray app...")
 	win := app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:  "GhostSpell Settings",
-		Width:  760,
-		Height: 660,
-		URL:    "/index.html",
+		Title:     "GhostSpell Settings",
+		Width:     760,
+		Height:    660,
+		URL:       "/index.html",
+		Frameless: runtime.GOOS == "windows",
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
 			Backdrop:               application.MacBackdropTranslucent,

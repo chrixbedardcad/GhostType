@@ -37,6 +37,7 @@
   }
   .tab-bar button:hover { color: #bac2de; }
   .tab-bar button.active { color: #89b4fa; border-bottom-color: #89b4fa; }
+  #win-close-btn:hover { color: #f38ba8 !important; background: #313244 !important; }
 
   .tab-content {
     flex: 1; overflow-y: auto; padding: 20px 24px;
@@ -412,13 +413,16 @@
   <linearGradient id="lms_g" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#8B7BF7"/><stop offset="1" stop-color="#6C5CE7"/></linearGradient>
 </defs></svg>
 
-<div class="header">
+<div class="header" style="--wails-draggable:drag">
   <img src="/ghost-icon.png" class="logo" alt="GhostSpell" style="width:36px;height:36px">
   <div>
     <h1>GhostSpell Settings</h1>
     <span class="ver" id="app-version"></span>
   </div>
-  <div style="margin-left:auto;text-align:right" id="header-prompt-info"></div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+    <div style="text-align:right" id="header-prompt-info"></div>
+    <button onclick="wails.Window.Close()" id="win-close-btn" style="display:none;background:none;border:none;color:#6c7086;font-size:1.3em;cursor:pointer;padding:2px 6px;border-radius:4px;line-height:1" title="Close">&#10005;</button>
+  </div>
 </div>
 
 <!-- What's New popup overlay -->
@@ -1349,6 +1353,13 @@ async function init() {
   if (ver) {
     document.getElementById('app-version').textContent = 'v' + ver;
     document.getElementById('about-version').textContent = 'v' + ver;
+  }
+
+  // On Windows (frameless), show the close button in the header.
+  var _platform = await goCall('getPlatform');
+  if (_platform === 'windows') {
+    var cb = document.getElementById('win-close-btn');
+    if (cb) cb.style.display = 'inline-block';
   }
 
   // Show "What's New" popup if the version changed since last seen.
