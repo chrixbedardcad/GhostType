@@ -23,10 +23,11 @@ const (
 // captureResult bundles the return values of captureText into a single struct
 // for readability.
 type captureResult struct {
-	Text   string
-	HasAX  bool
-	Method captureMethod
-	Err    error
+	Text        string
+	FullContext string // full document text for context-aware processing (#192)
+	HasAX       bool
+	Method      captureMethod
+	Err         error
 }
 
 // captureText reads text from the focused UI element.
@@ -66,7 +67,14 @@ func captureText(
 	// Try reading selected text directly — no keyboard simulation, no clipboard.
 	if selected := kb.ReadSelectedText(); selected != "" {
 		slog.Info("captureText: got selection via Accessibility API", "len", len(selected))
-		return captureResult{Text: selected, HasAX: true, Method: captureViaAXAPI}
+		// Context-aware (#192): also read the full document text for context.
+		// AX API reads are silent — no clipboard change, no selection change.
+		fullCtx := ""
+		if allText := kb.ReadAllText(); allText != "" && allText != selected {
+			fullCtx = allText
+			slog.Info("captureText: got full context via Accessibility API", "len", len(fullCtx))
+		}
+		return captureResult{Text: selected, FullContext: fullCtx, HasAX: true, Method: captureViaAXAPI}
 	}
 	// No selection — try reading all text from the focused element.
 	if allText := kb.ReadAllText(); allText != "" {

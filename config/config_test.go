@@ -19,8 +19,8 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.Hotkeys.Action != "Ctrl+G" {
 		t.Errorf("expected default action hotkey 'Ctrl+G', got '%s'", cfg.Hotkeys.Action)
 	}
-	if len(cfg.Prompts) != 7 {
-		t.Errorf("expected 7 default prompts, got %d", len(cfg.Prompts))
+	if len(cfg.Prompts) != 8 {
+		t.Errorf("expected 8 default prompts, got %d", len(cfg.Prompts))
 	}
 	expectedNames := []string{"Correct", "Polish", "Funny", "Elaborate", "Shorten", "Translate"}
 	for i, name := range expectedNames {
@@ -77,8 +77,8 @@ func TestLoadCreatesDefaultWhenMissing(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(cfg.Prompts) != 7 {
-		t.Errorf("expected 7 default prompts, got %d", len(cfg.Prompts))
+	if len(cfg.Prompts) != 8 {
+		t.Errorf("expected 8 default prompts, got %d", len(cfg.Prompts))
 	}
 
 	// Verify file was created
@@ -122,8 +122,8 @@ func TestLoadValidConfig(t *testing.T) {
 	if loaded.Providers["openai"].APIKey != "sk-test-key-12345" {
 		t.Errorf("expected api_key, got '%s'", loaded.Providers["openai"].APIKey)
 	}
-	if len(loaded.Prompts) != 1 {
-		t.Fatalf("expected 1 prompt, got %d", len(loaded.Prompts))
+	if len(loaded.Prompts) != 2 {
+		t.Fatalf("expected 2 prompts, got %d", len(loaded.Prompts))
 	}
 	if loaded.Prompts[0].Name != "Correct" {
 		t.Errorf("expected prompt name 'Correct', got '%s'", loaded.Prompts[0].Name)
@@ -394,8 +394,8 @@ func TestWriteDefault(t *testing.T) {
 	if loaded.Hotkeys.Action != "Ctrl+G" {
 		t.Errorf("expected hotkey 'Ctrl+G' in written file, got '%s'", loaded.Hotkeys.Action)
 	}
-	if len(loaded.Prompts) != 7 {
-		t.Errorf("expected 7 prompts in written file, got %d", len(loaded.Prompts))
+	if len(loaded.Prompts) != 8 {
+		t.Errorf("expected 8 prompts in written file, got %d", len(loaded.Prompts))
 	}
 }
 
@@ -687,9 +687,9 @@ func TestMigrateOldFormat(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Should have migrated: correction prompt + 2 rewrite templates = 3 prompts
-	if len(loaded.Prompts) != 3 {
-		t.Fatalf("expected 3 migrated prompts, got %d", len(loaded.Prompts))
+	// Should have migrated: correction prompt + 2 rewrite templates + Define = 4 prompts
+	if len(loaded.Prompts) != 4 {
+		t.Fatalf("expected 4 migrated prompts, got %d", len(loaded.Prompts))
 	}
 	if loaded.Prompts[0].Name != "Correct" {
 		t.Errorf("expected first prompt 'Correct', got '%s'", loaded.Prompts[0].Name)
@@ -751,14 +751,17 @@ func TestNewFormatLoadsDirect(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(loaded.Prompts) != 2 {
-		t.Fatalf("expected 2 prompts, got %d", len(loaded.Prompts))
+	if len(loaded.Prompts) != 3 {
+		t.Fatalf("expected 3 prompts, got %d", len(loaded.Prompts))
 	}
 	if loaded.Prompts[0].Name != "Correct" {
 		t.Errorf("expected 'Correct', got '%s'", loaded.Prompts[0].Name)
 	}
 	if loaded.Prompts[1].Name != "Polish" {
 		t.Errorf("expected 'Polish', got '%s'", loaded.Prompts[1].Name)
+	}
+	if loaded.Prompts[2].Name != "Define" {
+		t.Errorf("expected 'Define', got '%s'", loaded.Prompts[2].Name)
 	}
 }
 

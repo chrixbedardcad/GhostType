@@ -197,10 +197,40 @@ func processMode(
 	ctx, cancel := context.WithTimeout(cancelCtx, timeout)
 	defer cancel()
 
+	// Build text to send — if we have full document context, wrap the selected
+	// text with context so the LLM can make better corrections (#192).
+	textToSend := cap.Text
+	if cap.FullContext != "" {
+		// Truncate context to ~2000 chars around the selection to avoid
+		// sending huge documents and burning tokens.
+		ctx2000 := cap.FullContext
+		if len([]rune(ctx2000)) > 2000 {
+			// Find the selection position and extract ~2000 chars around it.
+			pos := strings.Index(ctx2000, cap.Text)
+			if pos < 0 {
+				pos = 0
+			}
+			start := pos - 800
+			if start < 0 {
+				start = 0
+			}
+			end := pos + len(cap.Text) + 800
+			if end > len(ctx2000) {
+				end = len(ctx2000)
+			}
+			ctx2000 = ctx2000[start:end]
+		}
+		textToSend = "=== FULL DOCUMENT (for context only — do NOT include this in your response) ===\n" +
+			ctx2000 +
+			"\n\n=== SELECTED TEXT (apply your instructions ONLY to this portion) ===\n" +
+			cap.Text
+		slog.Info("Context-aware mode: sending selected text with document context", "selected_len", len(cap.Text), "context_len", len(ctx2000))
+	}
+
 	// Send to LLM via mode router.
-	slog.Debug("Sending to LLM...", "prompt", promptName, "text_len", len(cap.Text))
+	slog.Debug("Sending to LLM...", "prompt", promptName, "text_len", len(textToSend))
 	llmStart := time.Now()
-	resp, err := router.Process(ctx, promptIdx, cap.Text)
+	resp, err := router.Process(ctx, promptIdx, textToSend)
 	llmElapsed := time.Since(llmStart)
 
 	// LLM call complete — hide the overlay and restore focus to the target
@@ -308,6 +338,18 @@ func processMode(
 
 	sound.PlaySuccess()
 	recordStat("success", "", result)
+
+	// --- Popup mode: show result in a window instead of pasting ---
+	// Used for lookup prompts (Define, Explain) where the source text may be
+	// non-editable (browser, PDF viewer) and pasting would fail or be unwanted.
+	if promptIdx >= 0 && promptIdx < len(cfg.Prompts) && cfg.Prompts[promptIdx].DisplayMode == "popup" {
+		slog.Info("DisplayMode=popup — showing result in popup window", "prompt", promptName)
+		kb.PressRight() // deselect text in source app
+		time.Sleep(50 * time.Millisecond)
+		gui.ShowResult(result, promptName, promptIcon, modelLabel)
+		restoreClipboard()
+		return
+	}
 
 	// --- Write result back ---
 	written := false

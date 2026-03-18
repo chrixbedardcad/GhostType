@@ -354,6 +354,14 @@
   .help-step-text { font-size: 0.85em; color: #a6adc8; line-height: 1.5; }
   .help-kbd { background: #313244; border: 1px solid #45475a; border-radius: 4px; padding: 1px 6px; font-size: 0.82em; font-family: monospace; color: #cdd6f4; }
 
+  /* --- Keycap Component (#199) --- */
+  .keycap { display:inline-block; background:#313244; border:1px solid #45475a; border-bottom:3px solid #585b70; border-radius:6px; font:0.82em SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace; color:#cdd6f4; padding:3px 8px; text-shadow:0 0 8px rgba(180,150,255,0.3); box-shadow:0 1px 2px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.05); transition:transform 0.1s; line-height:1.4; user-select:none; vertical-align:baseline; }
+  .keycap:hover { transform:translateY(-1px); }
+  .keycap.wide { min-width:50px; text-align:center; }
+  .keycap.action { border-bottom-color:#a6e3a1; text-shadow:0 0 8px rgba(166,227,161,0.3); }
+  .keycap-combo { display:inline-flex; align-items:center; gap:4px; }
+  .keycap-plus { color:#6c7086; font-size:0.8em; margin:0 2px; user-select:none; }
+
   /* --- About --- */
   .about-block { text-align: center; padding: 30px 0; }
   .about-block .logo-big { font-size: 3em; margin-bottom: 8px; }
@@ -1061,7 +1069,7 @@
       </div>
       <div class="help-step">
         <span class="help-step-num">2</span>
-        <span class="help-step-text">Press the action hotkey (default: <span class="help-kbd">Ctrl+G</span> on Windows/Linux, <span class="help-kbd">Cmd+G</span> on macOS).</span>
+        <span class="help-step-text">Press the action hotkey (default: <span data-hotkey="ctrl+g"></span>).</span>
       </div>
       <div class="help-step">
         <span class="help-step-num">3</span>
@@ -1069,7 +1077,7 @@
       </div>
       <div class="help-step">
         <span class="help-step-num">4</span>
-        <span class="help-step-text">Press <span class="help-kbd">Ctrl+Z</span> to undo and restore the original text.</span>
+        <span class="help-step-text">Press <span data-hotkey="ctrl+z"></span> to undo and restore the original text.</span>
       </div>
     </div>
 
@@ -1083,7 +1091,7 @@
         <tr><td>👻⚠️</td><td><strong>Text too long</strong> — the selected text exceeds the max input character limit. Reduce your selection or increase the limit in General settings.</td></tr>
         <tr><td>👻🫥</td><td><strong>Empty text</strong> — no text was captured. Make sure text is selected or the cursor is in a text field.</td></tr>
       </table>
-      <p>All indicators can be removed with <span class="help-kbd">Ctrl+Z</span> (undo).</p>
+      <p>All indicators can be removed with <span data-hotkey="ctrl+z"></span> (undo).</p>
     </div>
 
     <div class="help-section">
@@ -1131,8 +1139,8 @@
     <div class="help-section">
       <h2>Hotkeys</h2>
       <table class="help-table">
-        <tr><td>⌨️</td><td><strong>Action</strong> (default: <span class="help-kbd">Ctrl+G</span> on Windows/Linux, <span class="help-kbd">Cmd+G</span> on macOS) — process selected text with the active prompt.</td></tr>
-        <tr><td>🔄</td><td><strong>Cycle Prompt</strong> (default: <span class="help-kbd">Ctrl+Shift+T</span> / <span class="help-kbd">Cmd+Shift+T</span>) — switch to the next prompt. Shows a brief indicator pill.</td></tr>
+        <tr><td>⌨️</td><td><strong>Action</strong> (default: <span data-hotkey="ctrl+g"></span>) — process selected text with the active prompt.</td></tr>
+        <tr><td>🔄</td><td><strong>Cycle Prompt</strong> (default: <span data-hotkey="ctrl+shift+t"></span>) — switch to the next prompt. Shows a brief indicator pill.</td></tr>
         <tr><td>🛑</td><td><strong>Cancel</strong> — press the action hotkey again while processing to cancel and restore text.</td></tr>
       </table>
       <p>Configure hotkeys in the Hotkeys tab. Right-click the tray icon to see and switch the active prompt.</p>
@@ -1289,6 +1297,10 @@ async function init() {
   if (raw) configData = JSON.parse(raw);
   updateHeaderPrompt();
   updateAboutHotkey();
+  // Render keycap components (#199).
+  document.querySelectorAll('[data-hotkey]').forEach(function(el) {
+    el.innerHTML = renderKeycaps(el.getAttribute('data-hotkey'));
+  });
   renderModels();
   initHotkeyCapture();
 
@@ -1368,25 +1380,33 @@ function updateHeaderPrompt() {
   if (prevModel) prevModel.textContent = model;
 }
 
+// --- Keycap renderer (#199) ---
+var _keycapIsMac = navigator.platform && navigator.platform.indexOf('Mac') >= 0;
+var _keycapModifiers = {'ctrl':1,'cmd':1,'command':1,'shift':1,'alt':1,'option':1,'meta':1,'super':1,'win':1};
+var _keycapMacLabels = {'ctrl':'\u2318','cmd':'\u2318','command':'\u2318','alt':'\u2325','option':'\u2325','shift':'\u21E7','meta':'\u2318','super':'\u2318','win':'\u2318'};
+function renderKeycaps(hotkeyStr) {
+  if (!hotkeyStr) return '';
+  var parts = hotkeyStr.split('+');
+  var html = '<span class="keycap-combo">';
+  for (var i = 0; i < parts.length; i++) {
+    if (i > 0) html += '<span class="keycap-plus">+</span>';
+    var raw = parts[i].trim(), lower = raw.toLowerCase();
+    var isMod = !!_keycapModifiers[lower], isAct = (i === parts.length - 1);
+    var label;
+    if (_keycapIsMac && _keycapMacLabels[lower]) label = _keycapMacLabels[lower];
+    else if (isMod) { label = raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase(); if (lower === 'cmd' || lower === 'command') label = 'Ctrl'; }
+    else label = raw.length === 1 ? raw.toUpperCase() : raw;
+    var cls = 'keycap'; if (isMod && !isAct) cls += ' wide'; if (isAct) cls += ' action';
+    html += '<span class="' + cls + '">' + esc(label) + '</span>';
+  }
+  return html + '</span>';
+}
+
 function updateAboutHotkey() {
   var el = document.getElementById('about-hotkey-badge');
   if (!el || !configData) return;
   var hotkey = (configData.hotkeys && configData.hotkeys.action) || 'Ctrl+G';
-  var isMac = navigator.platform && navigator.platform.indexOf('Mac') !== -1;
-  var parts = hotkey.split('+');
-  var kbdStyle = 'background:#1e1e2e;border:1px solid #585b70;border-radius:4px;padding:2px 8px;font-size:0.85em;font-weight:700;font-family:system-ui,sans-serif;box-shadow:0 1px 0 #585b70;';
-  var html = '';
-  for (var i = 0; i < parts.length; i++) {
-    if (i > 0) html += '<span style="color:#585b70;font-size:0.7em">+</span>';
-    var label = parts[i].trim();
-    var color = '#cdd6f4';
-    if (i === parts.length - 1) color = '#a6e3a1'; // last key in green
-    if (isMac && (label === 'Ctrl' || label === 'ctrl')) label = '\u2318';
-    if (isMac && (label === 'Alt' || label === 'alt')) label = '\u2325';
-    if (isMac && (label === 'Shift' || label === 'shift')) label = '\u21E7';
-    html += '<kbd style="' + kbdStyle + 'color:' + color + '">' + esc(label) + '</kbd>';
-  }
-  el.innerHTML = html;
+  el.innerHTML = renderKeycaps(hotkey);
 }
 
 // ===========================================================================
@@ -2494,6 +2514,7 @@ async function renderPrompts() {
           ${p.icon ? '<span style="margin-right:4px">' + esc(p.icon) + '</span>' : ''}<span class="name">${esc(p.name)}</span>
           ${p.llm ? '<span class="llm-badge">' + esc(p.llm) + '</span>' : ''}
           ${p.timeout_ms ? '<span class="llm-badge" style="background:#45475a">' + (p.timeout_ms / 1000) + 's</span>' : ''}
+          ${p.display_mode === 'popup' ? '<span class="llm-badge" style="background:#313244;color:#a6e3a1;border:1px solid #a6e3a1">Popup</span>' : ''}
         </div>
         <div class="actions">`;
     if (isEditing) {
@@ -2554,6 +2575,14 @@ function buildInlineForm(idx, p) {
     <div class="form-group">
       <label>Max Processing Time (seconds, 0 = use model default)</label>
       <input type="number" id="pe-timeout" min="0" max="300" step="1" value="${p.timeout_ms ? Math.round(p.timeout_ms / 1000) : 0}" style="width:100px">
+    </div>
+    <div class="form-group">
+      <label>Result Display</label>
+      <select id="pe-display-mode">
+        <option value=""${!p.display_mode || p.display_mode === 'replace' ? ' selected' : ''}>Replace text (paste back)</option>
+        <option value="popup"${p.display_mode === 'popup' ? ' selected' : ''}>Show in popup window</option>
+      </select>
+      <div style="font-size:0.75em;color:#6c7086;margin-top:4px">Popup mode shows the result in a window — ideal for defining, explaining, or translating text in non-editable contexts (browsers, PDFs).</div>
     </div>
     <div class="btn-row">
       <button class="btn btn-secondary btn-sm" onclick="cancelInlineEdit()">Cancel</button>
@@ -2632,7 +2661,7 @@ function addPromptInline() {
   // Add a blank prompt, then open it for editing
   const prompts = configData.prompts || [];
   const newIdx = prompts.length;
-  goCall('savePrompt', -1, 'New Prompt', 'Enter your instructions here...', '', '', 0).then(result => {
+  goCall('savePrompt', -1, 'New Prompt', 'Enter your instructions here...', '', '', 0, '').then(result => {
     if (result && result.startsWith('ok')) {
       promptEditIdx = newIdx;
       renderPrompts();
@@ -2648,9 +2677,10 @@ async function saveInlinePrompt(idx) {
   const llm = document.getElementById('pe-llm').value;
   const icon = document.getElementById('pe-icon') ? document.getElementById('pe-icon').value : '';
   const timeoutSec = parseInt(document.getElementById('pe-timeout')?.value) || 0;
+  const displayMode = document.getElementById('pe-display-mode')?.value || '';
   if (!name) { setStatus('prompt-status', 'error', 'Name is required'); return; }
   if (!promptText) { setStatus('prompt-status', 'error', 'Prompt is required'); return; }
-  const result = await goCall('savePrompt', idx, name, promptText, llm, icon, timeoutSec);
+  const result = await goCall('savePrompt', idx, name, promptText, llm, icon, timeoutSec, displayMode);
   if (result && result.startsWith('ok')) {
     promptEditIdx = -1;
     renderPrompts();

@@ -480,9 +480,58 @@ func (s *SettingsService) TailDebugLog() string {
 	return tail
 }
 
+// --- Result popup ----------------------------------------------------------
+
+// GetResultText returns the current popup result text (called from result.html JS).
+func (s *SettingsService) GetResultText() string {
+	return GetResultText()
+}
+
+// GetResultMeta returns JSON metadata about the current result.
+func (s *SettingsService) GetResultMeta() string {
+	return GetResultMeta()
+}
+
+// CopyResultText copies the current result text to the system clipboard.
+func (s *SettingsService) CopyResultText() string {
+	text := GetResultText()
+	if text == "" {
+		return "error: no result text"
+	}
+	cmd := exec.Command("sh", "-c", "echo -n '' | pbcopy") // will be overridden below
+	switch runtime.GOOS {
+	case "darwin":
+		cmd = exec.Command("pbcopy")
+		cmd.Stdin = strings.NewReader(text)
+	case "linux":
+		cmd = exec.Command("xclip", "-selection", "clipboard")
+		cmd.Stdin = strings.NewReader(text)
+	case "windows":
+		cmd = exec.Command("powershell", "-NoProfile", "-Command", "Set-Clipboard -Value $input")
+		cmd.Stdin = strings.NewReader(text)
+	}
+	if err := cmd.Run(); err != nil {
+		guiLog("[GUI] CopyResultText: clipboard write failed: %v", err)
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// CloseResultWindow closes the result popup window.
+func (s *SettingsService) CloseResultWindow() string {
+	CloseResultWindow()
+	return "ok"
+}
+
 // GetPlatform returns the current OS (darwin, windows, linux).
 func (s *SettingsService) GetPlatform() string {
 	return runtime.GOOS
+}
+
+// GetSystemRAMGB returns the approximate total system RAM in gigabytes.
+// Used by the wizard to recommend an appropriate local model (#191).
+func (s *SettingsService) GetSystemRAMGB() int {
+	return getSystemRAMGB()
 }
 
 // --- Permissions -----------------------------------------------------------

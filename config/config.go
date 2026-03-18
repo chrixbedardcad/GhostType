@@ -12,11 +12,12 @@ import (
 
 // PromptEntry defines a named prompt with an optional per-prompt LLM override.
 type PromptEntry struct {
-	Name      string `json:"name"`
-	Prompt    string `json:"prompt"`
-	LLM       string `json:"llm,omitempty"`
-	Icon      string `json:"icon,omitempty"`      // emoji icon shown in tray menu (e.g. "✏️")
-	TimeoutMs int    `json:"timeout_ms,omitempty"` // per-prompt timeout override (0 = use model default)
+	Name        string `json:"name"`
+	Prompt      string `json:"prompt"`
+	LLM         string `json:"llm,omitempty"`
+	Icon        string `json:"icon,omitempty"`         // emoji icon shown in tray menu (e.g. "✏️")
+	TimeoutMs   int    `json:"timeout_ms,omitempty"`    // per-prompt timeout override (0 = use model default)
+	DisplayMode string `json:"display_mode,omitempty"`  // "replace" (default) or "popup" — how to show the LLM result
 }
 
 // LLMProviderDef defines a named LLM provider configuration.
@@ -108,6 +109,7 @@ const (
 	DefaultShortenPrompt   = "Condense the following text to be as concise as possible while preserving all essential meaning and key information. Remove redundancy, filler words, and unnecessary qualifiers. Keep the same tone and intent. Keep the text in its original language — never translate it. Return ONLY the shortened text with no explanation."
 	DefaultTranslatePrompt = "Translate the following text to English regardless of its source language. Return ONLY the translated text with no explanation."
 	DefaultAskPrompt       = "Answer this question clearly and concisely. Return the question and then the answer."
+	DefaultDefinePrompt    = "Define the following word or phrase. Provide a clear, concise definition. If applicable, include the part of speech and a brief example of usage. Keep it short and helpful."
 )
 
 // DefaultPrompts returns the default prompt list.
@@ -120,6 +122,7 @@ func DefaultPrompts() []PromptEntry {
 		{Name: "Shorten", Prompt: DefaultShortenPrompt, Icon: "\u2702\uFE0F"},
 		{Name: "Translate", Prompt: DefaultTranslatePrompt, Icon: "\U0001F310"},
 		{Name: "Ask", Prompt: DefaultAskPrompt, Icon: "\u2753"},
+		{Name: "Define", Prompt: DefaultDefinePrompt, Icon: "\U0001F4D6", DisplayMode: "popup"},
 	}
 }
 
@@ -509,6 +512,7 @@ func applyDefaults(cfg *Config) {
 		"Shorten":   "\u2702\uFE0F",
 		"Translate": "\U0001F310",
 		"Ask":       "\u2753",
+		"Define":    "\U0001F4D6",
 	}
 	for i := range cfg.Prompts {
 		if cfg.Prompts[i].Icon == "" {
@@ -516,6 +520,23 @@ func applyDefaults(cfg *Config) {
 				cfg.Prompts[i].Icon = icon
 			}
 		}
+	}
+
+	// Migrate: add Define prompt if missing (added in v0.36.0).
+	hasDefine := false
+	for _, p := range cfg.Prompts {
+		if p.Name == "Define" {
+			hasDefine = true
+			break
+		}
+	}
+	if !hasDefine {
+		cfg.Prompts = append(cfg.Prompts, PromptEntry{
+			Name:        "Define",
+			Prompt:      DefaultDefinePrompt,
+			Icon:        "\U0001F4D6",
+			DisplayMode: "popup",
+		})
 	}
 
 	// Clamp active_prompt to valid range.

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GhostSpell Result</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #1e1e2e; color: #cdd6f4;
+    height: 100vh; display: flex; flex-direction: column;
+    padding: 20px 24px 16px;
+    overflow: hidden;
+  }
+
+  /* --- Header --- */
+  .header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px; padding-bottom: 12px;
+    border-bottom: 1px solid #313244;
+    flex-shrink: 0;
+  }
+  .header img { width: 32px; height: 32px; }
+  .header .title-group {
+    display: flex; align-items: center; gap: 8px;
+    flex: 1; min-width: 0;
+  }
+  .header .prompt-icon { font-size: 1.2em; }
+  .header .prompt-name {
+    font-size: 1.05em; font-weight: 600; color: #cdd6f4;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .header .model-label {
+    margin-left: auto; flex-shrink: 0;
+    font-size: 0.72em; color: #a6adc8;
+    background: #313244; border-radius: 10px;
+    padding: 3px 10px; font-weight: 500;
+  }
+
+  /* --- Result body --- */
+  .result-body {
+    flex: 1; overflow-y: auto; min-height: 0;
+    background: #313244; border-radius: 8px;
+    padding: 16px; margin-bottom: 14px;
+    font-size: 0.88em; line-height: 1.65;
+    color: #bac2de; user-select: text;
+    cursor: text;
+  }
+  .result-body::-webkit-scrollbar { width: 6px; }
+  .result-body::-webkit-scrollbar-track { background: transparent; }
+  .result-body::-webkit-scrollbar-thumb { background: #45475a; border-radius: 3px; }
+  .result-body::-webkit-scrollbar-thumb:hover { background: #585b70; }
+
+  /* Markdown rendered elements */
+  .result-body strong { color: #cdd6f4; font-weight: 600; }
+  .result-body em { color: #cba6f7; font-style: italic; }
+  .result-body ul {
+    margin: 6px 0 6px 18px;
+    padding: 0; list-style: disc;
+  }
+  .result-body ul li {
+    margin-bottom: 3px;
+  }
+  .result-body code {
+    background: #45475a; padding: 1px 5px;
+    border-radius: 3px; font-size: 0.92em;
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    color: #f9e2af;
+  }
+
+  .loading-text {
+    color: #6c7086; font-style: italic;
+  }
+
+  /* --- Button row --- */
+  .btn-row {
+    display: flex; justify-content: flex-end; gap: 10px;
+    flex-shrink: 0; align-items: center;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 18px; border: none; border-radius: 6px;
+    font-size: 0.88em; font-weight: 500; cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+    font-family: inherit;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: #a6e3a1; color: #1e1e2e; }
+  .btn-primary:hover:not(:disabled) { background: #94d990; }
+  .btn-secondary { background: #45475a; color: #cdd6f4; }
+  .btn-secondary:hover:not(:disabled) { background: #585b70; }
+
+  /* --- Copied flash --- */
+  .copied-flash {
+    font-size: 0.78em; color: #a6e3a1; font-weight: 500;
+    opacity: 0; transition: opacity 0.2s;
+    margin-right: 4px;
+  }
+  .copied-flash.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="/ghost-icon.png" alt="GhostSpell">
+  <div class="title-group">
+    <span class="prompt-icon" id="prompt-icon"></span>
+    <span class="prompt-name" id="prompt-name">Result</span>
+  </div>
+  <span class="model-label" id="model-label"></span>
+</div>
+
+<div class="result-body" id="result-body">
+  <span class="loading-text">Loading result...</span>
+</div>
+
+<div class="btn-row">
+  <span class="copied-flash" id="copied-flash">Copied!</span>
+  <button class="btn btn-primary" onclick="copyResult()" id="copy-btn">&#x1F4CB; Copy</button>
+  <button class="btn btn-secondary" onclick="closeWindow()">Close</button>
+</div>
+
+<script type="module" src="/wails/runtime.js"></script>
+<script>
+const _pkg = 'github.com/chrixbedardcad/GhostSpell/gui';
+async function goCall(fn, ...args) {
+  try {
+    const method = _pkg + '.SettingsService.' + fn.charAt(0).toUpperCase() + fn.slice(1);
+    return await wails.Call.ByName(method, ...args);
+  } catch (e) { console.error('Bridge call failed:', fn, e); return null; }
+}
+
+/* ---- Simple Markdown → HTML ---- */
+function renderMarkdown(text) {
+  if (!text) return '';
+  // Escape HTML
+  let html = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Inline code (before bold/italic to avoid conflicts)
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  // Bold: **text** or __text__
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+
+  // Italic: *text* or _text_ (not inside words for underscores)
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  html = html.replace(/(?<!\w)_(.+?)_(?!\w)/g, '<em>$1</em>');
+
+  // Process line by line for bullet lists and line breaks
+  var lines = html.split('\n');
+  var result = [];
+  var inList = false;
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    var bulletMatch = line.match(/^(\s*)[-*]\s+(.*)/);
+    if (bulletMatch) {
+      if (!inList) { result.push('<ul>'); inList = true; }
+      result.push('<li>' + bulletMatch[2] + '</li>');
+    } else {
+      if (inList) { result.push('</ul>'); inList = false; }
+      // Blank lines become paragraph breaks, others get <br>
+      if (line.trim() === '') {
+        result.push('<br>');
+      } else {
+        result.push(line);
+        // Add <br> if next line is not a bullet and not blank
+        if (i < lines.length - 1) {
+          var nextLine = lines[i + 1];
+          var nextIsBullet = /^\s*[-*]\s+/.test(nextLine);
+          if (!nextIsBullet && nextLine.trim() !== '') {
+            result.push('<br>');
+          }
+        }
+      }
+    }
+  }
+  if (inList) result.push('</ul>');
+
+  return result.join('\n');
+}
+
+/* ---- Raw text kept for clipboard ---- */
+var rawResultText = '';
+
+/* ---- Init ---- */
+async function init() {
+  var text = await goCall('getResultText');
+  var metaRaw = await goCall('getResultMeta');
+
+  rawResultText = text || '';
+
+  // Render result body
+  var body = document.getElementById('result-body');
+  if (text) {
+    body.innerHTML = renderMarkdown(text);
+  } else {
+    body.innerHTML = '<span class="loading-text">No result available.</span>';
+  }
+
+  // Render header metadata
+  if (metaRaw) {
+    try {
+      var meta = JSON.parse(metaRaw);
+      if (meta.prompt) document.getElementById('prompt-name').textContent = meta.prompt;
+      if (meta.icon) document.getElementById('prompt-icon').textContent = meta.icon;
+      if (meta.model) document.getElementById('model-label').textContent = meta.model;
+    } catch (e) { console.error('Failed to parse result meta:', e); }
+  }
+}
+
+/* ---- Copy ---- */
+async function copyResult() {
+  await goCall('copyResultText');
+  var flash = document.getElementById('copied-flash');
+  flash.classList.add('show');
+  setTimeout(function() { flash.classList.remove('show'); }, 1500);
+}
+
+/* ---- Close ---- */
+function closeWindow() {
+  goCall('closeResultWindow');
+}
+
+/* ---- Keyboard shortcuts ---- */
+document.addEventListener('keydown', function(e) {
+  // Esc → close
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    closeWindow();
+    return;
+  }
+  // Ctrl+C / Cmd+C with no text selected → copy result
+  if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+    var sel = window.getSelection();
+    if (!sel || sel.isCollapsed || sel.toString().trim() === '') {
+      e.preventDefault();
+      copyResult();
+    }
+    // If text is selected, let the browser handle native copy
+  }
+});
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
