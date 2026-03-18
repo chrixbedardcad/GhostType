@@ -44,6 +44,8 @@ func ensureIndicatorWindow() {
 	indicatorWin = indicatorApp.Window.NewWithOptions(application.WebviewWindowOptions{
 		Name:              "ghostspell-indicator",
 		Title:             "",
+		X:                 -9999,
+		Y:                 -9999,
 		Width:             1,
 		Height:            1,
 		Frameless:         true,
@@ -107,6 +109,7 @@ func PreviewIndicatorPosition() {
 		w := indicatorWin
 		indicatorMu.Unlock()
 		if w != nil {
+			w.SetPosition(-9999, -9999)
 			w.SetURL("/indicator.html")
 			w.SetSize(1, 1)
 		}
@@ -181,9 +184,11 @@ func HideIndicator() {
 	}
 
 	slog.Debug("[indicator] HideIndicator called")
-	// Navigate to bare URL (no params) → page renders with opacity:0 (invisible).
-	// Shrink to 1x1 so the invisible window doesn't intercept mouse clicks
-	// on other windows (AlwaysOnTop + IgnoreMouseEvents=false on Windows).
+	// Move off-screen FIRST to stop blocking clicks immediately,
+	// then shrink and clear content. Moving off-screen is the only
+	// reliable way to prevent click interception on Windows where
+	// IgnoreMouseEvents=false and AlwaysOnTop=true.
+	win.SetPosition(-9999, -9999)
 	win.SetURL("/indicator.html")
 	win.SetSize(1, 1)
 }
@@ -213,6 +218,7 @@ func PopIndicator(promptIcon, promptName string) {
 		w := indicatorWin
 		indicatorMu.Unlock()
 		if w != nil {
+			w.SetPosition(-9999, -9999)
 			w.SetURL("/indicator.html")
 			w.SetSize(1, 1)
 		}
