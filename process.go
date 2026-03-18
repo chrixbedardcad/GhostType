@@ -222,6 +222,20 @@ func processMode(
 		maxInput = 2000 // safe default
 	}
 	if cap.FullContext != "" {
+		// Skip context-aware mode for very large documents — the write-back
+		// (Ctrl+A+V of the entire document) is unreliable and can crash/hang
+		// the target app when the document exceeds a reasonable size (#216).
+		maxFullDoc := maxInput * 5
+		if maxFullDoc < 10000 {
+			maxFullDoc = 10000
+		}
+		if len([]rune(cap.FullContext)) > maxFullDoc {
+			slog.Warn("Context-aware: document too large, skipping context mode", "full_len", len(cap.FullContext), "limit", maxFullDoc)
+			cap.FullContext = ""
+			cap.ContextViaClipboard = false
+		}
+	}
+	if cap.FullContext != "" {
 		// Context budget: total text must fit within maxInput.
 		// Reserve space for markers (~200 chars) and the selection itself.
 		markerOverhead := 200

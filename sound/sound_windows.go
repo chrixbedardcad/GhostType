@@ -65,6 +65,21 @@ var toggle3WAV []byte
 //go:embed toggle4.wav
 var toggle4WAV []byte
 
+//go:embed click1.wav
+var click1WAV []byte
+
+//go:embed click2.wav
+var click2WAV []byte
+
+//go:embed click3.wav
+var click3WAV []byte
+
+//go:embed click4.wav
+var click4WAV []byte
+
+//go:embed click5.wav
+var click5WAV []byte
+
 //go:embed cancel.wav
 var cancelWAV []byte
 
@@ -128,6 +143,7 @@ func PlayStart()   { play(startWAV) }
 func PlaySuccess() { play(pickRandom([][]byte{successWAV, success2WAV, success3WAV, success4WAV, success5WAV})) }
 func PlayError()   { play(pickRandom([][]byte{errorWAV, error2WAV})) }
 func PlayToggle()  { play(pickRandom([][]byte{toggleWAV, toggle1WAV, toggle2WAV, toggle3WAV, toggle4WAV})) }
+func PlayClick()   { play(pickRandom([][]byte{click1WAV, click2WAV, click3WAV, click4WAV, click5WAV})) }
 func PlayCancel()     { play(cancelWAV) }
 func PlayWorking()    { play(workingWAV) }
 func PlayBenchmark()  { play(pickRandom([][]byte{benchmarkingWAV, benchmarking2WAV})) }

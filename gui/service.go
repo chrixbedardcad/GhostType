@@ -539,7 +539,7 @@ func (s *SettingsService) CyclePromptFromIndicator() string {
 	}
 	s.cfgCopy.ActivePrompt = (s.cfgCopy.ActivePrompt + 1) % len(s.cfgCopy.Prompts)
 	p := s.cfgCopy.Prompts[s.cfgCopy.ActivePrompt]
-	go sound.PlayToggle() // click sound feedback (#214)
+	go sound.PlayClick() // click sound feedback (#214)
 	// Show a brief pop with the new prompt name.
 	PopIndicator(p.Icon, p.Name)
 	return "ok"
@@ -599,7 +599,7 @@ func (s *SettingsService) SetActivePromptFromIndicator(idx int) string {
 	}
 	s.cfgCopy.ActivePrompt = idx
 	p := s.cfgCopy.Prompts[idx]
-	go sound.PlayToggle() // click sound feedback (#214)
+	go sound.PlayClick() // click sound feedback (#214)
 	PopIndicator(p.Icon, p.Name)
 	return "ok"
 }
