@@ -499,7 +499,7 @@ p{color:#a6adc8;font-size:0.9em}
 </div>
 <span class="arrow">&#10132;</span>
 <div class="logo-circle logo-ghost">
-<img src="https://raw.githubusercontent.com/chrixbedardcad/GhostSpell/main/assets/ghost-icon.png" width="32" height="32" onerror="this.textContent='&#128123;'" style="border-radius:50%">
+<span style="font-size:2em">&#128123;</span>
 </div>
 </div>
 <h2>&#9989; Authorization Successful!</h2>

@@ -213,7 +213,7 @@ func PopIndicator(promptIcon, promptName string) {
 	win.SetPosition(x, y)
 
 	go func() {
-		time.Sleep(1500 * time.Millisecond)
+		time.Sleep(2500 * time.Millisecond) // longer display for cycle prompt visibility (#208)
 		indicatorMu.Lock()
 		w := indicatorWin
 		indicatorMu.Unlock()
