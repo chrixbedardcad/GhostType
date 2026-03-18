@@ -123,7 +123,7 @@ jobs:
           chmod +x scripts/bundle-macos.sh
           ./scripts/bundle-macos.sh ghostspell-${{ matrix.goos }}-${{ matrix.goarch }} ${{ matrix.goarch }}
       - name: Notarize macOS DMG
-        if: false # Disabled until Apple certs are fully configured — re-enable with: matrix.goos == 'darwin' && env.APPLE_ID != ''
+        if: matrix.goos == 'darwin' && env.APPLE_ID != ''
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
