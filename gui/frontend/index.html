@@ -637,16 +637,17 @@
         </label>
       </div>
 
+      <div class="btn-row" style="margin-bottom:10px">
+        <button class="btn btn-secondary" id="prov-local-test-btn" onclick="testProviderConnection('local')">Test Connection</button>
+        <span style="font-size:0.72em;color:#6c7086;margin-left:auto">Enabled</span><label class="toggle" style="flex-shrink:0" title="Enable/disable this provider"><input type="checkbox" id="prov-toggle-local" onchange="toggleProvider('local',this.checked)"><span class="slider"></span></label>
+      </div>
+      <div id="prov-local-test-result" class="status"></div>
+
       <div id="prov-local-status-bar" class="ollama-status-bar checking">
         <span class="ollama-status-dot"></span>
         <span id="prov-local-status-text">Checking...</span>
       </div>
       <div id="prov-local-models"></div>
-
-      <div class="btn-row" style="margin-top:10px">
-        <button class="btn btn-secondary" id="prov-local-test-btn" onclick="testProviderConnection('local')">Test Connection</button>
-      </div>
-      <div id="prov-local-test-result" class="status"></div>
       <div id="prov-local-action-status" class="status" style="margin-top:6px"></div>
     </div>
 
@@ -661,6 +662,14 @@
         <input type="text" id="prov-ollama-endpoint" placeholder="http://127.0.0.1:11434" value="http://127.0.0.1:11434">
       </div>
 
+      <div class="btn-row" style="margin-bottom:10px">
+        <button class="btn btn-secondary" onclick="refreshOllamaSetup()">Refresh</button>
+        <button class="btn btn-secondary" id="prov-ollama-test-btn" onclick="testProviderConnection('ollama')">Test Connection</button>
+        <button class="btn btn-primary" onclick="saveOllamaProvider()">Save</button>
+        <span style="font-size:0.72em;color:#6c7086;margin-left:auto">Enabled</span><label class="toggle" style="flex-shrink:0" title="Enable/disable this provider"><input type="checkbox" id="prov-toggle-ollama" onchange="toggleProvider('ollama',this.checked)"><span class="slider"></span></label>
+      </div>
+      <div id="prov-ollama-test-result" class="status"></div>
+
       <div id="prov-ollama-status-bar" class="ollama-status-bar checking">
         <span class="ollama-status-dot"></span>
         <span id="prov-ollama-status-text">Checking...</span>
@@ -668,14 +677,6 @@
       <div id="prov-ollama-body"></div>
 
       <div id="prov-ollama-models"></div>
-
-      <div class="btn-row" style="margin-top:10px">
-        <button class="btn btn-secondary" onclick="refreshOllamaSetup()">Refresh</button>
-        <button class="btn btn-secondary" id="prov-ollama-test-btn" onclick="testProviderConnection('ollama')">Test Connection</button>
-        <button class="btn btn-primary" onclick="saveOllamaProvider()">Save</button>
-        <span style="font-size:0.72em;color:#6c7086;margin-left:auto">Enabled</span><label class="toggle" style="flex-shrink:0" title="Enable/disable this provider"><input type="checkbox" id="prov-toggle-ollama" onchange="toggleProvider('ollama',this.checked)"><span class="slider"></span></label>
-      </div>
-      <div id="prov-ollama-test-result" class="status"></div>
       <div id="prov-ollama-status" class="status"></div>
       <div id="prov-ollama-action-status" class="status" style="margin-top:6px"></div>
     </div>
@@ -2621,12 +2622,16 @@ function toggleEmojiPicker() {
   if (!_emojiPickerBuilt) {
     _emojiPickerBuilt = true;
     var categories = {
-      'Smileys': ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😊','😇','🥰','😍','🤩','😘','😋','😛','😜','🤪','😎','🤓','🧐','😏','😒','😞','😔','😟','😕','😤','😠','😡','🤯','😳','🥺','😢','😭','😱','😈','👻'],
-      'Gestures': ['👍','👎','👌','✌️','🤞','🤟','🤘','👋','🤚','✋','👊','✊','🤜','🤛','👏','🙌','👐','🤝','🙏','💪','🫶'],
-      'Objects': ['✏️','📝','📄','📎','📌','📍','🔍','🔎','💡','🔥','⚡','✨','💫','🌟','⭐','🎯','🎨','🎭','🎪','🏆','🏅','🥇','🎖️','📊','📈','📉','🗂️','📁','📂'],
-      'Symbols': ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','💎','💬','💭','🗯️','♻️','⚠️','❌','✅','❓','❗','💯','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪'],
-      'Nature': ['🌍','🌎','🌏','🌐','🌈','☀️','🌙','⭐','🌸','🌺','🌻','🌹','🍀','🌿','🌱','🌳','🌴','🍄','🐱','🐶','🦊','🐻','🐼','🦁','🐸','🐙','🦋'],
-      'Tech': ['💻','🖥️','📱','⌨️','🖱️','🔧','🔨','⚙️','🛠️','🔬','🔭','📡','🤖','👾','🚀','🛸','🧠','🧬','🧪','📦','🗃️','💾','📀']
+      'Smileys': ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😊','😇','🥰','😍','🤩','😘','😋','😛','😜','🤪','😎','🤓','🧐','😏','😒','😞','😔','😟','😕','😤','😠','😡','🤯','😳','🥺','😢','😭','😱','😈','👻','🤖','👽','💀','☠️','🤡','👹','👺','🫠','🥱','😴','🤑','🤫','🤔','🫡'],
+      'Gestures': ['👍','👎','👌','✌️','🤞','🤟','🤘','👋','🤚','✋','👊','✊','🤜','🤛','👏','🙌','👐','🤝','🙏','💪','🫶','🤌','🫰','🫳','🫴','☝️','👆','👇','👈','👉','🫵'],
+      'Writing': ['✏️','📝','📄','📖','📚','📕','📗','📘','📙','📓','📒','📔','📑','🗒️','📋','📃','✒️','🖊️','🖋️','🔖','🏷️','📎','📐','📏','✂️','🗑️','📤','📥','📬','📩','💌'],
+      'Objects': ['💡','🔥','⚡','✨','💫','🌟','⭐','🎯','🎨','🎭','🎪','🏆','🏅','🥇','🎖️','📊','📈','📉','🗂️','📁','📂','🔍','🔎','📌','📍','🗺️','🧭','🔐','🔑','🛡️','⚔️'],
+      'Symbols': ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💎','💬','💭','🗯️','♻️','⚠️','❌','✅','❓','❗','💯','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🔶','🔷','♾️','⚛️','🏴','🚩'],
+      'Nature': ['🌍','🌎','🌏','🌐','🌈','☀️','🌙','⭐','🌸','🌺','🌻','🌹','🍀','🌿','🌱','🌳','🌴','🍄','🐱','🐶','🦊','🐻','🐼','🦁','🐸','🐙','🦋','🐝','🦅','🐬','🐳','🦈','🦎','🐢'],
+      'Tech': ['💻','🖥️','📱','⌨️','🖱️','🔧','🔨','⚙️','🛠️','🔬','🔭','📡','🤖','👾','🚀','🛸','🧠','🧬','🧪','📦','🗃️','💾','📀','🌐','🔗','📲','🖨️','🔋','💿','🕹️'],
+      'Food': ['☕','🍵','🧃','🍷','🍺','🎂','🍕','🍔','🌮','🍣','🍜','🍩','🍪','🍫','🍿','🧁','🥤','🍰','🥐','🥖'],
+      'Travel': ['🏠','🏢','🏭','🏛️','🏰','🗽','🗼','⛪','🕌','🛕','🏗️','🌉','🚗','🚕','🚌','✈️','🚂','🚢','🛳️','🏖️'],
+      'Flags': ['🏁','🚩','🏴','🏳️','🇺🇸','🇬🇧','🇨🇦','🇫🇷','🇩🇪','🇯🇵','🇰🇷','🇨🇳','🇧🇷','🇮🇳','🇦🇺','🇪🇸','🇮🇹','🇲🇽','🇷🇺','🇿🇦']
     };
     var html = '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">';
     var catNames = Object.keys(categories);

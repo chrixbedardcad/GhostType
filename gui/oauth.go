@@ -482,15 +482,30 @@ func oauthPage(success bool, errMsg string) string {
 		return `<!DOCTYPE html>
 <html><head><style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#1e1e2e;color:#cdd6f4;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
-.box{text-align:center;padding:40px;background:#313244;border-radius:12px;max-width:400px}
+.box{text-align:center;padding:40px;background:#313244;border-radius:12px;max-width:440px}
+.logos{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px}
+.logo-circle{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.logo-ghost{background:#2a2d42;border:2px solid #a6e3a1}
+.logo-oai{background:#2a2d42;border:2px solid #45475a}
+.arrow{color:#a6e3a1;font-size:1.5em;animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.2)}}
 h2{color:#a6e3a1;margin-bottom:12px}
 p{color:#a6adc8;font-size:0.9em}
 </style></head><body>
 <div class="box">
-<h2>&#9989; Authorization Successful!</h2>
-<p>You can close this tab and return to GhostSpell.</p>
+<div class="logos">
+<div class="logo-circle logo-oai">
+<svg width="28" height="28" viewBox="0 0 24 24"><path d="M22.28 9.82a5.98 5.98 0 0 0-.52-4.91 6.05 6.05 0 0 0-6.51-2.9A6.07 6.07 0 0 0 4.98 4.18a5.98 5.98 0 0 0-4 2.9 6.05 6.05 0 0 0 .74 7.1 5.98 5.98 0 0 0 .51 4.91 6.05 6.05 0 0 0 6.51 2.9A5.98 5.98 0 0 0 13.26 24a6.06 6.06 0 0 0 5.77-4.21 5.99 5.99 0 0 0 4-2.9 6.06 6.06 0 0 0-.75-7.07z" fill="#cdd6f4"/></svg>
 </div>
-<script>setTimeout(function(){ window.close(); }, 2000);</script>
+<span class="arrow">&#10132;</span>
+<div class="logo-circle logo-ghost">
+<img src="https://raw.githubusercontent.com/chrixbedardcad/GhostSpell/main/assets/ghost-icon.png" width="32" height="32" onerror="this.textContent='&#128123;'" style="border-radius:50%">
+</div>
+</div>
+<h2>&#9989; Authorization Successful!</h2>
+<p>ChatGPT is now connected to GhostSpell.<br>You can close this tab.</p>
+</div>
+<script>setTimeout(function(){ window.close(); }, 3000);</script>
 </body></html>`
 	}
 	return fmt.Sprintf(`<!DOCTYPE html>
