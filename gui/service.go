@@ -528,6 +528,112 @@ func (s *SettingsService) GetPlatform() string {
 	return runtime.GOOS
 }
 
+// --- Indicator interactions (#211) ------------------------------------------
+
+// CyclePromptFromIndicator cycles to the next prompt (called from indicator click).
+func (s *SettingsService) CyclePromptFromIndicator() string {
+	slog.Debug("[GUI] CyclePromptFromIndicator called")
+	if s.cfgCopy == nil || len(s.cfgCopy.Prompts) == 0 {
+		return "error: no prompts"
+	}
+	s.cfgCopy.ActivePrompt = (s.cfgCopy.ActivePrompt + 1) % len(s.cfgCopy.Prompts)
+	p := s.cfgCopy.Prompts[s.cfgCopy.ActivePrompt]
+	// Show a brief pop with the new prompt name.
+	PopIndicator(p.Icon, p.Name)
+	return "ok"
+}
+
+// OpenSettingsFromIndicator opens the settings window (called from indicator double-click).
+func (s *SettingsService) OpenSettingsFromIndicator() string {
+	slog.Debug("[GUI] OpenSettingsFromIndicator called")
+	// Trigger settings via the tray menu callback pattern.
+	// The actual ShowSettings call requires the live config from app.go,
+	// so we use the OnIndicatorOpenSettings callback if set.
+	if OnIndicatorOpenSettings != nil {
+		OnIndicatorOpenSettings()
+	}
+	return "ok"
+}
+
+// QuitFromIndicator quits the app (called from indicator context menu).
+func (s *SettingsService) QuitFromIndicator() string {
+	slog.Info("[GUI] QuitFromIndicator called")
+	go func() {
+		time.Sleep(200 * time.Millisecond)
+		os.Exit(0)
+	}()
+	return "ok"
+}
+
+// GetIndicatorMenu returns the context menu data for the indicator as JSON.
+func (s *SettingsService) GetIndicatorMenu() string {
+	type menuPrompt struct {
+		Name   string `json:"name"`
+		Icon   string `json:"icon"`
+		Active bool   `json:"active"`
+	}
+	type menuData struct {
+		Prompts []menuPrompt `json:"prompts"`
+	}
+	var data menuData
+	if s.cfgCopy != nil {
+		for i, p := range s.cfgCopy.Prompts {
+			data.Prompts = append(data.Prompts, menuPrompt{
+				Name:   p.Name,
+				Icon:   p.Icon,
+				Active: i == s.cfgCopy.ActivePrompt,
+			})
+		}
+	}
+	j, _ := json.Marshal(data)
+	return string(j)
+}
+
+// SetActivePromptFromIndicator sets the active prompt by index (called from indicator menu).
+func (s *SettingsService) SetActivePromptFromIndicator(idx int) string {
+	slog.Debug("[GUI] SetActivePromptFromIndicator called", "idx", idx)
+	if s.cfgCopy == nil || idx < 0 || idx >= len(s.cfgCopy.Prompts) {
+		return "error: invalid index"
+	}
+	s.cfgCopy.ActivePrompt = idx
+	p := s.cfgCopy.Prompts[idx]
+	PopIndicator(p.Icon, p.Name)
+	return "ok"
+}
+
+// GetActivePromptInfo returns the active prompt name and icon as JSON (for tooltip).
+func (s *SettingsService) GetActivePromptInfo() string {
+	type info struct {
+		Name string `json:"name"`
+		Icon string `json:"icon"`
+	}
+	if s.cfgCopy == nil || len(s.cfgCopy.Prompts) == 0 {
+		return "{}"
+	}
+	idx := s.cfgCopy.ActivePrompt
+	if idx < 0 || idx >= len(s.cfgCopy.Prompts) {
+		idx = 0
+	}
+	p := s.cfgCopy.Prompts[idx]
+	j, _ := json.Marshal(info{Name: p.Name, Icon: p.Icon})
+	return string(j)
+}
+
+// SaveIndicatorIdlePosition saves the drag position for the idle indicator.
+func (s *SettingsService) SaveIndicatorIdlePosition(x, y int) string {
+	slog.Debug("[GUI] SaveIndicatorIdlePosition", "x", x, "y", y)
+	SetIndicatorIdlePosition(x, y)
+	if s.cfgCopy != nil {
+		s.cfgCopy.IndicatorIdleX = x
+		s.cfgCopy.IndicatorIdleY = y
+		s.validateAndSave()
+	}
+	return "ok"
+}
+
+// OnIndicatorOpenSettings is a callback set by app.go to open settings from the indicator.
+var OnIndicatorOpenSettings func()
+
 // GetSystemRAMGB returns the approximate total system RAM in gigabytes.
 // Used by the wizard to recommend an appropriate local model (#191).
 func (s *SettingsService) GetSystemRAMGB() int {

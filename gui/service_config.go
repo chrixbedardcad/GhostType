@@ -731,6 +731,23 @@ func (s *SettingsService) SetIndicatorPosition(pos string) string {
 	return "ok"
 }
 
+// SetIndicatorMode sets the indicator display mode (#211).
+func (s *SettingsService) SetIndicatorMode(mode string) string {
+	guiLog("[GUI] JS called: SetIndicatorMode(%s)", mode)
+	s.cfgCopy.IndicatorMode = mode
+	SetIndicatorMode(mode)
+	if err := s.validateAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	// Apply mode change immediately.
+	if mode == "always" {
+		go ShowIdle()
+	} else {
+		go HideIndicator()
+	}
+	return "ok"
+}
+
 // SetHotkey updates a named hotkey binding.
 func (s *SettingsService) SetHotkey(name, binding string) string {
 	guiLog("[GUI] JS called: SetHotkey(%s, %s)", name, binding)

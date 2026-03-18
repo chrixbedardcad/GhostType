@@ -16,8 +16,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0; /* hidden until ShowIndicator navigates with params */
+    opacity: 0; /* hidden until state is set */
   }
+
+  /* === IDLE STATE: small ghost circle === */
   .pill {
     display: flex;
     align-items: center;
@@ -26,20 +28,45 @@
     border-radius: 20px;
     padding: 6px 14px 6px 6px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    cursor: default;
+    transition: opacity 0.2s;
   }
-  .ghost-wrap {
+  .pill.idle {
+    border-radius: 50%;
+    padding: 4px;
+    gap: 0;
+    cursor: pointer;
+    opacity: 0.55;
+  }
+  .pill.idle:hover {
+    opacity: 0.95;
+    box-shadow: 0 2px 16px rgba(137, 180, 250, 0.3);
+  }
+
+  /* Ghost icon */
+  .ghost-wrap img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+  }
+  .ghost-wrap.animate {
     animation: float 2s ease-in-out infinite;
+  }
+  .ghost-wrap.breathe {
+    animation: breathe 3s ease-in-out infinite;
   }
   @keyframes float {
     0%   { transform: translateY(0px); }
     50%  { transform: translateY(-5px); }
     100% { transform: translateY(0px); }
   }
-  .ghost-wrap img {
-    width: 36px;
-    height: 36px;
-    object-fit: contain;
+  @keyframes breathe {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.04); }
+    100% { transform: scale(1); }
   }
+
+  /* Processing extras */
   .prompt-icon {
     font-size: 16px;
     line-height: 1;
@@ -68,48 +95,269 @@
     background: rgba(255, 255, 255, 0.15);
     flex-shrink: 0;
   }
+  .extra { display: none; }
+  .pill:not(.idle) .extra { display: flex; align-items: center; gap: 6px; }
+  .pill.idle .extra { display: none; }
+
+  /* === CONTEXT MENU === */
+  .ctx-menu {
+    display: none;
+    position: fixed;
+    background: rgba(30, 30, 36, 0.96);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 4px 0;
+    min-width: 180px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    z-index: 100;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 12px;
+  }
+  .ctx-menu.show { display: block; }
+  .ctx-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px; color: rgba(255,255,255,0.85);
+    cursor: pointer; white-space: nowrap;
+  }
+  .ctx-item:hover { background: rgba(137, 180, 250, 0.15); }
+  .ctx-item.active { color: #a6e3a1; }
+  .ctx-sep { height: 1px; background: rgba(255,255,255,0.08); margin: 3px 8px; }
+  .ctx-item .icon { width: 18px; text-align: center; flex-shrink: 0; }
+
+  /* === TOOLTIP === */
+  .tooltip {
+    display: none;
+    position: fixed;
+    background: rgba(30, 30, 36, 0.95);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 11px;
+    color: rgba(255,255,255,0.75);
+    white-space: nowrap;
+    z-index: 99;
+    pointer-events: none;
+  }
 </style>
 </head>
 <body>
-<div class="pill">
-  <div class="ghost-wrap">
-    <img src="/ghostspell-ghost.png" alt="">
+
+<div class="pill" id="pill">
+  <div class="ghost-wrap breathe" id="ghost-wrap">
+    <img src="/ghostspell-ghost.png" alt="" id="ghost-img">
   </div>
-  <span class="prompt-icon" id="pi"></span>
-  <span class="prompt-name" id="pn"></span>
-  <div class="sep" id="sep"></div>
-  <div class="timer" id="t">0s</div>
-  <span id="ml" style="font-size:10px;color:rgba(255,255,255,0.4);margin-left:2px"></span>
+  <div class="extra">
+    <span class="prompt-icon" id="pi"></span>
+    <span class="prompt-name" id="pn"></span>
+    <div class="sep" id="sep"></div>
+    <div class="timer" id="t">0s</div>
+    <span id="ml" style="font-size:10px;color:rgba(255,255,255,0.4);margin-left:2px"></span>
+  </div>
 </div>
+
+<div class="ctx-menu" id="ctx-menu"></div>
+<div class="tooltip" id="tooltip"></div>
+
+<script type="module" src="/wails/runtime.js"></script>
 <script>
-// Only show content when navigated with URL params (ShowIndicator).
-// Initial load has no params → body stays opacity:0 (invisible to user,
-// visible to WebView2 so ExecJS works).
-if (window.location.search) {
-  document.body.style.opacity = '1';
+var _state = 'hidden'; // 'hidden', 'idle', 'processing', 'pop'
+var _timerInterval = null;
+
+// Wails bridge
+var _pkg = 'github.com/chrixbedardcad/GhostSpell/gui';
+async function goCall(fn) {
+  try {
+    for (var i = 0; i < 30; i++) {
+      if (typeof wails !== 'undefined' && wails.Call) break;
+      await new Promise(function(r) { setTimeout(r, 100); });
+    }
+    if (typeof wails === 'undefined' || !wails.Call) return null;
+    var args = Array.prototype.slice.call(arguments, 1);
+    var method = _pkg + '.SettingsService.' + fn.charAt(0).toUpperCase() + fn.slice(1);
+    return await wails.Call.ByName.apply(null, [method].concat(args));
+  } catch (e) { return null; }
 }
+
+// --- State machine ---
+function setState(state, params) {
+  _state = state;
+  var pill = document.getElementById('pill');
+  var ghostWrap = document.getElementById('ghost-wrap');
+  var pi = document.getElementById('pi');
+  var pn = document.getElementById('pn');
+  var ml = document.getElementById('ml');
+  var sep = document.getElementById('sep');
+  var t = document.getElementById('t');
+
+  // Clear timer
+  if (_timerInterval) { clearInterval(_timerInterval); _timerInterval = null; }
+
+  if (state === 'idle') {
+    document.body.style.opacity = '1';
+    pill.className = 'pill idle';
+    ghostWrap.className = 'ghost-wrap breathe';
+    pi.textContent = ''; pn.textContent = ''; ml.textContent = '';
+    sep.style.display = 'none'; t.style.display = 'none';
+
+  } else if (state === 'processing') {
+    document.body.style.opacity = '1';
+    pill.className = 'pill';
+    ghostWrap.className = 'ghost-wrap animate';
+    pi.textContent = (params && params.icon) || '';
+    pn.textContent = (params && params.name) || '';
+    ml.textContent = (params && params.model) || '';
+    sep.style.display = ''; t.style.display = '';
+    t.textContent = '0s';
+    var start = Date.now();
+    _timerInterval = setInterval(function() {
+      t.textContent = Math.floor((Date.now() - start) / 1000) + 's';
+    }, 1000);
+
+  } else if (state === 'pop') {
+    document.body.style.opacity = '1';
+    pill.className = 'pill';
+    ghostWrap.className = 'ghost-wrap';
+    pi.textContent = (params && params.icon) || '';
+    pn.textContent = (params && params.name) || '';
+    ml.textContent = '';
+    sep.style.display = 'none'; t.style.display = 'none';
+
+  } else {
+    document.body.style.opacity = '0';
+    pill.className = 'pill';
+  }
+}
+
+// --- URL params (legacy compat for Show/Hide/Pop calls) ---
 var _p = new URLSearchParams(window.location.search);
-var _icon = _p.get('i') || '';
-var _name = _p.get('n') || '';
-var _model = _p.get('m') || '';
-var _pop = _p.get('pop') === '1';
+var _urlState = _p.get('state') || '';
+var _urlIcon = _p.get('i') || '';
+var _urlName = _p.get('n') || '';
+var _urlModel = _p.get('m') || '';
+var _urlPop = _p.get('pop') === '1';
 
-document.getElementById('pi').textContent = _icon;
-document.getElementById('pn').textContent = _name;
-document.getElementById('ml').textContent = _model;
-
-if (_pop) {
-  document.getElementById('sep').style.display = 'none';
-  document.getElementById('t').style.display = 'none';
-} else if (window.location.search) {
-  // Only start timer when navigated with params (ShowIndicator).
-  // Store interval ID on window so HideIndicator's navigation clears it
-  // by loading a fresh page (no params = no timer started).
-  var _start = Date.now();
-  window._iv = setInterval(function() {
-    document.getElementById('t').textContent = Math.floor((Date.now() - _start) / 1000) + 's';
-  }, 1000);
+if (_urlState === 'idle') {
+  setState('idle');
+} else if (_urlPop) {
+  setState('pop', {icon: _urlIcon, name: _urlName});
+} else if (_urlIcon || _urlName || _urlModel) {
+  setState('processing', {icon: _urlIcon, name: _urlName, model: _urlModel});
 }
+
+// --- Click handlers (idle state only) ---
+var _clickTimer = null;
+document.getElementById('pill').addEventListener('click', function(e) {
+  if (_state !== 'idle') return;
+  // Distinguish single-click from double-click
+  if (_clickTimer) { clearTimeout(_clickTimer); _clickTimer = null; return; }
+  _clickTimer = setTimeout(function() {
+    _clickTimer = null;
+    // Single click → cycle prompt
+    goCall('cyclePromptFromIndicator');
+  }, 250);
+});
+
+document.getElementById('pill').addEventListener('dblclick', function(e) {
+  if (_state !== 'idle') return;
+  if (_clickTimer) { clearTimeout(_clickTimer); _clickTimer = null; }
+  // Double-click → open settings
+  goCall('openSettingsFromIndicator');
+});
+
+// --- Right-click context menu ---
+document.getElementById('pill').addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+  if (_state !== 'idle') return;
+  showContextMenu(e.clientX, e.clientY);
+});
+
+async function showContextMenu(x, y) {
+  var raw = await goCall('getIndicatorMenu');
+  if (!raw) return;
+  var menu;
+  try { menu = JSON.parse(raw); } catch(e) { return; }
+
+  var html = '';
+  for (var i = 0; i < menu.prompts.length; i++) {
+    var p = menu.prompts[i];
+    var cls = p.active ? 'ctx-item active' : 'ctx-item';
+    html += '<div class="' + cls + '" onclick="selectPrompt(' + i + ')">';
+    html += '<span class="icon">' + (p.icon || '') + '</span>';
+    html += '<span>' + esc(p.name) + '</span>';
+    if (p.active) html += '<span style="margin-left:auto;font-size:10px">&#10003;</span>';
+    html += '</div>';
+  }
+  html += '<div class="ctx-sep"></div>';
+  html += '<div class="ctx-item" onclick="goCall(\'openSettingsFromIndicator\');hideMenu()"><span class="icon">&#9881;</span><span>Settings</span></div>';
+  html += '<div class="ctx-sep"></div>';
+  html += '<div class="ctx-item" onclick="goCall(\'quitFromIndicator\');hideMenu()"><span class="icon">&#128682;</span><span>Quit</span></div>';
+
+  var menuEl = document.getElementById('ctx-menu');
+  menuEl.innerHTML = html;
+  menuEl.style.left = Math.max(0, x) + 'px';
+  menuEl.style.top = Math.max(0, y) + 'px';
+  menuEl.className = 'ctx-menu show';
+}
+
+function hideMenu() {
+  document.getElementById('ctx-menu').className = 'ctx-menu';
+}
+
+async function selectPrompt(idx) {
+  hideMenu();
+  await goCall('setActivePromptFromIndicator', idx);
+}
+
+function esc(s) { var d = document.createElement('span'); d.textContent = s; return d.innerHTML; }
+
+// Hide menu on click outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.ctx-menu')) hideMenu();
+});
+
+// --- Hover tooltip (idle state) ---
+var _tooltipTimeout = null;
+document.getElementById('pill').addEventListener('mouseenter', function() {
+  if (_state !== 'idle') return;
+  _tooltipTimeout = setTimeout(async function() {
+    var raw = await goCall('getActivePromptInfo');
+    if (!raw) return;
+    try {
+      var info = JSON.parse(raw);
+      var tip = document.getElementById('tooltip');
+      tip.textContent = (info.icon || '') + ' ' + (info.name || 'GhostSpell');
+      tip.style.left = '50px'; tip.style.top = '2px';
+      tip.style.display = 'block';
+    } catch(e) {}
+  }, 600);
+});
+document.getElementById('pill').addEventListener('mouseleave', function() {
+  if (_tooltipTimeout) { clearTimeout(_tooltipTimeout); _tooltipTimeout = null; }
+  document.getElementById('tooltip').style.display = 'none';
+});
+
+// --- Drag support (idle state) ---
+var _dragging = false, _dragOffsetX = 0, _dragOffsetY = 0;
+document.getElementById('ghost-img').addEventListener('mousedown', function(e) {
+  if (_state !== 'idle') return;
+  _dragging = true;
+  _dragOffsetX = e.screenX - window.screenX;
+  _dragOffsetY = e.screenY - window.screenY;
+  e.preventDefault();
+});
+document.addEventListener('mousemove', function(e) {
+  if (!_dragging) return;
+  var newX = e.screenX - _dragOffsetX;
+  var newY = e.screenY - _dragOffsetY;
+  window.moveTo(newX, newY);
+});
+document.addEventListener('mouseup', function(e) {
+  if (!_dragging) return;
+  _dragging = false;
+  // Save position
+  goCall('saveIndicatorIdlePosition', window.screenX, window.screenY);
+});
 </script>
 </body>
 </html>

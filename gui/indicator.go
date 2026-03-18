@@ -72,10 +72,31 @@ func ensureIndicatorWindow() {
 // indicatorPos stores the configured position. Set by the app at startup.
 var indicatorPos = "top-right"
 
+// indicatorMode stores the configured mode: "processing" (default), "always", "hidden".
+var indicatorMode = "processing"
+
+// indicatorIdleX/Y stores the saved idle position for always-on mode.
+var indicatorIdleX, indicatorIdleY int
+
 // SetIndicatorPosition sets the configured position for the indicator.
 func SetIndicatorPosition(pos string) {
 	indicatorMu.Lock()
 	indicatorPos = pos
+	indicatorMu.Unlock()
+}
+
+// SetIndicatorMode sets the indicator mode (#211).
+func SetIndicatorMode(mode string) {
+	indicatorMu.Lock()
+	indicatorMode = mode
+	indicatorMu.Unlock()
+}
+
+// SetIndicatorIdlePosition sets the saved drag position for idle mode (#211).
+func SetIndicatorIdlePosition(x, y int) {
+	indicatorMu.Lock()
+	indicatorIdleX = x
+	indicatorIdleY = y
 	indicatorMu.Unlock()
 }
 
@@ -146,6 +167,39 @@ func getIndicatorPosition() (int, int) {
 	}
 }
 
+// ShowIdle displays the indicator in idle mode — small ghost circle, semi-transparent.
+// Called on app startup when IndicatorMode is "always" (#211).
+func ShowIdle() {
+	indicatorMu.Lock()
+	mode := indicatorMode
+	if mode != "always" {
+		indicatorMu.Unlock()
+		return
+	}
+	ensureIndicatorWindow()
+	win := indicatorWin
+	indicatorMu.Unlock()
+	if win == nil {
+		return
+	}
+
+	slog.Debug("[indicator] ShowIdle: displaying idle ghost")
+	win.SetSize(48, 48)
+	win.SetURL("/indicator.html?state=idle")
+	time.Sleep(150 * time.Millisecond)
+
+	// Use saved position if available, otherwise use default indicator position.
+	indicatorMu.Lock()
+	ix, iy := indicatorIdleX, indicatorIdleY
+	indicatorMu.Unlock()
+	if ix > 0 || iy > 0 {
+		win.SetPosition(ix, iy)
+	} else {
+		x, y := getIndicatorPosition()
+		win.SetPosition(x, y)
+	}
+}
+
 func ShowIndicator(promptIcon, promptName, modelLabel string) {
 	slog.Debug("[indicator] ShowIndicator called", "prompt", promptName, "icon", promptIcon, "model", modelLabel)
 
@@ -163,7 +217,7 @@ func ShowIndicator(promptIcon, promptName, modelLabel string) {
 		return
 	}
 
-	// Restore full size (was shrunk to 1x1 in HideIndicator to avoid blocking clicks).
+	// Set processing size.
 	win.SetSize(260, 52)
 
 	u := "/indicator.html?i=" + url.QueryEscape(promptIcon) + "&n=" + url.QueryEscape(promptName) + "&m=" + url.QueryEscape(modelLabel)
@@ -178,16 +232,33 @@ func ShowIndicator(promptIcon, promptName, modelLabel string) {
 func HideIndicator() {
 	indicatorMu.Lock()
 	win := indicatorWin
+	mode := indicatorMode
 	indicatorMu.Unlock()
 	if win == nil {
 		return
 	}
 
-	slog.Debug("[indicator] HideIndicator called")
-	// Move off-screen FIRST to stop blocking clicks immediately,
-	// then shrink and clear content. Moving off-screen is the only
-	// reliable way to prevent click interception on Windows where
-	// IgnoreMouseEvents=false and AlwaysOnTop=true.
+	slog.Debug("[indicator] HideIndicator called", "mode", mode)
+
+	// In "always" mode, return to idle state instead of hiding (#211).
+	if mode == "always" {
+		win.SetSize(48, 48)
+		win.SetURL("/indicator.html?state=idle")
+		time.Sleep(100 * time.Millisecond)
+		// Restore idle position.
+		indicatorMu.Lock()
+		ix, iy := indicatorIdleX, indicatorIdleY
+		indicatorMu.Unlock()
+		if ix > 0 || iy > 0 {
+			win.SetPosition(ix, iy)
+		} else {
+			x, y := getIndicatorPosition()
+			win.SetPosition(x, y)
+		}
+		return
+	}
+
+	// Default: move off-screen to stop blocking clicks immediately.
 	win.SetPosition(-9999, -9999)
 	win.SetURL("/indicator.html")
 	win.SetSize(1, 1)
@@ -214,13 +285,6 @@ func PopIndicator(promptIcon, promptName string) {
 
 	go func() {
 		time.Sleep(2500 * time.Millisecond) // longer display for cycle prompt visibility (#208)
-		indicatorMu.Lock()
-		w := indicatorWin
-		indicatorMu.Unlock()
-		if w != nil {
-			w.SetPosition(-9999, -9999)
-			w.SetURL("/indicator.html")
-			w.SetSize(1, 1)
-		}
+		HideIndicator() // returns to idle in "always" mode, hides in "processing" mode
 	}()
 }

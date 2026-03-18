@@ -208,6 +208,16 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				mu.Unlock()
 				sound.SetEnabled(*cfg.SoundEnabled)
 				gui.SetIndicatorPosition(cfg.IndicatorPosition)
+				gui.SetIndicatorMode(cfg.IndicatorMode)
+				if cfg.IndicatorIdleX > 0 || cfg.IndicatorIdleY > 0 {
+					gui.SetIndicatorIdlePosition(cfg.IndicatorIdleX, cfg.IndicatorIdleY)
+				}
+				// Show or hide idle indicator based on mode change (#211).
+				if cfg.IndicatorMode == "always" {
+					go gui.ShowIdle()
+				} else {
+					go gui.HideIndicator()
+				}
 				slog.Info("Live config reloaded after settings save")
 				refreshTrayMenu()
 				refreshHotkeys()
@@ -316,6 +326,24 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	// =false on Windows was blocking the entire UI).
 	gui.CreateIndicator(wailsApp)
 	gui.SetIndicatorPosition(cfg.IndicatorPosition)
+	gui.SetIndicatorMode(cfg.IndicatorMode)
+	if cfg.IndicatorIdleX > 0 || cfg.IndicatorIdleY > 0 {
+		gui.SetIndicatorIdlePosition(cfg.IndicatorIdleX, cfg.IndicatorIdleY)
+	}
+
+	// Wire indicator → settings callback (#211).
+	gui.OnIndicatorOpenSettings = func() {
+		mu.Lock()
+		c := cfg
+		mu.Unlock()
+		gui.ShowSettings(settingsSvc, c, configPath, func() {
+			mu.Lock()
+			if router != nil {
+				router.ResetClients()
+			}
+			mu.Unlock()
+		})
+	}
 
 	// When debug auto-disables after 30min, log it.
 	if debugState != nil {
@@ -566,6 +594,14 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		registeredHotkeys = cfg.Hotkeys
 		hotkeyReady = true
 		hkMu.Unlock()
+
+		// Show idle indicator if always-on mode is enabled (#211).
+		if cfg.IndicatorMode == "always" {
+			go func() {
+				time.Sleep(500 * time.Millisecond) // brief delay for event loop to stabilize
+				gui.ShowIdle()
+			}()
+		}
 
 		// Auto-open Settings after an update to show the "What's New" popup.
 		// Don't auto-open if the wizard just ran (needsSetup was true) — the
