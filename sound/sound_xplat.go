@@ -66,6 +66,12 @@ var toggle4WAV []byte
 //go:embed cancel.wav
 var cancelWAV []byte
 
+//go:embed benchmarking.wav
+var benchmarkingWAV []byte
+
+//go:embed benchmarking2.wav
+var benchmarking2WAV []byte
+
 // pickRandom returns a random element from the list.
 func pickRandom(variants [][]byte) []byte {
 	if len(variants) == 0 {
@@ -78,8 +84,10 @@ var (
 	enabled bool
 	mu      sync.Mutex
 
-	workingStop chan struct{}
-	workingMu   sync.Mutex
+	workingStop   chan struct{}
+	workingMu     sync.Mutex
+	benchStop     chan struct{}
+	benchMu       sync.Mutex
 )
 
 // Init enables or disables sound playback.
@@ -103,8 +111,9 @@ func PlayStart()   { play(startWAV) }
 func PlaySuccess() { play(pickRandom([][]byte{successWAV, success2WAV, success3WAV, success4WAV, success5WAV})) }
 func PlayError()   { play(pickRandom([][]byte{errorWAV, error2WAV})) }
 func PlayToggle()  { play(pickRandom([][]byte{toggleWAV, toggle1WAV, toggle2WAV, toggle3WAV, toggle4WAV})) }
-func PlayCancel()  { play(cancelWAV) }
-func PlayWorking() { play(workingWAV) }
+func PlayCancel()     { play(cancelWAV) }
+func PlayWorking()    { play(workingWAV) }
+func PlayBenchmark()  { play(pickRandom([][]byte{benchmarkingWAV, benchmarking2WAV})) }
 
 // StartWorkingLoop plays working.wav in a loop until StopWorkingLoop is called.
 func StartWorkingLoop() {
@@ -148,6 +157,50 @@ func StopWorkingLoop() {
 	workingMu.Unlock()
 	// Kill any lingering playback process — but only if the loop was actually
 	// running, so we don't kill a success/error sound that started after us.
+	if wasRunning {
+		stopPlayback()
+	}
+}
+
+// StartBenchmarkLoop plays benchmarking sounds in a loop until StopBenchmarkLoop is called.
+func StartBenchmarkLoop() {
+	mu.Lock()
+	e := enabled
+	mu.Unlock()
+	if !e {
+		return
+	}
+
+	benchMu.Lock()
+	if benchStop != nil {
+		close(benchStop)
+	}
+	stop := make(chan struct{})
+	benchStop = stop
+	benchMu.Unlock()
+
+	variants := [][]byte{benchmarkingWAV, benchmarking2WAV}
+	go func() {
+		for {
+			playWAVLoop(pickRandom(variants))
+			select {
+			case <-stop:
+				return
+			case <-time.After(100 * time.Millisecond):
+			}
+		}
+	}()
+}
+
+// StopBenchmarkLoop stops the looping benchmark sound.
+func StopBenchmarkLoop() {
+	benchMu.Lock()
+	wasRunning := benchStop != nil
+	if wasRunning {
+		close(benchStop)
+		benchStop = nil
+	}
+	benchMu.Unlock()
 	if wasRunning {
 		stopPlayback()
 	}

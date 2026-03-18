@@ -20,6 +20,7 @@ type BenchmarkResult struct {
 	Done       bool                `json:"done"`
 	PromptName string              `json:"prompt_name"`
 	PromptIcon string              `json:"prompt_icon"`
+	Timestamp  string              `json:"timestamp,omitempty"`
 	Models     []BenchmarkModelRes `json:"models"`
 	Error      string              `json:"error,omitempty"`
 }
@@ -54,7 +55,15 @@ func (s *SettingsService) RunBenchmark() string {
 		return "error: benchmark already running"
 	}
 
-	cfg := s.cfgCopy
+	// Reload config from disk to get the current active prompt (may have
+	// changed via tray menu since the settings window opened).
+	// Reload config from disk to get the current active prompt (may have
+	// changed via tray menu since the settings window opened).
+	liveCfg, reloadErr := config.LoadRaw(s.configPath)
+	if reloadErr != nil {
+		liveCfg = s.cfgCopy
+	}
+	cfg := liveCfg
 	if len(cfg.Providers) == 0 {
 		benchMu.Unlock()
 		return "error: no providers configured"
@@ -133,7 +142,7 @@ func (s *SettingsService) RunBenchmark() string {
 	benchResult = result
 	benchMu.Unlock()
 
-	go sound.PlayWorking()
+	sound.StartBenchmarkLoop()
 
 	// Run benchmark in background.
 	go func() {
@@ -229,7 +238,9 @@ func (s *SettingsService) RunBenchmark() string {
 		benchMu.Lock()
 		result.Running = false
 		result.Done = true
+		result.Timestamp = time.Now().Format("2006-01-02 15:04")
 		benchMu.Unlock()
+		sound.StopBenchmarkLoop()
 		go sound.PlaySuccess()
 		slog.Info("[benchmark] complete")
 	}()
@@ -248,7 +259,14 @@ func (s *SettingsService) RunBenchmarkFiltered(modelsJSON string) string {
 		return "error: benchmark already running"
 	}
 
-	cfg := s.cfgCopy
+	// Reload config from disk to get the current active prompt.
+	// Reload config from disk to get the current active prompt (may have
+	// changed via tray menu since the settings window opened).
+	liveCfg, reloadErr := config.LoadRaw(s.configPath)
+	if reloadErr != nil {
+		liveCfg = s.cfgCopy
+	}
+	cfg := liveCfg
 
 	type modelSpec struct {
 		Provider string `json:"provider"`
@@ -288,7 +306,7 @@ func (s *SettingsService) RunBenchmarkFiltered(modelsJSON string) string {
 	benchResult = result
 	benchMu.Unlock()
 
-	go sound.PlayWorking()
+	sound.StartBenchmarkLoop()
 
 	go func() {
 		defer func() {
@@ -400,7 +418,9 @@ func (s *SettingsService) RunBenchmarkFiltered(modelsJSON string) string {
 		benchMu.Lock()
 		result.Running = false
 		result.Done = true
+		result.Timestamp = time.Now().Format("2006-01-02 15:04")
 		benchMu.Unlock()
+		sound.StopBenchmarkLoop()
 		go sound.PlaySuccess()
 		slog.Info("[benchmark] filtered complete")
 	}()
@@ -416,6 +436,7 @@ func (s *SettingsService) StopBenchmark() string {
 		benchCancel()
 	}
 	benchMu.Unlock()
+	sound.StopBenchmarkLoop()
 	return "ok"
 }
 

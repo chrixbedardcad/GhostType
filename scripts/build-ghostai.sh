@@ -11,7 +11,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Default llama.cpp version — matches BundledLlamaCppVersion in llm/local.go.
+# Default llama.cpp version — matches BundledLlamaCppVersion in llm/models_local.go.
 LLAMA_VERSION="${1:-b8281}"
 if [[ "$LLAMA_VERSION" == --version ]]; then
     LLAMA_VERSION="${2:-b8281}"

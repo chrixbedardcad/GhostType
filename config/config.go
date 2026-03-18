@@ -42,6 +42,7 @@ type ProviderConfig struct {
 	RefreshToken string `json:"refresh_token,omitempty"`
 	KeepAlive    bool   `json:"keep_alive,omitempty"`
 	TimeoutMs    int    `json:"timeout_ms,omitempty"`
+	Disabled     bool   `json:"disabled,omitempty"`
 }
 
 // ModelEntry defines a named model configuration that references a provider.

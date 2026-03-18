@@ -1,6 +1,8 @@
 package llm
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"log/slog"
@@ -51,6 +53,7 @@ type LocalModel struct {
 	FileName string `json:"file_name"`
 	URL      string `json:"url"`
 	Size     int64  `json:"size"`
+	SHA256   string `json:"sha256,omitempty"` // hex-encoded SHA-256 for integrity verification
 	Tag      string `json:"tag,omitempty"`
 	Desc     string `json:"desc,omitempty"`
 }
@@ -167,6 +170,11 @@ var legacyModelNames = map[string]string{
 	"qwen3-0.6b": "Qwen3-0.6B-Q4_K_M.gguf",
 }
 
+// ResolveLocalModelPath checks if a local model is downloaded and returns its path.
+func ResolveLocalModelPath(name string) (string, error) {
+	return resolveLocalModel(name)
+}
+
 // resolveLocalModel maps a friendly model name to the GGUF file path.
 func resolveLocalModel(name string) (string, error) {
 	modelsDir, err := LocalModelsDir()
@@ -258,7 +266,10 @@ func InstalledLocalModels() ([]LocalModel, error) {
 	return installed, nil
 }
 
-// DownloadModel downloads a model GGUF file from HuggingFace.
+const downloadMaxRetries = 3
+
+// DownloadModel downloads a model GGUF file from HuggingFace with
+// resume support, retry logic, and SHA-256 integrity verification.
 func DownloadModel(name string, progressCb func(DownloadProgress)) error {
 	var model *LocalModel
 	for _, m := range AvailableLocalModels() {
@@ -282,31 +293,109 @@ func DownloadModel(name string, progressCb func(DownloadProgress)) error {
 	slog.Info("[ghost-ai] downloading model", "name", name, "url", model.URL, "dest", destPath)
 	fmt.Printf("[ghost-ai] Downloading %s...\n", model.FileName)
 
-	resp, err := http.Get(model.URL)
+	var lastErr error
+	for attempt := 1; attempt <= downloadMaxRetries; attempt++ {
+		lastErr = downloadWithResume(model, tmpPath, attempt, progressCb)
+		if lastErr == nil {
+			break
+		}
+		slog.Warn("[ghost-ai] download attempt failed, retrying",
+			"name", name, "attempt", attempt, "max", downloadMaxRetries, "error", lastErr)
+		if attempt < downloadMaxRetries {
+			time.Sleep(time.Duration(attempt) * 2 * time.Second)
+		}
+	}
+	if lastErr != nil {
+		os.Remove(tmpPath)
+		return fmt.Errorf("download %s failed after %d attempts: %w", name, downloadMaxRetries, lastErr)
+	}
+
+	// Verify SHA-256 checksum if available.
+	if model.SHA256 != "" {
+		slog.Info("[ghost-ai] verifying checksum", "name", name)
+		if err := verifyChecksum(tmpPath, model.SHA256); err != nil {
+			os.Remove(tmpPath)
+			return fmt.Errorf("checksum verification failed for %s: %w", name, err)
+		}
+		slog.Info("[ghost-ai] checksum verified", "name", name)
+	}
+
+	// Rename temp to final.
+	if err := os.Rename(tmpPath, destPath); err != nil {
+		os.Remove(tmpPath)
+		return fmt.Errorf("rename: %w", err)
+	}
+
+	info, _ := os.Stat(destPath)
+	size := int64(0)
+	if info != nil {
+		size = info.Size()
+	}
+	slog.Info("[ghost-ai] model downloaded", "name", name, "size", size)
+	fmt.Printf("[ghost-ai] Downloaded %s (%d MB)\n", model.FileName, size/1024/1024)
+	return nil
+}
+
+// downloadWithResume performs a single download attempt with HTTP Range resume.
+func downloadWithResume(model *LocalModel, tmpPath string, attempt int, progressCb func(DownloadProgress)) error {
+	// Check how much we already have from a previous partial download.
+	var existingSize int64
+	if info, err := os.Stat(tmpPath); err == nil {
+		existingSize = info.Size()
+	}
+
+	// Build request with Range header for resume.
+	req, err := http.NewRequest("GET", model.URL, nil)
 	if err != nil {
-		return fmt.Errorf("download %s: %w", name, err)
+		return fmt.Errorf("create request: %w", err)
+	}
+	if existingSize > 0 {
+		req.Header.Set("Range", fmt.Sprintf("bytes=%d-", existingSize))
+		slog.Info("[ghost-ai] resuming download", "from_byte", existingSize, "attempt", attempt)
+	}
+
+	client := &http.Client{Timeout: 0} // no timeout for large downloads
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("HTTP request: %w", err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("download %s: HTTP %d", name, resp.StatusCode)
+	// Handle response status.
+	switch resp.StatusCode {
+	case http.StatusOK:
+		// Server doesn't support Range — start from scratch.
+		existingSize = 0
+	case http.StatusPartialContent:
+		// Resume successful.
+	default:
+		return fmt.Errorf("HTTP %d", resp.StatusCode)
 	}
 
-	total := resp.ContentLength
+	total := resp.ContentLength + existingSize
+	if resp.StatusCode == http.StatusOK && resp.ContentLength > 0 {
+		total = resp.ContentLength
+	}
 
-	f, err := os.Create(tmpPath)
+	// Open file for append (resume) or create (fresh start).
+	var f *os.File
+	if existingSize > 0 && resp.StatusCode == http.StatusPartialContent {
+		f, err = os.OpenFile(tmpPath, os.O_WRONLY|os.O_APPEND, 0644)
+	} else {
+		existingSize = 0
+		f, err = os.Create(tmpPath)
+	}
 	if err != nil {
-		return fmt.Errorf("create temp file: %w", err)
+		return fmt.Errorf("open file: %w", err)
 	}
 
-	var downloaded int64
+	downloaded := existingSize
 	buf := make([]byte, 256*1024) // 256KB chunks
 	for {
 		n, readErr := resp.Body.Read(buf)
 		if n > 0 {
 			if _, writeErr := f.Write(buf[:n]); writeErr != nil {
 				f.Close()
-				os.Remove(tmpPath)
 				return fmt.Errorf("write: %w", writeErr)
 			}
 			downloaded += int64(n)
@@ -328,24 +417,30 @@ func DownloadModel(name string, progressCb func(DownloadProgress)) error {
 				break
 			}
 			f.Close()
-			os.Remove(tmpPath)
 			return fmt.Errorf("read: %w", readErr)
 		}
 	}
 
-	if err := f.Close(); err != nil {
-		os.Remove(tmpPath)
-		return fmt.Errorf("close: %w", err)
+	return f.Close()
+}
+
+// verifyChecksum computes SHA-256 of a file and compares to expected hex string.
+func verifyChecksum(path, expectedHex string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return fmt.Errorf("reading file for checksum: %w", err)
 	}
 
-	// Rename temp to final.
-	if err := os.Rename(tmpPath, destPath); err != nil {
-		os.Remove(tmpPath)
-		return fmt.Errorf("rename: %w", err)
+	actual := hex.EncodeToString(h.Sum(nil))
+	if actual != expectedHex {
+		return fmt.Errorf("expected %s, got %s", expectedHex, actual)
 	}
-
-	slog.Info("[ghost-ai] model downloaded", "name", name, "size", downloaded)
-	fmt.Printf("[ghost-ai] Downloaded %s (%d MB)\n", model.FileName, downloaded/1024/1024)
 	return nil
 }
 

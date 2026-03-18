@@ -221,23 +221,29 @@ func main() {
 	needsSetup := config.NeedsSetup(cfg)
 
 	// On macOS, check Accessibility and Input Monitoring permissions.
-	// Only force the wizard on true first run (no providers configured).
-	// After updates the TCC cache may return stale "not granted" even though
-	// permissions are actually working — forcing the wizard would create a
-	// restart loop (#193).
+	// These are mandatory — the app cannot function without them.
+	//
+	// Strategy (per Apple best practices):
+	// 1. Call AXIsProcessTrustedWithOptions(prompt:YES) to trigger the native
+	//    macOS permission dialog. This pre-lists GhostSpell in System Settings
+	//    and is the recommended approach for Accessibility.
+	// 2. Validate with real CGEventCreateKeyboardEvent/CGEventTapCreate tests
+	//    (not just API checks which can be stale after binary updates).
+	// 3. If permissions are missing, show the wizard for guided setup.
+	//
+	// The #1 fix for permission-loss-after-update is proper Developer ID
+	// code signing (not ad-hoc). With a stable signing identity, TCC carries
+	// permissions across updates automatically.
 	if runtime.GOOS == "darwin" {
+		// Trigger native Accessibility prompt (fires once per launch, pre-lists app).
+		requestAccessibility()
+
 		axOK := checkAccessibility()
 		imOK := checkInputMonitoring()
+		slog.Info("macOS permissions", "accessibility", axOK, "inputMonitoring", imOK)
 		if !axOK || !imOK {
-			if needsSetup {
-				// First run — no providers configured, must show wizard for permissions.
-				slog.Info("macOS permissions missing (first run), showing setup wizard", "accessibility", axOK, "inputMonitoring", imOK)
-				fmt.Printf("macOS permissions: accessibility=%v inputMonitoring=%v — opening wizard\n", axOK, imOK)
-			} else {
-				// Existing install — TCC may be stale after update. Log but don't force wizard.
-				slog.Warn("macOS TCC reports permissions missing, but providers are configured — skipping wizard (may be stale after update)", "accessibility", axOK, "inputMonitoring", imOK)
-				fmt.Printf("macOS permissions: accessibility=%v inputMonitoring=%v — skipping wizard (existing install)\n", axOK, imOK)
-			}
+			fmt.Printf("macOS permissions: accessibility=%v inputMonitoring=%v — opening wizard\n", axOK, imOK)
+			needsSetup = true
 		}
 	}
 

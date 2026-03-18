@@ -107,6 +107,11 @@ func (s *SettingsService) GetWhatsNew() string {
 	return whatsNewHTML
 }
 
+// GetWhatsNewAlways returns the changelog regardless of whether it was dismissed.
+func (s *SettingsService) GetWhatsNewAlways() string {
+	return whatsNewHTML
+}
+
 // DismissWhatsNew marks the current version as seen so the popup won't show again.
 func (s *SettingsService) DismissWhatsNew() string {
 	s.cfgCopy.LastSeenVersion = version.Version

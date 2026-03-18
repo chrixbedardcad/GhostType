@@ -348,8 +348,8 @@
     </div>
 
     <div style="font-size:0.78em;color:#6c7086;line-height:1.5;margin-bottom:12px">
-      macOS will show a prompt asking to grant access. Click <strong>Allow</strong> or find <strong>GhostSpell</strong> in the list and toggle it <strong>ON</strong>.<br>
-      The status above updates automatically.
+      Find <strong style="color:#cdd6f4">GhostSpell</strong> in the list and toggle it <strong>ON</strong>. The status above updates automatically.<br>
+      <span style="color:#f9e2af">After an update?</span> Toggle OFF, then ON again. If that doesn't work, click the <strong>&minus;</strong> button to remove GhostSpell, then click <strong>+</strong> to re-add it.
     </div>
 
     <div style="background:#2a2d42;border-radius:8px;padding:10px;font-size:0.78em;color:#f38ba8;line-height:1.5;margin-bottom:12px">
@@ -1879,17 +1879,28 @@ document.addEventListener('DOMContentLoaded', async function() {
   const platform = await goCall('getPlatform');
   if (platform === 'darwin') {
     isMac = true;
-    // If both permissions are already granted (e.g. app restarted after
-    // the user set them in the previous session), skip welcome and
-    // permissions — go directly to model selection (#139).
     const perms = await checkPerms();
     if (perms.accessibility && perms.postEvent) {
+      // Permissions already granted — skip to model selection (#139).
       goToStep(1);
       return;
     }
+    // Permissions missing. Check if this is an existing install (has providers)
+    // vs a fresh first run. For existing installs, skip welcome and go
+    // straight to permission fix — the user just needs to re-grant after update.
+    const cfg = await goCall('getConfig');
+    if (cfg) {
+      try {
+        var c = JSON.parse(cfg);
+        if (c.providers && Object.keys(c.providers).length > 0) {
+          goToStep('perm-ax');
+          return;
+        }
+      } catch(e) {}
+    }
   }
 
-  // Always start at the welcome page
+  // First run — start at welcome page
   goToStep('welcome');
 });
 </script>

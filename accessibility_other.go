@@ -18,6 +18,9 @@ func checkInputMonitoring() bool {
 	return true
 }
 
+// requestAccessibility is a no-op on non-macOS platforms.
+func requestAccessibility() bool { return true }
+
 // openAccessibilitySettings is a no-op on non-macOS platforms.
 func openAccessibilitySettings() {}
 

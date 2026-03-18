@@ -428,7 +428,8 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 			return err
 		}
 
-		// Optional cycle-prompt hotkey.
+		// Optional cycle-prompt hotkey. Non-fatal if registration fails
+		// (e.g. Ctrl+Shift+T is taken by Chrome on Windows).
 		if cfg.Hotkeys.CyclePrompt != "" {
 			if err := mgr.Register("cycle_prompt", cfg.Hotkeys.CyclePrompt, func() {
 				mu.Lock()
@@ -450,9 +451,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				mu.Unlock()
 				gui.PopIndicator(icon, name)
 			}); err != nil {
-				slog.Error("Failed to register cycle-prompt hotkey", "key", cfg.Hotkeys.CyclePrompt, "error", err)
-				fmt.Fprintf(os.Stderr, "Error: failed to register hotkey %s: %v\n", cfg.Hotkeys.CyclePrompt, err)
-				return err
+				slog.Warn("Cycle-prompt hotkey registration failed (non-fatal, may be taken by another app)", "key", cfg.Hotkeys.CyclePrompt, "error", err)
+				fmt.Fprintf(os.Stderr, "Warning: cycle-prompt hotkey %s unavailable: %v\n", cfg.Hotkeys.CyclePrompt, err)
+				// Don't return err — primary hotkey still works.
 			}
 		}
 
@@ -540,17 +541,18 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		fmt.Printf("Accessibility: %v | PostEvent: %v\n", axOK, postOK)
 
 		if !axOK || !postOK {
-			fmt.Println("")
 			if axOK && !postOK {
+				fmt.Println("")
 				fmt.Println("  WARNING: Accessibility is checked but event posting is BLOCKED.")
 				fmt.Println("  Fix: toggle GhostSpell OFF then ON in Accessibility settings.")
+				fmt.Println("")
 				slog.Warn("Stale TCC: AXIsProcessTrusted=true but CGPreflightPostEventAccess=false")
 			} else {
+				fmt.Println("")
 				fmt.Println("  WARNING: macOS permissions missing — hotkeys or keyboard simulation may not work.")
+				fmt.Println("  Grant Accessibility + Input Monitoring in System Settings > Privacy & Security.")
+				fmt.Println("")
 			}
-			fmt.Println("  Grant Accessibility + Input Monitoring in System Settings > Privacy & Security.")
-			fmt.Println("  Check permission status in GhostSpell Settings > General.")
-			fmt.Println("")
 		}
 
 		fmt.Println("GhostSpell is ready. Waiting for hotkey input...")

@@ -406,6 +406,7 @@
     <h1>GhostSpell Settings</h1>
     <span class="ver" id="app-version"></span>
   </div>
+  <div style="margin-left:auto;text-align:right" id="header-prompt-info"></div>
 </div>
 
 <!-- What's New popup overlay -->
@@ -664,7 +665,7 @@
         <button class="btn btn-secondary" onclick="refreshOllamaSetup()">Refresh</button>
         <button class="btn btn-secondary" id="prov-ollama-test-btn" onclick="testProviderConnection('ollama')">Test Connection</button>
         <button class="btn btn-primary" onclick="saveOllamaProvider()">Save</button>
-        <button class="btn btn-secondary btn-sm" id="prov-remove-ollama" onclick="removeProvider('ollama')" style="margin-left:auto;font-size:0.72em;color:#6c7086">Remove Provider</button>
+        <span style="font-size:0.72em;color:#6c7086;margin-left:auto">Enabled</span><label class="toggle" style="flex-shrink:0" title="Enable/disable this provider"><input type="checkbox" id="prov-toggle-ollama" onchange="toggleProvider('ollama',this.checked)"><span class="slider"></span></label>
       </div>
       <div id="prov-ollama-test-result" class="status"></div>
       <div id="prov-ollama-status" class="status"></div>
@@ -702,7 +703,7 @@
         <button class="btn btn-secondary" onclick="refreshLMStudioSetup()">Refresh</button>
         <button class="btn btn-secondary" id="prov-lmstudio-test-btn" onclick="testProviderConnection('lmstudio')">Test Connection</button>
         <button class="btn btn-primary" onclick="saveLMStudioProvider()">Save</button>
-        <button class="btn btn-secondary btn-sm" id="prov-remove-lmstudio" onclick="removeProvider('lmstudio')" style="margin-left:auto;font-size:0.72em;color:#6c7086">Remove Provider</button>
+        <span style="font-size:0.72em;color:#6c7086;margin-left:auto">Enabled</span><label class="toggle" style="flex-shrink:0" title="Enable/disable this provider"><input type="checkbox" id="prov-toggle-lmstudio" onchange="toggleProvider('lmstudio',this.checked)"><span class="slider"></span></label>
       </div>
       <div id="prov-lmstudio-test-result" class="status"></div>
       <div id="prov-lmstudio-status" class="status"></div>
@@ -726,7 +727,7 @@
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="testOpenAIApiKey()">Test Connection</button>
         <button class="btn btn-primary" onclick="saveCloudProvider('openai')">Save</button>
-        <button class="btn btn-secondary btn-sm" id="prov-remove-openai" onclick="removeProvider('openai')" style="margin-left:auto;font-size:0.72em;color:#6c7086">Remove Provider</button>
+        <span style="font-size:0.72em;color:#6c7086;margin-left:auto">Enabled</span><label class="toggle" style="flex-shrink:0" title="Enable/disable this provider"><input type="checkbox" id="prov-toggle-openai" onchange="toggleProvider('openai',this.checked)"><span class="slider"></span></label>
       </div>
       <div id="prov-openai-status" class="status"></div>
       <div id="prov-openai-models"></div>
@@ -749,7 +750,7 @@
       <div class="btn-row">
         <button class="btn btn-secondary" id="prov-cloud-test-btn" onclick="testCloudProvider()">Test Connection</button>
         <button class="btn btn-primary" onclick="saveCloudProvider(currentCloudProvider)">Save</button>
-        <button class="btn btn-secondary btn-sm" id="prov-remove-cloud" onclick="removeProvider(currentCloudProvider)" style="margin-left:auto;font-size:0.72em;color:#6c7086">Remove Provider</button>
+        <span style="font-size:0.72em;color:#6c7086;margin-left:auto">Enabled</span><label class="toggle" style="flex-shrink:0" title="Enable/disable this provider"><input type="checkbox" id="prov-toggle-cloud" onchange="toggleProvider(currentCloudProvider,this.checked)"><span class="slider"></span></label>
       </div>
       <div id="prov-cloud-status" class="status"></div>
       <div id="prov-cloud-models"></div>
@@ -768,7 +769,7 @@
       </div>
     </div>
     <div style="font-size:0.82em;color:#a6adc8;line-height:1.5;margin-bottom:10px" id="models-subtitle">
-      Click <strong style="color:#a6e3a1">Load</strong> to activate a model. Click <strong style="color:#cdd6f4">Benchmark All</strong> to measure speed.
+      The model is the AI brain GhostSpell uses to run your prompts &mdash; Correct, Polish, Translate, etc. <strong style="color:#a6e3a1">Activate</strong> one to set it as default.
     </div>
 
     <!-- Filter bar -->
@@ -824,19 +825,27 @@
   <div id="tab-hotkeys" class="tab-panel">
     <div class="section">
       <h2>Hotkeys</h2>
-      <p style="font-size:0.82em;color:#6c7086;margin-bottom:16px">
-        Format: <code style="background:#313244;padding:1px 5px;border-radius:3px;font-size:0.9em;color:#f9e2af">Ctrl+G</code>,
-        <code style="background:#313244;padding:1px 5px;border-radius:3px;font-size:0.9em;color:#f9e2af">Ctrl+Shift+T</code>.
-        Leave blank to disable. Restart required for hotkey changes.
+      <p style="font-size:0.82em;color:#a6adc8;margin-bottom:6px">
+        Global keyboard shortcuts that work in any application.
       </p>
+      <p style="font-size:0.75em;color:#6c7086;margin-bottom:16px">
+        Click the input field, then <strong style="color:#f9e2af">press the key combination</strong> you want to assign. Don't type text &mdash; just press the keys (e.g. hold Ctrl and press G). Press Escape to clear. Restart required after changes.
+      </p>
+
       <div class="hotkey-input">
-        <label>Action</label>
-        <input type="text" id="hk-action" placeholder="Click, then press keys..." readonly>
+        <label>
+          <div style="color:#cdd6f4;font-weight:600">Action</div>
+          <div style="font-size:0.85em;color:#6c7086;font-weight:400">Triggers GhostSpell on selected text</div>
+        </label>
+        <input type="text" id="hk-action" placeholder="Click here, press keys..." readonly>
         <button class="clear-btn" onclick="clearHotkey('action')" title="Clear">&times;</button>
       </div>
       <div class="hotkey-input">
-        <label>Cycle Prompt</label>
-        <input type="text" id="hk-cycle_prompt" placeholder="Click, then press keys..." readonly>
+        <label>
+          <div style="color:#cdd6f4;font-weight:600">Cycle Prompt</div>
+          <div style="font-size:0.85em;color:#6c7086;font-weight:400">Switch to the next prompt mode</div>
+        </label>
+        <input type="text" id="hk-cycle_prompt" placeholder="Click here, press keys..." readonly>
         <button class="clear-btn" onclick="clearHotkey('cycle_prompt')" title="Clear">&times;</button>
       </div>
       <button class="btn btn-primary btn-sm" onclick="saveHotkeys()" style="margin-top:8px">Save Hotkeys</button>
@@ -920,8 +929,19 @@
       </div>
       <div class="form-group" style="margin-top:12px">
         <label for="pref-indicator-pos">Ghost Indicator Position</label>
-        <div class="sublabel" style="margin-bottom:6px">Where the floating ghost appears during processing.</div>
-        <select id="pref-indicator-pos" onchange="onIndicatorPosChange(this.value)" style="padding:6px 10px;background:#313244;border:1px solid #45475a;border-radius:4px;color:#cdd6f4;font-size:0.9em;width:180px">
+        <div class="sublabel" style="margin-bottom:6px">This floating pill appears on screen while GhostSpell is processing your text. It shows which prompt is active and a live timer.</div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <!-- Indicator preview pill -->
+          <div style="display:flex;align-items:center;gap:6px;background:#1e1e2e;border-radius:20px;padding:6px 14px 6px 6px;box-shadow:0 2px 12px rgba(0,0,0,0.3)">
+            <img src="/ghost-icon.png" width="28" height="28" style="animation:float 2s ease-in-out infinite">
+            <span id="indicator-preview-icon" style="font-size:14px">&#9999;&#65039;</span>
+            <span id="indicator-preview-name" style="font-size:12px;color:rgba(255,255,255,0.85);font-weight:500">Correct</span>
+            <div style="width:1px;height:14px;background:rgba(255,255,255,0.15)"></div>
+            <span style="font-size:12px;color:rgba(255,255,255,0.85);font-variant-numeric:tabular-nums">3s</span>
+            <span id="indicator-preview-model" style="font-size:9px;color:rgba(255,255,255,0.4)">GhostSpell Local</span>
+          </div>
+          <!-- Position selector -->
+          <select id="pref-indicator-pos" onchange="onIndicatorPosChange(this.value)" style="padding:6px 10px;background:#313244;border:1px solid #45475a;border-radius:4px;color:#cdd6f4;font-size:0.9em;width:180px">
           <option value="center">Center</option>
           <option value="top-right">Top Right</option>
           <option value="top-left">Top Left</option>
@@ -929,6 +949,7 @@
           <option value="bottom-left">Bottom Left</option>
           <option value="hidden">Hidden</option>
         </select>
+        </div>
       </div>
     </div>
 
@@ -1135,6 +1156,10 @@
       <div class="app-name">GhostSpell</div>
       <div class="app-ver" id="about-version"></div>
       <div class="desc">AI-powered text correction and rewriting.</div>
+      <div style="margin-top:14px;display:flex;gap:6px;justify-content:center;align-items:center">
+        <span id="about-hotkey-badge" style="display:inline-flex;align-items:center;gap:4px;background:#313244;border:1px solid #45475a;border-radius:8px;padding:6px 14px;box-shadow:0 2px 4px rgba(0,0,0,0.3)"></span>
+        <span style="font-size:0.72em;color:#6c7086;max-width:140px;line-height:1.3">Select text and press to activate</span>
+      </div>
       <div style="margin-top:12px;display:flex;gap:12px;justify-content:center;align-items:center">
         <a href="#" onclick="wails.Browser.OpenURL('https://github.com/chrixbedardcad/GhostSpell'); return false;" style="color:#89b4fa;font-size:0.82em;text-decoration:none">GitHub</a>
         <span style="color:#45475a">|</span>
@@ -1148,7 +1173,7 @@
       <div id="update-auto-status" style="margin-bottom:10px"></div>
       <div style="display:flex;gap:8px;justify-content:center">
         <button class="btn btn-primary" onclick="checkForUpdate()" id="update-btn">Check for Updates</button>
-        <button class="btn btn-secondary" onclick="wails.Browser.OpenURL('https://github.com/chrixbedardcad/GhostSpell/releases/latest')">What's New</button>
+        <button class="btn btn-secondary" onclick="showWhatsNew()">What's New</button>
       </div>
       <div class="status" id="update-status"></div>
     </div>
@@ -1231,6 +1256,15 @@ function switchTab(name) {
 }
 
 // ---- Init ----
+async function showWhatsNew() {
+  var ver = await goCall('getVersion');
+  var body = await goCall('getWhatsNewAlways');
+  if (!body) body = '<p style="color:#6c7086">No release notes available for this version.</p>';
+  document.getElementById('whats-new-ver').textContent = 'Version ' + (ver || '');
+  document.getElementById('whats-new-body').innerHTML = body;
+  document.getElementById('whats-new-overlay').style.display = 'flex';
+}
+
 async function dismissWhatsNew() {
   document.getElementById('whats-new-overlay').style.display = 'none';
   await goCall('dismissWhatsNew');
@@ -1253,6 +1287,8 @@ async function init() {
 
   const raw = await goCall('getConfig');
   if (raw) configData = JSON.parse(raw);
+  updateHeaderPrompt();
+  updateAboutHotkey();
   renderModels();
   initHotkeyCapture();
 
@@ -1269,6 +1305,15 @@ async function init() {
 
   // Populate General tab values on first load (it's the default active tab).
   renderGeneral();
+
+  // Refresh header when window regains focus (e.g. after cycling prompt via tray hotkey).
+  window.addEventListener('focus', async function() {
+    var raw = await goCall('getConfig');
+    if (!raw) return;
+    configData = JSON.parse(raw);
+    updateHeaderPrompt();
+    updateAboutHotkey();
+  });
 }
 
 // ---- Helpers ----
@@ -1298,6 +1343,50 @@ function escJS(s) {
 async function reloadConfig() {
   const raw = await goCall('getConfig');
   if (raw) configData = JSON.parse(raw);
+  updateHeaderPrompt();
+  updateAboutHotkey();
+}
+
+function updateHeaderPrompt() {
+  var el = document.getElementById('header-prompt-info');
+  if (!el || !configData) return;
+  var prompts = configData.prompts || [];
+  var idx = configData.active_prompt || 0;
+  if (idx < 0 || idx >= prompts.length) { el.innerHTML = ''; return; }
+  var p = prompts[idx];
+  var icon = p.icon || '';
+  var name = p.name || 'Correct';
+  var model = configData.default_model || '';
+  el.innerHTML = '<div style="font-size:0.82em;color:#a6adc8">' + (icon ? '<span style="margin-right:3px">' + esc(icon) + '</span>' : '') + '<strong style="color:#cdd6f4">' + esc(name) + '</strong></div>' +
+    (model ? '<div style="font-size:0.68em;color:#6c7086">' + esc(model) + '</div>' : '');
+  // Update indicator preview in General tab.
+  var prevIcon = document.getElementById('indicator-preview-icon');
+  var prevName = document.getElementById('indicator-preview-name');
+  var prevModel = document.getElementById('indicator-preview-model');
+  if (prevIcon) prevIcon.textContent = icon || '\u270F\uFE0F';
+  if (prevName) prevName.textContent = name;
+  if (prevModel) prevModel.textContent = model;
+}
+
+function updateAboutHotkey() {
+  var el = document.getElementById('about-hotkey-badge');
+  if (!el || !configData) return;
+  var hotkey = (configData.hotkeys && configData.hotkeys.action) || 'Ctrl+G';
+  var isMac = navigator.platform && navigator.platform.indexOf('Mac') !== -1;
+  var parts = hotkey.split('+');
+  var kbdStyle = 'background:#1e1e2e;border:1px solid #585b70;border-radius:4px;padding:2px 8px;font-size:0.85em;font-weight:700;font-family:system-ui,sans-serif;box-shadow:0 1px 0 #585b70;';
+  var html = '';
+  for (var i = 0; i < parts.length; i++) {
+    if (i > 0) html += '<span style="color:#585b70;font-size:0.7em">+</span>';
+    var label = parts[i].trim();
+    var color = '#cdd6f4';
+    if (i === parts.length - 1) color = '#a6e3a1'; // last key in green
+    if (isMac && (label === 'Ctrl' || label === 'ctrl')) label = '\u2318';
+    if (isMac && (label === 'Alt' || label === 'alt')) label = '\u2325';
+    if (isMac && (label === 'Shift' || label === 'shift')) label = '\u21E7';
+    html += '<kbd style="' + kbdStyle + 'color:' + color + '">' + esc(label) + '</kbd>';
+  }
+  el.innerHTML = html;
 }
 
 // ===========================================================================
@@ -1316,16 +1405,26 @@ async function renderProviders() {
   const configuredTypes = new Set(Object.keys(providers));
   types.forEach(function(t) {
     var isConfigured = configuredTypes.has(t);
+    var isDisabled = isConfigured && providers[t] && providers[t].disabled;
     var statusEl = document.getElementById('prov-status-' + t);
     var testBtn = document.getElementById('prov-test-' + t);
     var card = document.getElementById('prov-card-' + t);
     var setupBtn = card ? card.querySelector('.provider-card-actions .btn-primary') : null;
     if (statusEl) {
-      statusEl.textContent = isConfigured ? '\u25CF Configured' : '\u25CB Not configured';
-      statusEl.className = 'provider-status ' + (isConfigured ? 'active' : 'inactive');
+      if (isDisabled) {
+        statusEl.textContent = '\u25CB Disabled';
+        statusEl.className = 'provider-status inactive';
+      } else if (isConfigured) {
+        statusEl.textContent = '\u25CF Configured';
+        statusEl.className = 'provider-status active';
+      } else {
+        statusEl.textContent = '\u25CB Not configured';
+        statusEl.className = 'provider-status inactive';
+      }
     }
     if (testBtn) testBtn.style.display = isConfigured ? '' : 'none';
     if (setupBtn) setupBtn.textContent = isConfigured ? 'Settings' : 'Set up';
+    if (card) card.style.opacity = isDisabled ? '0.5' : '1';
   });
 }
 
@@ -1345,6 +1444,12 @@ function showProviderSetup(type) {
   if (el) { el.style.display = 'block'; el.scrollIntoView({behavior:'smooth'}); }
   // Load current values from config
   loadProviderSetupValues(type);
+  // Set provider enabled toggle state.
+  var provToggle = document.getElementById('prov-toggle-' + type);
+  if (provToggle) {
+    var prov = (configData.providers || {})[type];
+    provToggle.checked = prov ? !prov.disabled : false;
+  }
   // Show model activation toggles if a models container exists.
   var modelsContainer = document.getElementById('prov-' + type + '-models');
   if (modelsContainer) renderProviderModels(type, 'prov-' + type + '-models');
@@ -1413,6 +1518,11 @@ function showCloudSetup(type) {
     document.getElementById('prov-cloud-apikey').value = prov.api_key;
   }
   document.getElementById('provider-setup-cloud').style.display = 'block';
+  // Set provider enabled toggle state.
+  var cloudToggle = document.getElementById('prov-toggle-cloud');
+  if (cloudToggle) {
+    cloudToggle.checked = prov ? !prov.disabled : false;
+  }
   // Show available models with activation toggles.
   renderProviderModels(type, 'prov-cloud-models');
 }
@@ -1432,23 +1542,14 @@ async function saveCloudProvider(type) {
   }
 }
 
-var _removeConfirming = {};
-async function removeProvider(type) {
-  if (!_removeConfirming[type]) {
-    _removeConfirming[type] = true;
-    var btn = document.getElementById('prov-remove-' + type);
-    if (btn) { btn.textContent = 'Confirm Remove?'; btn.style.color = '#f38ba8'; }
-    setTimeout(function() { _removeConfirming[type] = false; if (btn) { btn.textContent = 'Remove Provider'; btn.style.color = ''; } }, 4000);
+async function toggleProvider(type, enabled) {
+  var result = await goCall('toggleProvider', type, enabled);
+  if (result && result.startsWith('error')) {
+    alert(result);
     return;
   }
-  _removeConfirming[type] = false;
-  var result = await goCall('removeProvider', type);
-  if (result && result.startsWith('ok') || result === 'ok') {
-    await reloadConfig();
-    backToProviders();
-  } else {
-    alert(result || 'Failed to remove provider');
-  }
+  await reloadConfig();
+  renderProviders();
 }
 
 async function testProviderConnection(type) {
@@ -1982,7 +2083,7 @@ const PROVIDER_SVGS = {
 const CREATOR_SVGS = {
   openai:    '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729z" fill="#10A37F"/></svg>',
   anthropic: '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle"><path d="M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z" fill="#D4A574"/></svg>',
-  google:    '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle"><path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81" fill="url(#gmi_g)"/></svg>',
+  google:    '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle"><defs><linearGradient id="gmc2" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#4285F4"/><stop offset=".33" stop-color="#9B72CB"/><stop offset=".66" stop-color="#D96570"/><stop offset="1" stop-color="#F9AB00"/></linearGradient></defs><path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81" fill="url(#gmc2)"/></svg>',
   xai:       '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle"><path d="M14.234 10.162 22.977 0h-2.072l-7.591 8.824L7.251 0H.258l9.168 13.343L.258 24H2.33l8.016-9.318L16.749 24h6.993zm-2.837 3.299-.929-1.329L3.076 1.56h3.182l5.965 8.532.929 1.329 7.754 11.09h-3.182z" fill="#cdd6f4"/></svg>',
   deepseek:  '<svg width="22" height="22" viewBox="60 100 400 350" style="vertical-align:middle"><path d="M440.898 139.167c-4.001-1.961-5.723 1.776-8.062 3.673-.801.612-1.479 1.407-2.154 2.141-5.848 6.246-12.681 10.349-21.607 9.859-13.048-.734-24.192 3.368-34.04 13.348-2.093-12.307-9.048-19.658-19.635-24.37-5.54-2.449-11.141-4.9-15.02-10.227-2.708-3.795-3.447-8.021-4.801-12.185-.861-2.509-1.725-5.082-4.618-5.512-3.139-.49-4.372 2.142-5.601 4.349-4.925 9.002-6.833 18.921-6.647 28.962.432 22.597 9.972 40.597 28.932 53.397 2.154 1.47 2.707 2.939 2.032 5.082-1.293 4.41-2.832 8.695-4.186 13.105-.862 2.817-2.157 3.429-5.172 2.205-10.402-4.346-19.391-10.778-27.332-18.553-13.481-13.044-25.668-27.434-40.873-38.702a177.614 177.614 0 00-10.834-7.409c-15.512-15.063 2.032-27.434 6.094-28.902 4.247-1.532 1.478-6.797-12.251-6.736-13.727.061-26.285 4.653-42.288 10.777z" fill="#4D6BFE"/></svg>',
   alibaba:   '<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:middle"><circle cx="12" cy="12" r="11" fill="#6C3CE1"/><text x="12" y="16" text-anchor="middle" font-size="12" font-weight="bold" fill="#fff" font-family="Arial,sans-serif">Q</text></svg>',
@@ -2064,9 +2165,15 @@ function renderActiveModelSummary() {
   html += '</div>';
   html += '<div style="flex-shrink:0;text-align:right">';
   if (speedStr) html += '<div style="font-size:0.88em;font-weight:700;color:' + speedColor + '">' + speedStr + '</div>';
-  var costDisplay = active.cost_tier === 'free' ? 'FREE' : active.cost_tier.toUpperCase();
-  var costColor = active.cost_tier === 'free' ? '#a6e3a1' : active.cost_tier === '$' ? '#89b4fa' : active.cost_tier === '$$' ? '#f9e2af' : '#f38ba8';
-  if (costDisplay) html += '<div style="font-size:0.72em;font-weight:600;color:' + costColor + '">' + costDisplay + '</div>';
+  var aTier = active.cost_tier || '';
+  var aCostDisplay, aCostColor;
+  if (aTier === 'free') { aCostDisplay = 'FREE'; aCostColor = '#a6e3a1'; }
+  else if (aTier === '$') { aCostDisplay = '$'; aCostColor = '#89b4fa'; }
+  else if (aTier === '$$') { aCostDisplay = '$$'; aCostColor = '#f9e2af'; }
+  else if (aTier === '$$$') { aCostDisplay = '$$$'; aCostColor = '#f38ba8'; }
+  else { aCostDisplay = 'PAID'; aCostColor = '#f9e2af'; }
+  if (!aTier && (active.provider === 'local' || active.provider === 'ollama' || active.provider === 'lmstudio')) { aCostDisplay = 'FREE'; aCostColor = '#a6e3a1'; }
+  html += '<div style="font-size:0.72em;font-weight:600;color:' + aCostColor + '">' + aCostDisplay + '</div>';
   html += '</div>';
   html += '</div>';
 
@@ -2125,8 +2232,15 @@ function renderModelGrid(models) {
     var borderWidth = m.is_default ? '2px' : '1px';
     var opacity = m.provider_active ? '1' : '0.45';
 
-    var costDisplay = m.cost_tier === 'free' ? 'FREE' : m.cost_tier.toUpperCase();
-    var costColor = m.cost_tier === 'free' ? '#a6e3a1' : m.cost_tier === '$' ? '#89b4fa' : m.cost_tier === '$$' ? '#f9e2af' : m.cost_tier === '$$$' ? '#f38ba8' : '#6c7086';
+    var tier = m.cost_tier || '';
+    var costDisplay, costColor;
+    if (tier === 'free') { costDisplay = 'FREE'; costColor = '#a6e3a1'; }
+    else if (tier === '$') { costDisplay = '$'; costColor = '#89b4fa'; }
+    else if (tier === '$$') { costDisplay = '$$'; costColor = '#f9e2af'; }
+    else if (tier === '$$$') { costDisplay = '$$$'; costColor = '#f38ba8'; }
+    else { costDisplay = 'PAID'; costColor = '#f9e2af'; }
+    // Local/free providers without a tier override
+    if (!tier && (m.provider === 'local' || m.provider === 'ollama' || m.provider === 'lmstudio')) { costDisplay = 'FREE'; costColor = '#a6e3a1'; }
 
     var speedStr = m.avg_speed_ms > 0 ? (m.avg_speed_ms / 1000).toFixed(1) + 's' : '';
     var speedColor = m.avg_speed_ms > 0 ? (m.avg_speed_ms < 2000 ? '#a6e3a1' : m.avg_speed_ms < 5000 ? '#f9e2af' : '#f38ba8') : '#6c7086';
@@ -2140,9 +2254,9 @@ function renderModelGrid(models) {
     html += '<div style="background:#313244;border:' + borderWidth + ' solid ' + borderColor + ';border-radius:8px;padding:10px 14px;opacity:' + opacity + ';transition:border-color 0.15s;display:flex;align-items:center;gap:12px" onmouseenter="this.style.borderColor=\'#89b4fa\'" onmouseleave="this.style.borderColor=\'' + borderColor + '\'">';
 
     // Provider + Creator logos (provider serves it → creator made it)
-    var creatorLogo = getCreatorLogo(m.creator || '');
+    var creatorLogo = getCreatorLogo(m.creator || '').replace(/width="22"/g, 'width="28"').replace(/height="22"/g, 'height="28"');
     var logoHtml = '<div style="flex-shrink:0;display:flex;align-items:center;gap:2px">' + logo;
-    if (creatorLogo && (m.creator || '') !== m.provider) logoHtml += '<span style="color:#585b70;font-size:0.6em;margin:0 1px">&rsaquo;</span>' + creatorLogo;
+    if (creatorLogo && (m.creator || '') !== m.provider) logoHtml += '<span style="color:#585b70;font-size:0.7em;margin:0 1px">&rsaquo;</span>' + creatorLogo;
     logoHtml += '</div>';
     html += logoHtml;
 
@@ -2171,32 +2285,69 @@ function renderModelGrid(models) {
         }
       }
     }
-    html += '<div style="flex-shrink:0;text-align:right;min-width:80px">';
+    html += '<div style="flex-shrink:0;text-align:right;min-width:90px">';
     if (costDisplay) html += '<div style="font-size:0.72em;font-weight:600;color:' + costColor + '">' + costDisplay + '</div>';
+    if (m.cost_note) html += '<div style="font-size:0.58em;color:#6c7086;margin-top:1px">' + esc(m.cost_note) + '</div>';
     if (liveStatus === 'testing') {
-      html += '<div style="font-size:0.72em;color:#89b4fa;font-weight:600">testing...</div>';
+      html += '<div style="font-size:0.82em;color:#89b4fa;font-weight:600">testing...</div>';
     } else if (liveStatus === 'pending') {
-      html += '<div style="font-size:0.68em;color:#585b70">waiting...</div>';
+      html += '<div style="font-size:0.75em;color:#585b70">waiting...</div>';
     } else if (liveStatus === 'error') {
-      html += '<div style="font-size:0.68em;color:#f38ba8">failed</div>';
+      html += '<div style="font-size:0.75em;color:#f38ba8">failed</div>';
     } else if (speedStr) {
-      var promptLabel = m.speed_prompt ? ' <span style="font-size:0.85em;color:#6c7086">' + esc(m.speed_prompt) + '</span>' : '';
-      html += '<div style="font-size:0.78em;font-weight:600;color:' + speedColor + '">' + speedStr + promptLabel + '</div>';
+      html += '<div style="font-size:0.55em;color:#585b70;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Benchmark</div>';
+      html += '<div style="font-size:0.95em;font-weight:700;color:' + speedColor + '">' + speedStr + '</div>';
+      if (m.speed_prompt) {
+        var promptLine = (m.speed_icon || '') + ' ' + esc(m.speed_prompt);
+        html += '<div style="font-size:0.68em;color:#6c7086;margin-top:1px">' + promptLine.trim() + '</div>';
+      }
+      if (m.speed_ts) html += '<div style="font-size:0.58em;color:#585b70">' + esc(m.speed_ts) + '</div>';
     } else {
       html += '<div style="font-size:0.68em;color:#585b70">no benchmark</div>';
     }
     html += '</div>';
 
-    // Load button (right side)
-    if (m.provider_active && !m.is_default) {
-      html += '<button class="btn btn-primary btn-sm" style="flex-shrink:0;font-size:0.72em;padding:4px 12px" onclick="event.stopPropagation();setModelDefaultByModel(\'' + escJS(m.provider) + '\',\'' + escJS(m.model) + '\')">Load</button>';
-    } else if (m.is_default) {
-      html += '<div style="flex-shrink:0;font-size:0.72em;color:#a6e3a1;font-weight:600;min-width:50px;text-align:center">Loaded</div>';
+    // Test + Activate buttons (right side)
+    if (m.provider_active) {
+      html += '<div style="flex-shrink:0;display:flex;gap:4px;align-items:center">';
+      html += '<button class="btn btn-secondary btn-sm" style="font-size:0.65em;padding:3px 8px" onclick="event.stopPropagation();testSingleModel(\'' + escJS(m.provider) + '\',\'' + escJS(m.model) + '\',\'' + escJS(m.name) + '\',this)" id="test-' + escJS(m.provider) + '-' + escJS(m.model) + '">Test</button>';
+      if (!m.is_default) {
+        html += '<button class="btn btn-primary btn-sm" style="font-size:0.72em;padding:4px 12px" onclick="event.stopPropagation();setModelDefaultByModel(\'' + escJS(m.provider) + '\',\'' + escJS(m.model) + '\')">Activate</button>';
+      } else {
+        html += '<div style="font-size:0.72em;color:#a6e3a1;font-weight:600;min-width:50px;text-align:center">Active</div>';
+      }
+      html += '</div>';
     }
 
     html += '</div>';
   });
   container.innerHTML = html;
+}
+
+async function testSingleModel(provider, model, name, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Testing...';
+  var modelsToTest = [{provider: provider, model: model, name: name}];
+  var result = await goCall('runBenchmarkFiltered', JSON.stringify(modelsToTest));
+  if (result && result.startsWith('error')) {
+    btn.textContent = 'Test';
+    btn.disabled = false;
+    alert(result);
+    return;
+  }
+  // Poll until done.
+  var poll = setInterval(async function() {
+    var raw = await goCall('getBenchmarkResult');
+    if (!raw || raw === '{}') return;
+    var b;
+    try { b = JSON.parse(raw); } catch(e) { return; }
+    if (b.done || !b.running) {
+      clearInterval(poll);
+      btn.textContent = 'Test';
+      btn.disabled = false;
+      renderModels();
+    }
+  }, 500);
 }
 
 async function setModelDefaultByModel(provider, model) {
@@ -2366,8 +2517,13 @@ async function renderPrompts() {
 
 function buildInlineForm(idx, p) {
   const models = configData.models || {};
+  const providers = configData.providers || {};
   let llmOpts = '<option value="">Use default</option>';
   for (const label of Object.keys(models)) {
+    // Only show models whose provider is configured and not disabled.
+    var me = models[label];
+    var prov = providers[me.provider];
+    if (!prov || prov.disabled) continue;
     llmOpts += '<option value="' + esc(label) + '"' + (label === (p.llm || '') ? ' selected' : '') + '>' + esc(label) + '</option>';
   }
   const currentIcon = p.icon || '';
