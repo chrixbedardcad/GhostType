@@ -934,45 +934,67 @@
       </div>
       <div class="form-group" style="margin-top:12px">
         <label for="pref-maxchars">Max Input Characters</label>
-        <div class="sublabel" style="margin-bottom:6px">Reject text longer than this limit (0 = no limit). Shows 👻⚠️ when exceeded.</div>
+        <div class="sublabel" style="margin-bottom:6px">Reject text longer than this limit (0 = no limit).</div>
         <div style="display:flex;align-items:center;gap:8px">
           <input type="number" id="pref-maxchars" min="0" step="100" style="width:120px;padding:6px 10px;background:#313244;border:1px solid #45475a;border-radius:4px;color:#cdd6f4;font-size:0.9em" onchange="onMaxCharsChange(this.value)">
           <span style="font-size:0.8em;color:#6c7086">characters</span>
         </div>
       </div>
-      <div class="form-group" style="margin-top:12px">
-        <label for="pref-indicator-pos">Ghost Indicator Position</label>
-        <div class="sublabel" style="margin-bottom:6px">This floating pill appears on screen while GhostSpell is processing your text. It shows which prompt is active and a live timer.</div>
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-          <!-- Indicator preview pill -->
-          <div style="display:flex;align-items:center;gap:6px;background:#1e1e2e;border-radius:20px;padding:6px 14px 6px 6px;box-shadow:0 2px 12px rgba(0,0,0,0.3)">
-            <img src="/ghost-icon.png" width="28" height="28" style="animation:float 2s ease-in-out infinite">
-            <span id="indicator-preview-icon" style="font-size:14px">&#9999;&#65039;</span>
-            <span id="indicator-preview-name" style="font-size:12px;color:rgba(255,255,255,0.85);font-weight:500">Correct</span>
-            <div style="width:1px;height:14px;background:rgba(255,255,255,0.15)"></div>
-            <span style="font-size:12px;color:rgba(255,255,255,0.85);font-variant-numeric:tabular-nums">3s</span>
-            <span id="indicator-preview-model" style="font-size:9px;color:rgba(255,255,255,0.4)">GhostSpell Local</span>
-          </div>
-          <!-- Position selector -->
-          <select id="pref-indicator-pos" onchange="onIndicatorPosChange(this.value)" style="padding:6px 10px;background:#313244;border:1px solid #45475a;border-radius:4px;color:#cdd6f4;font-size:0.9em;width:180px">
+    </div>
+
+    <!-- Ghost Indicator section — highlighted card -->
+    <div class="section" style="background:#252537;border:1px solid #45475a;border-radius:10px;padding:16px;margin-top:8px">
+      <h2 style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <img src="/ghost-icon.png" width="24" height="24"> Ghost Indicator
+      </h2>
+      <div class="sublabel" style="margin-bottom:12px">The floating ghost appears while processing your text. In <strong style="color:#cdd6f4">Always Visible</strong> mode, it stays on screen as a quick prompt switcher.</div>
+
+      <!-- Indicator preview -->
+      <div style="display:flex;align-items:center;justify-content:center;margin-bottom:14px;padding:12px;background:#1e1e2e;border-radius:8px">
+        <div style="display:flex;align-items:center;gap:6px;background:rgba(30,30,36,0.88);border-radius:20px;padding:6px 14px 6px 6px;box-shadow:0 2px 12px rgba(0,0,0,0.3)">
+          <img src="/ghost-icon.png" width="28" height="28" style="animation:float 2s ease-in-out infinite">
+          <span id="indicator-preview-icon" style="font-size:14px">&#9999;&#65039;</span>
+          <span id="indicator-preview-name" style="font-size:12px;color:rgba(255,255,255,0.85);font-weight:500">Correct</span>
+          <div style="width:1px;height:14px;background:rgba(255,255,255,0.15)"></div>
+          <span style="font-size:12px;color:rgba(255,255,255,0.85);font-variant-numeric:tabular-nums">3s</span>
+          <span id="indicator-preview-model" style="font-size:9px;color:rgba(255,255,255,0.4)">GhostSpell Local</span>
+        </div>
+      </div>
+
+      <!-- Mode — visual radio cards -->
+      <div style="font-size:0.82em;font-weight:600;color:#cdd6f4;margin-bottom:6px">Display Mode</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px" id="indicator-mode-cards">
+        <div class="card" style="flex:1;padding:10px;margin:0;cursor:pointer" data-mode="processing" onclick="selectIndicatorMode('processing')">
+          <div style="font-weight:600;font-size:0.85em;color:#cdd6f4">&#9201; Processing Only</div>
+          <div style="font-size:0.72em;color:#6c7086;margin-top:2px">Shows during Ctrl+G, hides after</div>
+        </div>
+        <div class="card" style="flex:1;padding:10px;margin:0;cursor:pointer" data-mode="always" onclick="selectIndicatorMode('always')">
+          <div style="font-weight:600;font-size:0.85em;color:#cdd6f4">&#128123; Always Visible</div>
+          <div style="font-size:0.72em;color:#6c7086;margin-top:2px">Click to cycle, right-click for menu</div>
+        </div>
+        <div class="card" style="flex:1;padding:10px;margin:0;cursor:pointer" data-mode="hidden" onclick="selectIndicatorMode('hidden')">
+          <div style="font-weight:600;font-size:0.85em;color:#cdd6f4">&#128683; Hidden</div>
+          <div style="font-size:0.72em;color:#6c7086;margin-top:2px">No visual indicator</div>
+        </div>
+      </div>
+
+      <!-- Position -->
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:0.82em;font-weight:600;color:#cdd6f4;flex-shrink:0">Position</div>
+        <select id="pref-indicator-pos" onchange="onIndicatorPosChange(this.value)" style="padding:5px 10px;background:#313244;border:1px solid #45475a;border-radius:4px;color:#cdd6f4;font-size:0.82em;flex:1;max-width:180px">
           <option value="center">Center</option>
           <option value="top-right">Top Right</option>
           <option value="top-left">Top Left</option>
           <option value="bottom-right">Bottom Right</option>
           <option value="bottom-left">Bottom Left</option>
-          <option value="hidden">Hidden</option>
-        </select>
-        </div>
-      </div>
-      <div class="form-group" style="margin-top:12px">
-        <label>Ghost Indicator Mode</label>
-        <div class="sublabel" style="margin-bottom:6px">Choose when the ghost indicator is visible. In <strong style="color:#cdd6f4">Always Visible</strong> mode, a small ghost stays on screen — click to cycle prompts, right-click for quick menu, drag to reposition.</div>
-        <select id="pref-indicator-mode" onchange="onIndicatorModeChange(this.value)" style="padding:6px 10px;background:#313244;border:1px solid #45475a;border-radius:4px;color:#cdd6f4;font-size:0.9em;width:220px">
-          <option value="processing">Show during processing only</option>
-          <option value="always">Always visible (floating ghost)</option>
-          <option value="hidden">Hidden</option>
         </select>
       </div>
+      <!-- Hidden dropdown kept for backward compat but not shown -->
+      <select id="pref-indicator-mode" style="display:none">
+        <option value="processing">processing</option>
+        <option value="always">always</option>
+        <option value="hidden">hidden</option>
+      </select>
     </div>
 
     <!-- Keep Model Loaded is now under Providers > GhostSpell Local Setup -->
@@ -1327,14 +1349,17 @@ async function init() {
   // Populate General tab values on first load (it's the default active tab).
   renderGeneral();
 
-  // Refresh header when window regains focus (e.g. after cycling prompt via tray hotkey).
+  // Refresh header when window regains focus (e.g. after cycling prompt via tray/indicator).
   window.addEventListener('focus', async function() {
-    var raw = await goCall('getConfig');
-    if (!raw) return;
-    configData = JSON.parse(raw);
+    await reloadConfig();
     updateHeaderPrompt();
     updateAboutHotkey();
   });
+  // Also poll every 5 seconds while settings is open for live updates.
+  setInterval(async function() {
+    await reloadConfig();
+    updateHeaderPrompt();
+  }, 5000);
 }
 
 // ---- Helpers ----
@@ -2808,6 +2833,7 @@ async function renderGeneral() {
   document.getElementById('pref-maxchars').value = configData.max_input_chars != null ? configData.max_input_chars : 2000;
   document.getElementById('pref-indicator-pos').value = configData.indicator_position || 'center';
   document.getElementById('pref-indicator-mode').value = configData.indicator_mode || 'processing';
+  initIndicatorModeCards();
 
   // Hotkeys
   const hk = configData.hotkeys || {};
@@ -3020,6 +3046,29 @@ async function pollBenchmark() {
 }
 async function onIndicatorPosChange(val) { await goCall('setIndicatorPosition', val); }
 async function onIndicatorModeChange(val) { await goCall('setIndicatorMode', val); }
+function selectIndicatorMode(mode) {
+  // Update visual cards.
+  document.querySelectorAll('#indicator-mode-cards .card').forEach(function(c) {
+    if (c.getAttribute('data-mode') === mode) {
+      c.style.borderColor = '#89b4fa'; c.style.background = '#2a2d42';
+    } else {
+      c.style.borderColor = '#45475a'; c.style.background = '#313244';
+    }
+  });
+  // Sync hidden dropdown and save.
+  document.getElementById('pref-indicator-mode').value = mode;
+  onIndicatorModeChange(mode);
+}
+function initIndicatorModeCards() {
+  var mode = (configData && configData.indicator_mode) || 'processing';
+  document.querySelectorAll('#indicator-mode-cards .card').forEach(function(c) {
+    if (c.getAttribute('data-mode') === mode) {
+      c.style.borderColor = '#89b4fa'; c.style.background = '#2a2d42';
+    } else {
+      c.style.borderColor = '#45475a'; c.style.background = '#313244';
+    }
+  });
+}
 async function onLogLevelChange(level) { await goCall('setLogLevel', level); }
 
 async function onToggleDebug(enabled) {
