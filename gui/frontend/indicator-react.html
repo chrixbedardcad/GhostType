@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<style>
+  * { margin: 0; padding: 0; }
+  html, body, #root { width: 100%; height: 100%; background: rgb(30,30,46); overflow: hidden; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+// Dynamically load the Vite-built React bundle.
+// Fetch /dist/react.html to extract the current JS/CSS filenames (they have content hashes).
+fetch("/dist/react.html")
+  .then(r => r.text())
+  .then(html => {
+    // Extract CSS link.
+    const cssMatch = html.match(/href="(\/dist\/assets\/react-[^"]+\.css)"/);
+    if (cssMatch) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = cssMatch[1];
+      document.head.appendChild(link);
+    }
+    // Extract JS module.
+    const jsMatch = html.match(/src="(\/dist\/assets\/react-[^"]+\.js)"/);
+    if (jsMatch) {
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = jsMatch[1];
+      document.body.appendChild(script);
+    }
+  })
+  .catch(err => {
+    document.getElementById("root").textContent = "Failed to load indicator: " + err;
+  });
+</script>
+</body>
+</html>
