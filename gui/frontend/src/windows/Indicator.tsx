@@ -42,16 +42,21 @@ export function IndicatorWindow() {
 
   // Force transparent background — critical for Windows WebView2.
   useEffect(() => {
+    console.log("[Indicator] React mounted, setting transparent background");
+    console.log("[Indicator] window.wails available:", typeof window.wails !== "undefined");
     document.documentElement.style.cssText = "background:transparent!important;margin:0;padding:0;overflow:hidden";
     document.body.style.cssText = "background:transparent!important;margin:0;padding:0;overflow:hidden";
     const root = document.getElementById("root");
     if (root) root.style.cssText = "background:transparent!important;width:100%;height:100%";
+    console.log("[Indicator] Background set, initial state:", state);
   }, []);
 
   // Listen for state events from Go.
   useEffect(() => {
+    console.log("[Indicator] Registering event listener for indicatorState");
     const unsub = onEvent("indicatorState", (data) => {
       const d = data as StateData;
+      console.log("[Indicator] Event received:", JSON.stringify(d));
       setState(d.state);
       if (d.icon !== undefined) setIcon(d.icon);
       if (d.name !== undefined) setName(d.name);
@@ -111,11 +116,13 @@ export function IndicatorWindow() {
   const clickTimer = useRef<number | null>(null);
 
   function onClick() {
+    console.log("[Indicator] Click detected, state:", state, "dragged:", dragRef.current.moved);
     if (dragRef.current.moved) return;
     if (state !== "idle" && state !== "pop") return;
     if (clickTimer.current) { clearTimeout(clickTimer.current); clickTimer.current = null; return; }
     clickTimer.current = window.setTimeout(() => {
       clickTimer.current = null;
+      console.log("[Indicator] Cycling prompt...");
       goCall("cyclePromptFromIndicator");
     }, 250);
   }
