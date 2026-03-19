@@ -64,17 +64,13 @@ func ensureIndicatorWindow() {
 		},
 	})
 
-	// Give React time to mount before sending events.
-	indicatorReady = false
-	go func() {
-		time.Sleep(500 * time.Millisecond)
-		indicatorMu.Lock()
-		indicatorReady = true
-		indicatorMu.Unlock()
-		slog.Info("[gui] Indicator React page ready")
-	}()
-
 	slog.Info("[gui] Indicator window created (React hybrid)")
+
+	// Block until React has time to mount and register event listeners.
+	// Without this, events emitted immediately after window creation are lost.
+	time.Sleep(800 * time.Millisecond)
+	indicatorReady = true
+	slog.Info("[gui] Indicator React page ready")
 }
 
 // indicatorPos stores the configured position.
