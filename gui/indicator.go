@@ -311,7 +311,7 @@ func PopIndicator(promptIcon, promptName string) {
 	emitIndicatorEvent(map[string]any{"state": "pop", "icon": promptIcon, "name": promptName})
 
 	go func() {
-		time.Sleep(5 * time.Second)
+		time.Sleep(8 * time.Second)
 		// Only hide if no newer pop has started since.
 		indicatorMu.Lock()
 		current := popGeneration
