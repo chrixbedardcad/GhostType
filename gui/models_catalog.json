@@ -115,7 +115,7 @@
       "cost_tier": "$$",
       "cost_per_1k_tokens": 0.0015,
       "ifeval_score": 87.3,
-      "tags": ["recommended"],
+      "tags": ["recommended", "vision"],
       "context_window": 128000,
       "thinking": true
     },
@@ -128,7 +128,7 @@
       "cost_tier": "$$",
       "cost_per_1k_tokens": 0.0015,
       "ifeval_score": 87.3,
-      "tags": ["recommended"],
+      "tags": ["recommended", "vision"],
       "context_window": 128000,
       "thinking": true
     },
@@ -141,7 +141,7 @@
       "cost_tier": "$$",
       "cost_per_1k_tokens": 0.005,
       "ifeval_score": 85.1,
-      "tags": [],
+      "tags": ["vision"],
       "context_window": 128000,
       "thinking": false
     },
@@ -154,7 +154,7 @@
       "cost_tier": "$",
       "cost_per_1k_tokens": 0.00015,
       "ifeval_score": 79.2,
-      "tags": ["cheap"],
+      "tags": ["cheap", "vision"],
       "context_window": 128000,
       "thinking": false
     },
@@ -180,7 +180,7 @@
       "cost_tier": "$$",
       "cost_per_1k_tokens": 0.003,
       "ifeval_score": 88.7,
-      "tags": ["recommended"],
+      "tags": ["recommended", "vision"],
       "context_window": 200000,
       "thinking": false
     },
@@ -193,7 +193,7 @@
       "cost_tier": "$$$",
       "cost_per_1k_tokens": 0.015,
       "ifeval_score": 92.4,
-      "tags": ["best"],
+      "tags": ["best", "vision"],
       "context_window": 200000,
       "thinking": false
     },
@@ -206,7 +206,7 @@
       "cost_tier": "$",
       "cost_per_1k_tokens": 0.0008,
       "ifeval_score": 76.3,
-      "tags": ["fast", "cheap"],
+      "tags": ["fast", "cheap", "vision"],
       "context_window": 200000,
       "thinking": false
     },
@@ -220,7 +220,7 @@
       "cost_note": "250 req/day free tier",
       "cost_per_1k_tokens": 0,
       "ifeval_score": 83.5,
-      "tags": ["recommended", "free"],
+      "tags": ["recommended", "free", "vision"],
       "context_window": 1048576,
       "thinking": true
     },
@@ -234,7 +234,7 @@
       "cost_note": "requires billing",
       "cost_per_1k_tokens": 0.00125,
       "ifeval_score": 89.2,
-      "tags": ["best"],
+      "tags": ["best", "vision"],
       "context_window": 1048576,
       "thinking": true
     },
@@ -262,7 +262,7 @@
       "cost_note": "$25 free credits",
       "cost_per_1k_tokens": 0.01,
       "ifeval_score": 86.4,
-      "tags": ["best"],
+      "tags": ["best", "vision"],
       "context_window": 131072,
       "thinking": true
     },
@@ -340,7 +340,7 @@
       "cost_tier": "free",
       "cost_per_1k_tokens": 0,
       "ifeval_score": 0,
-      "tags": ["free"],
+      "tags": ["free", "vision"],
       "context_window": 8192,
       "thinking": false
     },

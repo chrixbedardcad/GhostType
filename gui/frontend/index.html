@@ -332,6 +332,7 @@
   .badge-heavy { background: #b4befe; color: #1e1e2e; }
   .badge-best { background: #f9e2af; color: #1e1e2e; }
   .badge-uncensored { background: #fab387; color: #1e1e2e; }
+  .badge-vision { background: #74c7ec; color: #1e1e2e; }
 
   /* --- Ollama model card (settings) --- */
   .ollama-model-card {
@@ -1999,10 +2000,13 @@ async function provOllamaDropdown(container, installedModels) {
   var knownModels = [];
   var raw = await goCall('getKnownModels', 'ollama');
   if (raw) { try { knownModels = JSON.parse(raw); } catch(e) {} }
-  var tagMap = {};
+  var tagMap = {}, visionMap = {};
   for (var i = 0; i < knownModels.length; i++) {
     var m = knownModels[i];
-    if (typeof m === 'object' && m.tag) tagMap[m.name] = m.tag;
+    if (typeof m === 'object') {
+      if (m.tag) tagMap[m.name] = m.tag;
+      if (m.vision) visionMap[m.name] = true;
+    }
   }
 
   var selectedModel = provSelectedModel['ollama'] || '';
@@ -2018,9 +2022,10 @@ async function provOllamaDropdown(container, installedModels) {
     var m = installedModels[i];
     var meta = [m.parameter_size, m.quantization_level, m.size_human].filter(Boolean).join(' \u00b7 ');
     var tag = tagMap[m.name] || '';
+    var vision = visionMap[m.name] || false;
     var selected = m.name === selectedModel;
     html += '<div class="ollama-model-card' + (selected ? '" style="border-color:#89b4fa' : '') + '">'
-      + '<div><div class="model-name">' + esc(m.name) + ollamaTagBadge(tag) + (selected ? ' <span class="badge badge-rec">SELECTED</span>' : '') + '</div>'
+      + '<div><div class="model-name">' + esc(m.name) + ollamaTagBadge(tag, vision) + (selected ? ' <span class="badge badge-rec">SELECTED</span>' : '') + '</div>'
       + '<div class="model-meta">' + esc(meta) + '</div></div>'
       + '<button class="btn btn-secondary btn-sm" onclick="provOllamaSelectModel(\'' + escJS(m.name) + '\')" style="font-size:0.75em">' + (selected ? '\u2714 Selected' : 'Select') + '</button>'
       + '</div>';
@@ -2235,13 +2240,16 @@ const TAG_BADGES = {
   heavy:       {label:'HEAVY',       cls:'badge-heavy'},
   deprecated:  {label:'DEPRECATED',  cls:'badge-heavy'},
   uncensored:  {label:'UNCENSORED', cls:'badge-uncensored'},
+  vision:      {label:'👁 VISION', cls:'badge-vision'},
 };
 
-function ollamaTagBadge(tag) {
+function ollamaTagBadge(tag, vision) {
   var map = {recommended:'badge-rec', best:'badge-best', fast:'badge-fast', cheap:'badge-free', free:'badge-free'};
   var labels = {recommended:'RECOMMENDED', best:'BEST', fast:'FAST', cheap:'LIGHT', free:'FREE'};
-  if (!tag || !map[tag]) return '';
-  return ' <span class="badge ' + map[tag] + '">' + labels[tag] + '</span>';
+  var html = '';
+  if (tag && map[tag]) html += ' <span class="badge ' + map[tag] + '">' + labels[tag] + '</span>';
+  if (vision) html += ' <span class="badge badge-vision">\uD83D\uDC41 VISION</span>';
+  return html;
 }
 
 // ---- Models tab (tile catalog) ----
