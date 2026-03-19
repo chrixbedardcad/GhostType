@@ -46,7 +46,8 @@ GhostSpell
 
 # React frontend build
 gui/frontend/node_modules/
-gui/frontend/dist/
+gui/frontend/dist/*
+!gui/frontend/dist/.gitkeep
 
 # Editor/IDE
 # .idea/
