@@ -13,6 +13,7 @@ import (
 	"github.com/chrixbedardcad/GhostSpell/llm"
 	"runtime"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -42,6 +43,8 @@ func guiLog(msg string, args ...any) {
 // Wails v3 auto-binds all public methods for JS access via wails.Call().
 type SettingsService struct {
 	cfgCopy    *config.Config
+	liveCfg    *config.Config // live config from app.go — used by indicator when cfgCopy is nil
+	liveMu     *sync.Mutex    // protects liveCfg reads (shared with app.go)
 	configPath string
 	onSaved    func()
 	app        *application.App
@@ -105,6 +108,26 @@ func (s *SettingsService) Reset(cfg *config.Config, configPath string, onSaved f
 	s.onSaved = onSaved
 	s.window = nil
 	s.saved = false
+}
+
+// SetLiveConfig stores a reference to the live config from app.go.
+// The indicator uses this when cfgCopy is nil (Settings window not open).
+func (s *SettingsService) SetLiveConfig(cfg *config.Config, mu *sync.Mutex) {
+	s.liveCfg = cfg
+	s.liveMu = mu
+}
+
+// indicatorCfg returns the best available config for indicator methods.
+// Prefers cfgCopy (settings session copy) when available, falls back to liveCfg.
+func (s *SettingsService) indicatorCfg() *config.Config {
+	if s.cfgCopy != nil {
+		return s.cfgCopy
+	}
+	if s.liveMu != nil {
+		s.liveMu.Lock()
+		defer s.liveMu.Unlock()
+	}
+	return s.liveCfg
 }
 
 // GetVersion returns the app version string.
@@ -546,14 +569,16 @@ func (s *SettingsService) GetPlatform() string {
 
 // CyclePromptFromIndicator cycles to the next prompt (called from indicator click).
 func (s *SettingsService) CyclePromptFromIndicator() string {
-	slog.Debug("[GUI] CyclePromptFromIndicator called")
-	if s.cfgCopy == nil || len(s.cfgCopy.Prompts) == 0 {
+	slog.Info("[GUI] CyclePromptFromIndicator called")
+	cfg := s.indicatorCfg()
+	if cfg == nil || len(cfg.Prompts) == 0 {
+		slog.Warn("[GUI] CyclePromptFromIndicator: no config or prompts available")
 		return "error: no prompts"
 	}
-	s.cfgCopy.ActivePrompt = (s.cfgCopy.ActivePrompt + 1) % len(s.cfgCopy.Prompts)
-	p := s.cfgCopy.Prompts[s.cfgCopy.ActivePrompt]
-	go sound.PlayClick() // click sound feedback (#214)
-	// Show a brief pop with the new prompt name.
+	cfg.ActivePrompt = (cfg.ActivePrompt + 1) % len(cfg.Prompts)
+	p := cfg.Prompts[cfg.ActivePrompt]
+	slog.Info("[GUI] CyclePromptFromIndicator: cycled", "index", cfg.ActivePrompt, "name", p.Name)
+	go sound.PlayClick()
 	PopIndicator(p.Icon, p.Name)
 	return "ok"
 }
@@ -582,6 +607,7 @@ func (s *SettingsService) QuitFromIndicator() string {
 
 // GetIndicatorMenu returns the context menu data for the indicator as JSON.
 func (s *SettingsService) GetIndicatorMenu() string {
+	slog.Info("[GUI] GetIndicatorMenu called")
 	type menuPrompt struct {
 		Name   string `json:"name"`
 		Icon   string `json:"icon"`
@@ -591,28 +617,35 @@ func (s *SettingsService) GetIndicatorMenu() string {
 		Prompts []menuPrompt `json:"prompts"`
 	}
 	var data menuData
-	if s.cfgCopy != nil {
-		for i, p := range s.cfgCopy.Prompts {
+	cfg := s.indicatorCfg()
+	if cfg != nil {
+		for i, p := range cfg.Prompts {
 			data.Prompts = append(data.Prompts, menuPrompt{
 				Name:   p.Name,
 				Icon:   p.Icon,
-				Active: i == s.cfgCopy.ActivePrompt,
+				Active: i == cfg.ActivePrompt,
 			})
 		}
+	} else {
+		slog.Warn("[GUI] GetIndicatorMenu: no config available")
 	}
 	j, _ := json.Marshal(data)
+	slog.Info("[GUI] GetIndicatorMenu: returning", "prompts", len(data.Prompts))
 	return string(j)
 }
 
 // SetActivePromptFromIndicator sets the active prompt by index (called from indicator menu).
 func (s *SettingsService) SetActivePromptFromIndicator(idx int) string {
-	slog.Debug("[GUI] SetActivePromptFromIndicator called", "idx", idx)
-	if s.cfgCopy == nil || idx < 0 || idx >= len(s.cfgCopy.Prompts) {
+	slog.Info("[GUI] SetActivePromptFromIndicator called", "idx", idx)
+	cfg := s.indicatorCfg()
+	if cfg == nil || idx < 0 || idx >= len(cfg.Prompts) {
+		slog.Warn("[GUI] SetActivePromptFromIndicator: invalid", "cfg_nil", cfg == nil, "idx", idx)
 		return "error: invalid index"
 	}
-	s.cfgCopy.ActivePrompt = idx
-	p := s.cfgCopy.Prompts[idx]
-	go sound.PlayClick() // click sound feedback (#214)
+	cfg.ActivePrompt = idx
+	p := cfg.Prompts[idx]
+	slog.Info("[GUI] SetActivePromptFromIndicator: set", "index", idx, "name", p.Name)
+	go sound.PlayClick()
 	PopIndicator(p.Icon, p.Name)
 	return "ok"
 }
@@ -623,16 +656,41 @@ func (s *SettingsService) GetActivePromptInfo() string {
 		Name string `json:"name"`
 		Icon string `json:"icon"`
 	}
-	if s.cfgCopy == nil || len(s.cfgCopy.Prompts) == 0 {
+	cfg := s.indicatorCfg()
+	if cfg == nil || len(cfg.Prompts) == 0 {
 		return "{}"
 	}
-	idx := s.cfgCopy.ActivePrompt
-	if idx < 0 || idx >= len(s.cfgCopy.Prompts) {
+	idx := cfg.ActivePrompt
+	if idx < 0 || idx >= len(cfg.Prompts) {
 		idx = 0
 	}
-	p := s.cfgCopy.Prompts[idx]
+	p := cfg.Prompts[idx]
 	j, _ := json.Marshal(info{Name: p.Name, Icon: p.Icon})
 	return string(j)
+}
+
+// MoveIndicatorWindow moves the indicator window to the given screen position.
+// Called from JS drag handler since window.moveTo() doesn't work in WebView2.
+func (s *SettingsService) MoveIndicatorWindow(x, y int) string {
+	indicatorMu.Lock()
+	win := indicatorWin
+	indicatorMu.Unlock()
+	if win != nil {
+		win.SetPosition(x, y)
+	}
+	return "ok"
+}
+
+// GetIndicatorWindowPosition returns the current indicator window position as JSON.
+func (s *SettingsService) GetIndicatorWindowPosition() string {
+	indicatorMu.Lock()
+	win := indicatorWin
+	indicatorMu.Unlock()
+	if win == nil {
+		return `{"x":0,"y":0}`
+	}
+	x, y := win.Position()
+	return fmt.Sprintf(`{"x":%d,"y":%d}`, x, y)
 }
 
 // ResizeIndicatorForMenu temporarily resizes the indicator window for the context menu (#214).

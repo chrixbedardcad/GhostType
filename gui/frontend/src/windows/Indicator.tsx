@@ -76,17 +76,28 @@ export function IndicatorWindow() {
     return () => { unsub(); if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
-  // --- Drag support ---
-  const dragRef = useRef({ active: false, startX: 0, startY: 0, offX: 0, offY: 0, moved: false });
+  // --- Drag support (uses Go-side window positioning since window.moveTo doesn't work in WebView2) ---
+  const dragRef = useRef({ active: false, startX: 0, startY: 0, winStartX: 0, winStartY: 0, moved: false });
 
-  const onMouseDown = useCallback((e: React.MouseEvent) => {
+  const onMouseDown = useCallback(async (e: React.MouseEvent) => {
     if (e.button !== 0 || menuOpen) return;
+    console.log("[Indicator] mousedown", "screenX:", e.screenX, "screenY:", e.screenY);
+    // Get current window position from Go side.
+    let winX = 0, winY = 0;
+    try {
+      const raw = await goCall("getIndicatorWindowPosition");
+      if (raw) {
+        const pos = JSON.parse(raw);
+        winX = pos.x || 0;
+        winY = pos.y || 0;
+      }
+    } catch { /* ignore */ }
     dragRef.current = {
       active: true,
       startX: e.screenX,
       startY: e.screenY,
-      offX: e.screenX - window.screenX,
-      offY: e.screenY - window.screenY,
+      winStartX: winX,
+      winStartY: winY,
       moved: false,
     };
   }, [menuOpen]);
@@ -95,16 +106,25 @@ export function IndicatorWindow() {
     const onMove = (e: MouseEvent) => {
       const d = dragRef.current;
       if (!d.active) return;
-      if (!d.moved && Math.abs(e.screenX - d.startX) < 5 && Math.abs(e.screenY - d.startY) < 5) return;
+      const dx = e.screenX - d.startX;
+      const dy = e.screenY - d.startY;
+      if (!d.moved && Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
       d.moved = true;
-      window.moveTo(e.screenX - d.offX, e.screenY - d.offY);
+      goCall("moveIndicatorWindow", d.winStartX + dx, d.winStartY + dy);
     };
-    const onUp = () => {
+    const onUp = async () => {
       const d = dragRef.current;
       if (!d.active) return;
       d.active = false;
       if (d.moved) {
-        goCall("saveIndicatorPosition", window.screenX, window.screenY);
+        console.log("[Indicator] drag ended, saving position");
+        try {
+          const raw = await goCall("getIndicatorWindowPosition");
+          if (raw) {
+            const pos = JSON.parse(raw);
+            goCall("saveIndicatorPosition", pos.x, pos.y);
+          }
+        } catch { /* ignore */ }
       }
     };
     document.addEventListener("mousemove", onMove);
@@ -116,35 +136,43 @@ export function IndicatorWindow() {
   const clickTimer = useRef<number | null>(null);
 
   function onClick() {
-    console.log("[Indicator] Click detected, state:", state, "dragged:", dragRef.current.moved);
-    if (dragRef.current.moved) return;
-    if (state !== "idle" && state !== "pop") return;
-    if (clickTimer.current) { clearTimeout(clickTimer.current); clickTimer.current = null; return; }
+    console.log("[Indicator] onClick: state=" + state + " dragged=" + dragRef.current.moved);
+    if (dragRef.current.moved) { console.log("[Indicator] onClick: ignored (was drag)"); return; }
+    if (state !== "idle" && state !== "pop") { console.log("[Indicator] onClick: ignored (state=" + state + ")"); return; }
+    if (clickTimer.current) {
+      console.log("[Indicator] onClick: double-click detected, clearing single-click timer");
+      clearTimeout(clickTimer.current);
+      clickTimer.current = null;
+      return;
+    }
     clickTimer.current = window.setTimeout(() => {
       clickTimer.current = null;
-      console.log("[Indicator] Cycling prompt...");
-      goCall("cyclePromptFromIndicator");
+      console.log("[Indicator] onClick: single-click confirmed, cycling prompt...");
+      goCall("cyclePromptFromIndicator").then(r => console.log("[Indicator] cyclePrompt result:", r));
     }, 250);
   }
 
   function onDoubleClick() {
+    console.log("[Indicator] onDoubleClick: opening settings");
     if (clickTimer.current) { clearTimeout(clickTimer.current); clickTimer.current = null; }
-    goCall("openSettingsFromIndicator");
+    goCall("openSettingsFromIndicator").then(r => console.log("[Indicator] openSettings result:", r));
   }
 
   async function onContextMenu(e: React.MouseEvent) {
     e.preventDefault();
-    if (state !== "idle" && state !== "pop") return;
+    console.log("[Indicator] onContextMenu: state=" + state);
+    if (state !== "idle" && state !== "pop") { console.log("[Indicator] onContextMenu: ignored (state=" + state + ")"); return; }
     const raw = await goCall("getIndicatorMenu");
+    console.log("[Indicator] onContextMenu: menu data:", raw);
     if (raw) {
       try {
         const data = JSON.parse(raw);
         setMenuItems(data.prompts || []);
         setMenuOpen(true);
-        // Resize window to fit menu.
         const menuH = (data.prompts?.length || 0) * 28 + 60;
+        console.log("[Indicator] onContextMenu: opening menu, items=" + (data.prompts?.length || 0) + " height=" + menuH);
         goCall("resizeIndicatorForMenu", 200, Math.max(menuH, 100));
-      } catch { /* ignore */ }
+      } catch (err) { console.error("[Indicator] onContextMenu: parse error", err); }
     }
   }
 

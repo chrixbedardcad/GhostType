@@ -102,6 +102,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	settingsSvc.OpenAccessibilityPaneFn = openAccessibilityPane
 	settingsSvc.OpenInputMonitoringPaneFn = openInputMonitoringPane
 
+	// Give the indicator access to the live config so it works before Settings opens.
+	settingsSvc.SetLiveConfig(cfg, &mu)
+
 	// Wire ResetClients callback so the GUI can unload the Ghost-AI engine
 	// before deleting a model file (releases the file lock on Windows).
 	settingsSvc.ResetClientsFn = func() {
