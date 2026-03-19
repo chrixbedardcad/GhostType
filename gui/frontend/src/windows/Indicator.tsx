@@ -219,7 +219,7 @@ export function IndicatorWindow() {
         />
         {icon && (
           <span style={{
-            position: "absolute", top: "-2px", left: "-2px",
+            position: "absolute", top: "2px", left: "2px",
             fontSize: "12px", lineHeight: 1, pointerEvents: "none",
           }}>{icon}</span>
         )}
