@@ -632,7 +632,6 @@ func (s *SettingsService) GetActivePromptInfo() string {
 }
 
 // ResizeIndicatorForMenu temporarily resizes the indicator window for the context menu (#214).
-// ResizeIndicatorForMenu temporarily resizes the indicator window for the context menu (#214).
 func (s *SettingsService) ResizeIndicatorForMenu(width, height int) string {
 	indicatorMu.Lock()
 	win := indicatorWin

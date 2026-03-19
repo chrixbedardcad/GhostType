@@ -90,8 +90,6 @@ type Config struct {
 	SoundEnabled      *bool  `json:"sound_enabled"`
 	IndicatorPosition string `json:"indicator_position,omitempty"` // center, top-right, top-left, bottom-right, bottom-left, hidden
 	IndicatorMode     string `json:"indicator_mode,omitempty"`     // "processing" (default), "always", "hidden" (#211)
-	IndicatorX        int    `json:"indicator_x,omitempty"`        // saved drag position X
-	IndicatorY        int    `json:"indicator_y,omitempty"`        // saved drag position Y
 	LogLevel          string `json:"log_level"`
 	LogFile           string `json:"log_file"`
 	LastSeenVersion   string `json:"last_seen_version,omitempty"`
