@@ -67,7 +67,7 @@ func ShowWizardOnApp(svc *SettingsService, app *application.App, cfg *config.Con
 		Title:  "GhostSpell Setup",
 		Width:  620,
 		Height: 750,
-		URL:    "/dist/react.html?window=wizard",
+		URL:    "/wizard.html",
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
 			Backdrop:               application.MacBackdropTranslucent,
@@ -126,7 +126,7 @@ func ShowSettings(svc *SettingsService, cfg *config.Config, configPath string, o
 		Title:     "GhostSpell Settings",
 		Width:     760,
 		Height:    660,
-		URL:       "/dist/react.html?window=settings",
+		URL:       "/index.html",
 		Frameless: runtime.GOOS == "windows",
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
@@ -182,7 +182,7 @@ func ShowUpdateWindow(svc *SettingsService, cfg *config.Config, configPath strin
 		Title:  "GhostSpell Update",
 		Width:  400,
 		Height: 420,
-		URL:    "/dist/react.html?window=update",
+		URL:    "/update.html",
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
 			Backdrop:               application.MacBackdropTranslucent,
@@ -246,7 +246,7 @@ func showStandaloneWindow(cfg *config.Config, configPath string, onSaved func())
 		Title:  "GhostSpell Setup",
 		Width:  600,
 		Height: 640,
-		URL:    "/dist/react.html?window=wizard",
+		URL:    "/wizard.html",
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
 			Backdrop:               application.MacBackdropTranslucent,

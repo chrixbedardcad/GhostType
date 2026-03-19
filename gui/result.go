@@ -3,7 +3,6 @@ package gui
 import (
 	"encoding/json"
 	"log/slog"
-	"net/url"
 	"sync"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -62,7 +61,7 @@ func ShowResult(text, promptName, promptIcon, modelLabel string) {
 		Title:  "GhostSpell — " + promptName,
 		Width:  500,
 		Height: 420,
-		URL:    "/dist/react.html?window=result&prompt=" + url.QueryEscape(promptName),
+		URL:    "/result.html",
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
 			Backdrop:               application.MacBackdropTranslucent,

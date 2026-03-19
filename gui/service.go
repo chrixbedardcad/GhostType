@@ -632,6 +632,17 @@ func (s *SettingsService) GetActivePromptInfo() string {
 }
 
 // ResizeIndicatorForMenu temporarily resizes the indicator window for the context menu (#214).
+// ResizeIndicatorForMenu temporarily resizes the indicator window for the context menu (#214).
+func (s *SettingsService) ResizeIndicatorForMenu(width, height int) string {
+	indicatorMu.Lock()
+	win := indicatorWin
+	indicatorMu.Unlock()
+	if win != nil {
+		win.SetSize(width, height)
+	}
+	return "ok"
+}
+
 // OnIndicatorOpenSettings is a callback set by app.go to open settings from the indicator.
 var OnIndicatorOpenSettings func()
 
