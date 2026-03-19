@@ -2,7 +2,6 @@ package gui
 
 import (
 	"log/slog"
-	"net/url"
 	"runtime"
 	"sync"
 	"time"
@@ -17,9 +16,6 @@ var (
 )
 
 // CreateIndicator stores the app reference for lazy window creation.
-// The actual window is NOT created until ShowIndicator is first called.
-// This prevents the AlwaysOnTop + IgnoreMouseEvents=false window from
-// blocking clicks during the wizard, OAuth flows, and first-launch setup.
 func CreateIndicator(app *application.App) {
 	indicatorMu.Lock()
 	defer indicatorMu.Unlock()
@@ -27,27 +23,37 @@ func CreateIndicator(app *application.App) {
 	slog.Info("[gui] Indicator lazy-init registered (window created on first use)")
 }
 
-// ensureIndicatorWindow lazily creates the indicator window on first use.
-// Must be called with indicatorMu held.
+// ensureIndicatorWindow lazily creates the fixed-size indicator window.
+// The window is 320x400, transparent, always on top, and never resizes.
+// All visual changes happen via Wails events → React CSS transitions.
 func ensureIndicatorWindow() {
 	if indicatorWin != nil || indicatorApp == nil {
 		return
 	}
 
 	bgType := application.BackgroundTypeTransparent
-	ignoreMouse := true
+	ignoreMouse := false // must receive clicks for drag + context menu
 	if runtime.GOOS == "windows" {
 		bgType = application.BackgroundTypeTranslucent
-		ignoreMouse = false
+	}
+
+	// Calculate initial position.
+	x, y := getDefaultIndicatorPos()
+
+	// Use saved position if available.
+	indicatorMu.Unlock() // temporarily unlock to avoid deadlock with config access
+	indicatorMu.Lock()
+	if indicatorSavedX > 0 || indicatorSavedY > 0 {
+		x, y = indicatorSavedX, indicatorSavedY
 	}
 
 	indicatorWin = indicatorApp.Window.NewWithOptions(application.WebviewWindowOptions{
 		Name:              "ghostspell-indicator",
 		Title:             "",
-		X:                 -9999,
-		Y:                 -9999,
-		Width:             1,
-		Height:            1,
+		X:                 x,
+		Y:                 y,
+		Width:             320,
+		Height:            400,
 		Frameless:         true,
 		AlwaysOnTop:       true,
 		BackgroundType:    bgType,
@@ -55,9 +61,9 @@ func ensureIndicatorWindow() {
 		DisableResize:     true,
 		Hidden:            false,
 		IgnoreMouseEvents: ignoreMouse,
-		URL:               "/indicator.html",
+		URL:               "/dist/react.html?window=indicator",
 		Windows: application.WindowsWindow{
-			HiddenOnTaskbar:                   true,
+			HiddenOnTaskbar:                  true,
 			DisableFramelessWindowDecorations: true,
 		},
 		Mac: application.MacWindow{
@@ -66,7 +72,7 @@ func ensureIndicatorWindow() {
 			WindowLevel: application.MacWindowLevelFloating,
 		},
 	})
-	slog.Info("[gui] Indicator window created (lazy, first use)")
+	slog.Info("[gui] Indicator window created (fixed 320x400)", "x", x, "y", y)
 }
 
 // indicatorPos stores the configured position. Set by the app at startup.
@@ -74,6 +80,9 @@ var indicatorPos = "top-right"
 
 // indicatorMode stores the configured mode: "processing" (default), "always", "hidden".
 var indicatorMode = "processing"
+
+// indicatorSavedX/Y stores the user's dragged position.
+var indicatorSavedX, indicatorSavedY int
 
 // SetIndicatorPosition sets the configured position for the indicator.
 func SetIndicatorPosition(pos string) {
@@ -89,8 +98,50 @@ func SetIndicatorMode(mode string) {
 	indicatorMu.Unlock()
 }
 
-// PreviewIndicatorPosition briefly shows the indicator at the current position
-// so the user can see where it will appear. Auto-hides after 2 seconds.
+// SetIndicatorSavedPosition sets the saved drag position.
+func SetIndicatorSavedPosition(x, y int) {
+	indicatorMu.Lock()
+	indicatorSavedX = x
+	indicatorSavedY = y
+	indicatorMu.Unlock()
+}
+
+// emitIndicatorEvent sends a state update to the React indicator.
+func emitIndicatorEvent(data map[string]any) {
+	app := application.Get()
+	if app != nil {
+		app.Event.Emit("indicatorState", data)
+	}
+}
+
+// getDefaultIndicatorPos calculates the default ghost position based on config.
+func getDefaultIndicatorPos() (int, int) {
+	app := application.Get()
+	if app == nil {
+		return 100, 100
+	}
+	screen := app.Screen.GetPrimary()
+	if screen == nil {
+		return 100, 100
+	}
+
+	pos := indicatorPos
+	// Ghost appears at window origin; use 48px as ghost size for edge offset.
+	switch pos {
+	case "top-left":
+		return screen.WorkArea.X + 20, screen.WorkArea.Y + 20
+	case "top-right":
+		return screen.WorkArea.X + screen.WorkArea.Width - 68, screen.WorkArea.Y + 20
+	case "bottom-left":
+		return screen.WorkArea.X + 20, screen.WorkArea.Y + screen.WorkArea.Height - 68
+	case "bottom-right":
+		return screen.WorkArea.X + screen.WorkArea.Width - 68, screen.WorkArea.Y + screen.WorkArea.Height - 68
+	default: // "center"
+		return screen.WorkArea.X + (screen.WorkArea.Width-48)/2, screen.WorkArea.Y + screen.WorkArea.Height/3
+	}
+}
+
+// PreviewIndicatorPosition shows the indicator briefly at the configured position.
 func PreviewIndicatorPosition() {
 	indicatorMu.Lock()
 	pos := indicatorPos
@@ -105,65 +156,24 @@ func PreviewIndicatorPosition() {
 		return
 	}
 
-	win.SetSize(260, 52)
-	u := "/indicator.html?i=%E2%9C%8F%EF%B8%8F&n=Preview&pop=1"
-	win.SetURL(u)
-	time.Sleep(150 * time.Millisecond)
-
-	x, y := getIndicatorPosition()
+	// Move to default position (ignoring saved drag position for preview).
+	x, y := getDefaultIndicatorPos()
 	win.SetPosition(x, y)
+
+	// Show as pop
+	emitIndicatorEvent(map[string]any{
+		"state": "pop",
+		"icon":  "✏️",
+		"name":  "Preview",
+	})
 
 	go func() {
 		time.Sleep(2 * time.Second)
-		indicatorMu.Lock()
-		w := indicatorWin
-		indicatorMu.Unlock()
-		if w != nil {
-			w.SetPosition(-9999, -9999)
-			w.SetURL("/indicator.html")
-			w.SetSize(1, 1)
-		}
+		emitIndicatorEvent(map[string]any{"state": "hidden"})
 	}()
 }
 
-func getIndicatorPositionForSize(w, h int) (int, int) {
-	app := application.Get()
-	if app == nil {
-		return 100, 100
-	}
-	screen := app.Screen.GetPrimary()
-	if screen == nil {
-		return 100, 100
-	}
-
-	indicatorMu.Lock()
-	pos := indicatorPos
-	indicatorMu.Unlock()
-
-	switch pos {
-	case "top-left":
-		return screen.WorkArea.X + 20, screen.WorkArea.Y + 20
-	case "top-right":
-		return screen.WorkArea.X + screen.WorkArea.Width - w - 20, screen.WorkArea.Y + 20
-	case "bottom-left":
-		return screen.WorkArea.X + 20, screen.WorkArea.Y + screen.WorkArea.Height - h - 20
-	case "bottom-right":
-		return screen.WorkArea.X + screen.WorkArea.Width - w - 20, screen.WorkArea.Y + screen.WorkArea.Height - h - 20
-	default: // "center"
-		return screen.WorkArea.X + (screen.WorkArea.Width-w)/2, screen.WorkArea.Y + screen.WorkArea.Height/3
-	}
-}
-
-func getIndicatorPosition() (int, int) {
-	return getIndicatorPositionForSize(260, 52)
-}
-
-func getIdlePosition() (int, int) {
-	return getIndicatorPositionForSize(48, 48)
-}
-
-// ShowIdle displays the indicator in idle mode — small ghost circle, semi-transparent.
-// Called on app startup when IndicatorMode is "always" (#211).
+// ShowIdle displays the indicator in idle mode.
 func ShowIdle() {
 	indicatorMu.Lock()
 	mode := indicatorMode
@@ -172,21 +182,13 @@ func ShowIdle() {
 		return
 	}
 	ensureIndicatorWindow()
-	win := indicatorWin
 	indicatorMu.Unlock()
-	if win == nil {
-		return
-	}
 
 	slog.Debug("[indicator] ShowIdle: displaying idle ghost")
-	win.SetSize(48, 48)
-	win.SetURL("/indicator.html?state=idle")
-	time.Sleep(150 * time.Millisecond)
-
-	x, y := getIdlePosition()
-	win.SetPosition(x, y)
+	emitIndicatorEvent(map[string]any{"state": "idle"})
 }
 
+// ShowIndicator shows the processing state with prompt info.
 func ShowIndicator(promptIcon, promptName, modelLabel string) {
 	slog.Debug("[indicator] ShowIndicator called", "prompt", promptName, "icon", promptIcon, "model", modelLabel)
 
@@ -196,75 +198,61 @@ func ShowIndicator(promptIcon, promptName, modelLabel string) {
 		indicatorMu.Unlock()
 		return
 	}
-	// Lazy-create the window on first actual use.
 	ensureIndicatorWindow()
-	win := indicatorWin
 	indicatorMu.Unlock()
-	if win == nil {
-		return
-	}
 
-	// Set processing size.
-	win.SetSize(260, 52)
-
-	u := "/indicator.html?i=" + url.QueryEscape(promptIcon) + "&n=" + url.QueryEscape(promptName) + "&m=" + url.QueryEscape(modelLabel)
-	win.SetURL(u)
-	time.Sleep(150 * time.Millisecond) // let page load
-
-	// Move on-screen at the configured position.
-	x, y := getIndicatorPosition()
-	win.SetPosition(x, y)
+	emitIndicatorEvent(map[string]any{
+		"state": "processing",
+		"icon":  promptIcon,
+		"name":  promptName,
+		"model": modelLabel,
+	})
 }
 
+// HideIndicator hides the indicator or returns to idle in "always" mode.
 func HideIndicator() {
 	indicatorMu.Lock()
-	win := indicatorWin
 	mode := indicatorMode
 	indicatorMu.Unlock()
-	if win == nil {
-		return
-	}
 
 	slog.Debug("[indicator] HideIndicator called", "mode", mode)
 
-	// In "always" mode, return to idle state instead of hiding (#211).
 	if mode == "always" {
-		win.SetSize(48, 48)
-		win.SetURL("/indicator.html?state=idle")
-		time.Sleep(100 * time.Millisecond)
-		// Restore idle position.
-		x, y := getIdlePosition()
-		win.SetPosition(x, y)
+		emitIndicatorEvent(map[string]any{"state": "idle"})
 		return
 	}
 
-	// Default: move off-screen to stop blocking clicks immediately.
-	win.SetPosition(-9999, -9999)
-	win.SetURL("/indicator.html")
-	win.SetSize(1, 1)
+	emitIndicatorEvent(map[string]any{"state": "hidden"})
 }
 
+// PopIndicator shows prompt name briefly, then auto-hides/returns to idle.
 func PopIndicator(promptIcon, promptName string) {
-	indicatorMu.Lock()
-	win := indicatorWin
-	indicatorMu.Unlock()
-	if win == nil {
-		return
-	}
-
 	slog.Debug("[indicator] PopIndicator called", "prompt", promptName, "icon", promptIcon)
 
-	win.SetSize(260, 52)
+	indicatorMu.Lock()
+	ensureIndicatorWindow()
+	indicatorMu.Unlock()
 
-	u := "/indicator.html?i=" + url.QueryEscape(promptIcon) + "&n=" + url.QueryEscape(promptName) + "&pop=1"
-	win.SetURL(u)
-	time.Sleep(150 * time.Millisecond)
-
-	x, y := getIndicatorPosition()
-	win.SetPosition(x, y)
+	emitIndicatorEvent(map[string]any{
+		"state": "pop",
+		"icon":  promptIcon,
+		"name":  promptName,
+	})
 
 	go func() {
-		time.Sleep(2500 * time.Millisecond) // longer display for cycle prompt visibility (#208)
-		HideIndicator() // returns to idle in "always" mode, hides in "processing" mode
+		time.Sleep(2500 * time.Millisecond)
+		HideIndicator()
 	}()
+}
+
+// SaveIndicatorPosition saves the drag position for the indicator.
+func (s *SettingsService) SaveIndicatorPosition(x, y int) string {
+	slog.Debug("[GUI] SaveIndicatorPosition", "x", x, "y", y)
+	SetIndicatorSavedPosition(x, y)
+	if s.cfgCopy != nil {
+		s.cfgCopy.IndicatorX = x
+		s.cfgCopy.IndicatorY = y
+		s.validateAndSave()
+	}
+	return "ok"
 }

@@ -213,6 +213,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				sound.SetEnabled(*cfg.SoundEnabled)
 				gui.SetIndicatorPosition(cfg.IndicatorPosition)
 				gui.SetIndicatorMode(cfg.IndicatorMode)
+				if cfg.IndicatorX > 0 || cfg.IndicatorY > 0 {
+					gui.SetIndicatorSavedPosition(cfg.IndicatorX, cfg.IndicatorY)
+				}
 				// Show or hide idle indicator based on mode change (#211).
 				if cfg.IndicatorMode == "always" {
 					go gui.ShowIdle()
@@ -331,6 +334,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	gui.CreateIndicator(wailsApp)
 	gui.SetIndicatorPosition(cfg.IndicatorPosition)
 	gui.SetIndicatorMode(cfg.IndicatorMode)
+	if cfg.IndicatorX > 0 || cfg.IndicatorY > 0 {
+		gui.SetIndicatorSavedPosition(cfg.IndicatorX, cfg.IndicatorY)
+	}
 
 	// Wire indicator → settings callback (#211).
 	gui.OnIndicatorOpenSettings = func() {
