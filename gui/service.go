@@ -669,6 +669,20 @@ func (s *SettingsService) GetActivePromptInfo() string {
 	return string(j)
 }
 
+// IndicatorReady is called by the React indicator when Wails runtime is confirmed ready.
+// Emits the current state so React syncs up with Go (fixes event race condition).
+func (s *SettingsService) IndicatorReady() string {
+	slog.Info("[GUI] IndicatorReady: React confirmed Wails runtime available")
+	indicatorMu.Lock()
+	mode := indicatorMode
+	indicatorMu.Unlock()
+	// Re-emit current state so React picks it up.
+	if mode == "always" {
+		emitIndicatorEvent(map[string]any{"state": "idle"})
+	}
+	return "ok"
+}
+
 // MoveIndicatorWindow moves the indicator window to the given screen position.
 // Called from JS drag handler since window.moveTo() doesn't work in WebView2.
 func (s *SettingsService) MoveIndicatorWindow(x, y int) string {
