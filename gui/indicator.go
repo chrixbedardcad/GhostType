@@ -182,7 +182,7 @@ func getIndicatorPositionForSize(w, h int) (int, int) {
 	}
 }
 
-func getIndicatorPosition() (int, int) { return getIndicatorPositionForSize(260, 52) }
+func getIndicatorPosition() (int, int) { return getIndicatorPositionForSize(300, 52) }
 func getIdlePosition() (int, int)      { return getIndicatorPositionForSize(48, 48) }
 
 // PreviewIndicatorPosition shows the indicator briefly.
@@ -200,7 +200,7 @@ func PreviewIndicatorPosition() {
 		return
 	}
 
-	win.SetSize(260, 52)
+	win.SetSize(300, 52)
 	x, y := getIndicatorPosition()
 	win.SetPosition(x, y)
 	emitIndicatorEvent(map[string]any{"state": "pop", "icon": "✏️", "name": "Preview"})
@@ -253,7 +253,7 @@ func ShowIndicator(promptIcon, promptName, modelLabel string) {
 		return
 	}
 
-	win.SetSize(260, 52)
+	win.SetSize(300, 52)
 	x, y := getIndicatorPosition()
 	slog.Info("[indicator] ShowIndicator: positioning", "size", "260x52", "x", x, "y", y, "prompt", promptName, "model", modelLabel)
 	win.SetPosition(x, y)
@@ -304,7 +304,7 @@ func PopIndicator(promptIcon, promptName string) {
 
 	slog.Info("[indicator] PopIndicator called", "prompt", promptName, "icon", promptIcon)
 
-	win.SetSize(260, 52)
+	win.SetSize(300, 52)
 	x, y := getIndicatorPosition()
 	slog.Info("[indicator] PopIndicator: positioning", "size", "260x52", "x", x, "y", y)
 	win.SetPosition(x, y)

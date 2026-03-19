@@ -288,7 +288,7 @@ func processMode(
 	// LLM call complete — show a "done" summary on the indicator so
 	// the user can see which prompt ran, the model used, and how long it took.
 	// PopIndicator auto-hides after 5 seconds (#233).
-	doneMsg := fmt.Sprintf("%s  %s  %.1fs", promptName, indicatorModel, llmElapsed.Seconds())
+	doneMsg := fmt.Sprintf("%s  |  %s  |  %.1fs", promptName, indicatorModel, llmElapsed.Seconds())
 	gui.PopIndicator(promptIcon, doneMsg)
 	showedDoneSummary = true
 	kb.RestoreForegroundWindow()

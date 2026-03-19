@@ -641,8 +641,9 @@ func (s *SettingsService) GetIndicatorMenu() string {
 		Active bool   `json:"active"`
 	}
 	type menuData struct {
-		Prompts []menuPrompt `json:"prompts"`
-		Version string       `json:"version"`
+		Prompts      []menuPrompt `json:"prompts"`
+		Version      string       `json:"version"`
+		ActiveModel  string       `json:"activeModel"`
 	}
 	var data menuData
 	data.Version = version.Version
@@ -655,6 +656,7 @@ func (s *SettingsService) GetIndicatorMenu() string {
 				Active: i == cfg.ActivePrompt,
 			})
 		}
+		data.ActiveModel = cfg.DefaultModel
 	} else {
 		slog.Warn("[GUI] GetIndicatorMenu: no config available")
 	}

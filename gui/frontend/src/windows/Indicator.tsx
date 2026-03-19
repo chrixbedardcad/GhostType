@@ -36,6 +36,7 @@ export function IndicatorWindow() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuPrompt[]>([]);
   const [menuVersion, setMenuVersion] = useState("");
+  const [menuModel, setMenuModel] = useState("");
   const timerRef = useRef<number | null>(null);
   const [eventsReady, setEventsReady] = useState(false);
 
@@ -154,6 +155,7 @@ export function IndicatorWindow() {
         const data = JSON.parse(raw);
         setMenuItems(data.prompts || []);
         if (data.version) setMenuVersion(data.version);
+        if (data.activeModel) setMenuModel(data.activeModel);
         setMenuOpen(true);
         // Height: version(26) + prompts(34 each) + divider(5) + settings(34) + quit(34) + border/padding(20)
         const menuH = 26 + (data.prompts?.length || 0) * 34 + 5 + 34 + 34 + 20;
@@ -183,14 +185,13 @@ export function IndicatorWindow() {
     return <div style={{ background: "rgb(30,30,46)" }} />;
   }
 
-  // Idle state: 48x48 circle with ghost icon, draggable, click opens settings.
+  // Idle state: 48x48 circle with ghost icon + active prompt icon overlay.
   if (!isPill && !menuOpen) {
     return (
       <div
         onClick={onClick}
         onContextMenu={onContextMenu}
         style={{
-          // Wails native drag: hold and move to drag the window.
           "--wails-draggable": "drag",
           background: "rgb(30, 30, 46)",
           width: "48px", height: "48px",
@@ -201,6 +202,7 @@ export function IndicatorWindow() {
           cursor: "grab",
           opacity: 0.5,
           transition: "opacity 200ms",
+          position: "relative",
         } as React.CSSProperties}
         title={`${icon} ${name}`.trim() || "GhostSpell"}
         onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
@@ -215,6 +217,12 @@ export function IndicatorWindow() {
             pointerEvents: "none",
           }}
         />
+        {icon && (
+          <span style={{
+            position: "absolute", top: "-2px", left: "-2px",
+            fontSize: "12px", lineHeight: 1, pointerEvents: "none",
+          }}>{icon}</span>
+        )}
         <style>{`@keyframes breathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }`}</style>
       </div>
     );
@@ -227,7 +235,7 @@ export function IndicatorWindow() {
         style={{
           "--wails-draggable": "drag",
           background: "rgb(30, 30, 46)",
-          width: "260px", height: "52px",
+          width: "fit-content", maxWidth: "300px", minWidth: "120px", height: "52px",
           display: "flex", alignItems: "center",
           gap: "8px",
           padding: "6px 14px 6px 6px",
@@ -291,9 +299,10 @@ export function IndicatorWindow() {
       minWidth: "200px",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     }}>
-      {menuVersion && (
-        <div style={{ padding: "6px 12px 4px", fontSize: "10px", color: "#585b70", letterSpacing: "0.5px" }}>
-          GhostSpell v{menuVersion}
+      {(menuVersion || menuModel) && (
+        <div style={{ padding: "6px 12px 4px", fontSize: "10px", color: "#585b70", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between" }}>
+          <span>GhostSpell v{menuVersion}</span>
+          {menuModel && <span style={{ color: "#6c7086" }}>{menuModel}</span>}
         </div>
       )}
       {menuItems.map((item, idx) => (

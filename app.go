@@ -55,7 +55,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		}
 		slog.Info("Active prompt changed", "index", idx, "name", name)
 		fmt.Printf("Active prompt: %s\n", name)
-		sound.PlayToggle()
+		sound.PlayClick()
 		// Notify settings UI if open.
 		gui.EmitConfigChanged()
 	}
@@ -243,7 +243,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 			mu.Unlock()
 			config.WriteDefault(configPath, cfg)
 			slog.Info("Default model changed", "label", label)
-			sound.PlayToggle()
+			sound.PlayClick()
 			scheduleHotkeyRecovery()
 		},
 		OnUpdateClick: func() {
@@ -494,15 +494,19 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				idx, name := localRouter.CyclePrompt()
 				slog.Info("Prompt cycled", "index", idx, "name", name)
 				fmt.Printf("Active prompt: %s\n", name)
-				sound.PlayToggle()
-				// Show a brief pop of the indicator pill with the new prompt.
+				sound.PlayClick()
+				// Show a brief pop of the indicator pill with prompt + model.
 				mu.Lock()
 				icon := ""
 				if idx >= 0 && idx < len(cfg.Prompts) {
 					icon = cfg.Prompts[idx].Icon
 				}
+				popLabel := name
+				if cfg.DefaultModel != "" {
+					popLabel = name + "  |  " + cfg.DefaultModel
+				}
 				mu.Unlock()
-				gui.PopIndicator(icon, name)
+				gui.PopIndicator(icon, popLabel)
 			}); err != nil {
 				slog.Warn("Cycle-prompt hotkey registration failed (non-fatal, may be taken by another app)", "key", cfg.Hotkeys.CyclePrompt, "error", err)
 				fmt.Fprintf(os.Stderr, "Warning: cycle-prompt hotkey %s unavailable: %v\n", cfg.Hotkeys.CyclePrompt, err)
