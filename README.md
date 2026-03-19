@@ -130,7 +130,7 @@ Emoji icons show in the tray menu for quick recognition. You can create custom p
 - **ChatGPT OAuth** — Log in with your ChatGPT account, no API key needed.
 - **Setup wizard** — 4-step guided setup on first launch: Welcome → Permissions (macOS) → Model Selector → Ready.
 - **Prompt icons** — Emoji icons in the tray menu for each prompt (✏️ Correct, 💎 Polish, etc.).
-- **Settings GUI** — 7-tab settings panel: About, General, Models, Prompts, Hotkeys, Debug, Help. No JSON editing required.
+- **Settings GUI** — 8-tab settings panel built with React: About, General, Models, Prompts, Hotkeys, Stats, Debug, Help. Dark zen theme with custom-styled dropdowns.
 - **One-click updates** — Check for updates and install from Settings > About.
 - **Ollama integration** — Detect, install, pull models from the GUI.
 - **Custom prompts** — Add your own prompt templates with optional per-prompt LLM overrides.
@@ -263,18 +263,39 @@ Sound requires PulseAudio (`paplay`) or ALSA (`aplay`).
 
 ## Building from Source
 
-Requires **Go 1.25+**.
+Requires **Go 1.25+** and **Node.js 22+**.
 
 ```bash
 git clone https://github.com/chrixbedardcad/GhostSpell.git
 cd GhostSpell
 ```
 
-All platforms require CGO_ENABLED=1. To include the built-in Ghost-AI engine (embedded llama.cpp), first build the static libraries, then compile with the `ghostai` tag:
+### 1. Build the React frontend
+
+The UI is built with React + Vite + Tailwind. This step must run before `go build`.
+
+```bash
+cd gui/frontend
+npm install
+npm run build
+cd ../..
+```
+
+This creates `gui/frontend/dist/` with the compiled assets. If you skip this step, the app will show blank windows.
+
+### 2. Build Ghost-AI (optional)
+
+To include the built-in local AI engine (embedded llama.cpp), build the static libraries first:
 
 ```bash
 ./scripts/build-ghostai.sh   # downloads llama.cpp b8281, builds static libs
 ```
+
+Skip this step if you only want cloud providers (OpenAI, Anthropic, etc.).
+
+### 3. Build the binary
+
+All platforms require `CGO_ENABLED=1`.
 
 **Windows** (requires MinGW):
 ```bash
@@ -290,6 +311,32 @@ go build -tags "webkit2_41 production ghostai" -o ghostspell .
 **macOS**:
 ```bash
 go build -tags "production ghostai" -o ghostspell .
+```
+
+Drop the `ghostai` tag if you skipped step 2:
+```bash
+go build -tags "production" -o ghostspell.exe .
+```
+
+### 4. Run
+
+```bash
+./ghostspell          # macOS / Linux
+.\ghostspell.exe      # Windows
+```
+
+### Development
+
+For frontend development with hot reload:
+
+```bash
+cd gui/frontend
+npm run dev           # starts Vite dev server with HMR
+```
+
+Type-check without building:
+```bash
+npm run typecheck
 ```
 
 **Tests:**
