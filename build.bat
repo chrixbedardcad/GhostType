@@ -26,7 +26,7 @@ cd ..\..
 
 echo.
 echo [3/3] Building Go binary...
-go build -tags "production" -o ghostspell.exe .
+go build -tags "production ghostai" -o ghostspell.exe .
 if %errorlevel% neq 0 (
     echo ERROR: Go build failed
     pause
