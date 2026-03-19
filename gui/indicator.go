@@ -34,9 +34,14 @@ func ensureIndicatorWindow() {
 	}
 
 	bgType := application.BackgroundTypeTransparent
+	// On Windows, BackgroundTypeTranslucent + Alpha=0 makes the window fully
+	// click-through. Use Alpha=1 so the OS treats the window as interactive
+	// while still appearing transparent to the human eye.
+	bgAlpha := uint8(0)
 	ignoreMouse := false // must receive clicks for drag + context menu
 	if runtime.GOOS == "windows" {
 		bgType = application.BackgroundTypeTranslucent
+		bgAlpha = 1
 	}
 
 	indicatorWin = indicatorApp.Window.NewWithOptions(application.WebviewWindowOptions{
@@ -49,7 +54,7 @@ func ensureIndicatorWindow() {
 		Frameless:         true,
 		AlwaysOnTop:       true,
 		BackgroundType:    bgType,
-		BackgroundColour:  application.RGBA{Red: 0, Green: 0, Blue: 0, Alpha: 0},
+		BackgroundColour:  application.RGBA{Red: 0, Green: 0, Blue: 0, Alpha: bgAlpha},
 		DisableResize:     true,
 		Hidden:            false,
 		IgnoreMouseEvents: ignoreMouse,

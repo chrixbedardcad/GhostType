@@ -49,6 +49,18 @@ export function IndicatorWindow() {
     const root = document.getElementById("root");
     if (root) root.style.cssText = "background:transparent!important;width:100%;height:100%";
     console.log("[Indicator] Background set, initial state:", state);
+
+    // Fetch current active prompt so idle indicator shows which prompt is selected.
+    goCall("getActivePromptInfo").then((raw) => {
+      if (raw) {
+        try {
+          const info = JSON.parse(raw);
+          if (info.name) setName(info.name);
+          if (info.icon) setIcon(info.icon);
+          console.log("[Indicator] Active prompt loaded:", info.name);
+        } catch { /* ignore */ }
+      }
+    });
   }, []);
 
   // Listen for state events from Go.
@@ -208,6 +220,7 @@ export function IndicatorWindow() {
           onClick={onClick}
           onDoubleClick={onDoubleClick}
           onContextMenu={onContextMenu}
+          title={state === "idle" ? `${icon} ${name}`.trim() || "GhostSpell" : undefined}
           style={{
             display: "flex",
             alignItems: "center",
