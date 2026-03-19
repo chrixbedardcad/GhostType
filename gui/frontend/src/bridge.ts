@@ -27,11 +27,25 @@ declare global {
 const PKG = "github.com/chrixbedardcad/GhostSpell/gui.SettingsService.";
 
 /**
+ * Wait for the Wails runtime to be injected into the window.
+ * Retries up to 30 times (100ms each = 3s max), matching the old indicator's approach.
+ */
+async function waitForWails(): Promise<boolean> {
+  for (let i = 0; i < 30; i++) {
+    if (typeof window.wails !== "undefined" && window.wails.Call) return true;
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  console.error("[bridge] Wails runtime not available after 3s");
+  return false;
+}
+
+/**
  * Call a Go method on SettingsService.
  * Method name is auto-capitalized: "getConfig" → "GetConfig"
  */
 export async function goCall(method: string, ...args: unknown[]): Promise<string | null> {
   try {
+    if (!(await waitForWails())) return null;
     const fullMethod = PKG + method.charAt(0).toUpperCase() + method.slice(1);
     const result = await window.wails.Call.ByName(fullMethod, ...args);
     return result as string | null;
@@ -43,9 +57,27 @@ export async function goCall(method: string, ...args: unknown[]): Promise<string
 
 /**
  * Subscribe to a Wails event. Returns an unsubscribe function.
+ * Waits for the Wails runtime to be available before subscribing.
  */
 export function onEvent(name: string, callback: (data: unknown) => void): () => void {
-  return window.wails.Events.On(name, (event) => callback(event.data));
+  // If wails is already available, subscribe immediately.
+  if (typeof window.wails !== "undefined" && window.wails.Events) {
+    return window.wails.Events.On(name, (event) => callback(event.data));
+  }
+
+  // Otherwise, wait for it asynchronously and subscribe once ready.
+  let unsub: (() => void) | null = null;
+  let cancelled = false;
+
+  waitForWails().then((ok) => {
+    if (cancelled || !ok) return;
+    unsub = window.wails.Events.On(name, (event) => callback(event.data));
+  });
+
+  return () => {
+    cancelled = true;
+    if (unsub) unsub();
+  };
 }
 
 /**

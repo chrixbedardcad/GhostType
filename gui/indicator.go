@@ -44,8 +44,8 @@ func ensureIndicatorWindow() {
 		Title:             "",
 		X:                 -9999,
 		Y:                 -9999,
-		Width:             1,
-		Height:            1,
+		Width:             48,
+		Height:            48,
 		Frameless:         true,
 		AlwaysOnTop:       true,
 		BackgroundType:    bgType,
@@ -245,9 +245,9 @@ func HideIndicator() {
 		return
 	}
 
-	// Move off-screen.
+	// Move off-screen. Keep 48x48 so WebView2 stays renderable.
 	win.SetPosition(-9999, -9999)
-	win.SetSize(1, 1)
+	win.SetSize(48, 48)
 	emitIndicatorEvent(map[string]any{"state": "hidden"})
 }
 
