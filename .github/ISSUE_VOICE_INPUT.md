@@ -136,6 +136,38 @@ type TranscribeResult struct {
 
 **Default**: OpenAI Whisper API (most users will already have an OpenAI API key configured for LLM use).
 
+### Local Whisper (whisper.cpp) — Model Requirements
+
+`whisper.cpp` is the inference engine only — **model weights are not included** and must be downloaded separately. The models are in GGML format (`.bin` files) hosted on Hugging Face.
+
+| Model | File | Size | Quality | Speed |
+|-------|------|------|---------|-------|
+| `tiny` | `ggml-tiny.bin` | ~75 MB | Low — good for quick tests | Fastest |
+| `base` | `ggml-base.bin` | ~142 MB | Decent — works for clear speech | Fast |
+| `small` | `ggml-small.bin` | ~466 MB | Good — recommended default | Moderate |
+| `medium` | `ggml-medium.bin` | ~1.5 GB | Great — handles accents well | Slower |
+| `large-v3` | `ggml-large-v3.bin` | ~3 GB | Best accuracy | Slowest |
+
+**Recommended default**: `ggml-small.bin` — best trade-off between quality, size, and speed for typical desktop use.
+
+**Model download strategy** — do NOT bundle the model in the app binary:
+
+```
+1. User enables Voice + selects "whisper-local" provider in settings
+2. App checks for model at ~/.ghostspell/models/ggml-<model>.bin
+3. If missing → auto-download from Hugging Face (one-time)
+   Source: https://huggingface.co/ggerganov/whisper.cpp/tree/main
+4. Show download progress in Settings UI (progress bar + size)
+5. Cache locally, reuse on all future launches
+```
+
+**Implementation notes**:
+- whisper.cpp ships a helper script `models/download-ggml-model.sh` — replicate equivalent logic in Go (HTTP GET + progress tracking)
+- Store models in `~/.ghostspell/models/` (user-configurable via `VoiceConfig.ModelPath`)
+- Add a "Download Model" button in Voice Settings UI that triggers the download
+- Add a "Delete Model" option to free disk space
+- Validate downloaded model with checksum before use
+
 ### Configuration
 
 Add to `config/config.go`:
@@ -146,6 +178,7 @@ type VoiceConfig struct {
     Hotkey          string `json:"hotkey"`             // default: "Ctrl+Shift+G"
     STTProvider     string `json:"stt_provider"`       // "whisper", "whisper-local", "deepgram", "system"
     STTModel        string `json:"stt_model"`          // e.g. "whisper-1", "base", "large-v3"
+    ModelPath       string `json:"model_path"`         // local model dir, default: ~/.ghostspell/models/
     Language        string `json:"language"`            // BCP-47 or empty for auto-detect
     MaxRecordingSec int    `json:"max_recording_sec"`  // default: 60
     SilenceTimeoutMs int   `json:"silence_timeout_ms"` // auto-stop after silence, default: 2000
@@ -389,6 +422,9 @@ type Skill struct {
 - [ ] Microphone permission is requested gracefully on first use
 - [ ] Audio is captured at 16kHz mono PCM (optimal for STT)
 - [ ] OpenAI Whisper STT integration transcribes audio accurately
+- [ ] Local whisper.cpp auto-downloads the GGML model on first use (default: `ggml-small.bin`)
+- [ ] Model files are cached in `~/.ghostspell/models/` and reused across sessions
+- [ ] Settings UI shows model download progress and allows model selection/deletion
 - [ ] Indicator shows recording state with pulsing red dot
 - [ ] Push-to-talk and toggle recording modes both work
 - [ ] Silence detection auto-stops recording
