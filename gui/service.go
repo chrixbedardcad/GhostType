@@ -56,6 +56,10 @@ type SettingsService struct {
 	DebugLogPathFn func() string
 	DebugTailFn    func() (string, error)
 
+	// ResetClientsFn is called before deleting a local model to unload the
+	// Ghost-AI engine and release the file lock on Windows.
+	ResetClientsFn func()
+
 	// Stats callbacks.
 	GetStatsFn    func() string
 	ClearStatsFn  func()

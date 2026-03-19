@@ -1962,8 +1962,17 @@ async function provLocalDownloadModel(name) {
   }
 }
 
+var _deleteConfirming = {};
 async function provLocalDeleteModel(name) {
-  if (!confirm('Delete ' + name + '? You can re-download it later.')) return;
+  // Two-click confirm (confirm() freezes WebView2 on Windows).
+  if (!_deleteConfirming[name]) {
+    _deleteConfirming[name] = true;
+    var btns = document.querySelectorAll('button[onclick*="provLocalDeleteModel"]');
+    btns.forEach(function(b) { if (b.onclick && b.getAttribute('onclick').indexOf(name) >= 0) { b.textContent = 'Confirm Delete?'; b.style.background = '#f38ba8'; b.style.color = '#1e1e2e'; } });
+    setTimeout(function() { _deleteConfirming[name] = false; btns.forEach(function(b) { if (b.getAttribute('onclick').indexOf(name) >= 0) { b.textContent = 'Remove'; b.style.background = ''; b.style.color = ''; } }); }, 3000);
+    return;
+  }
+  _deleteConfirming[name] = false;
   var statusEl = document.getElementById('prov-local-action-status');
   var result = await goCall('localDeleteModel', name);
   if (result && result.startsWith('ok')) {

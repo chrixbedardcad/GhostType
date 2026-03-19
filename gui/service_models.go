@@ -76,8 +76,14 @@ func (s *SettingsService) LocalDownloadProgress() string {
 }
 
 // LocalDeleteModel deletes a downloaded local model.
+// On Windows the Ghost-AI engine may hold the GGUF file open, so we
+// reset (close) all cached LLM clients first to release the file lock.
 func (s *SettingsService) LocalDeleteModel(name string) string {
 	guiLog("[GUI] JS called: LocalDeleteModel(%s)", name)
+	if s.ResetClientsFn != nil {
+		guiLog("[GUI] LocalDeleteModel: resetting LLM clients to release file lock")
+		s.ResetClientsFn()
+	}
 	if err := llm.DeleteModel(name); err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}

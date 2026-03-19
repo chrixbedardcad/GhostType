@@ -102,6 +102,16 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	settingsSvc.OpenAccessibilityPaneFn = openAccessibilityPane
 	settingsSvc.OpenInputMonitoringPaneFn = openInputMonitoringPane
 
+	// Wire ResetClients callback so the GUI can unload the Ghost-AI engine
+	// before deleting a model file (releases the file lock on Windows).
+	settingsSvc.ResetClientsFn = func() {
+		mu.Lock()
+		defer mu.Unlock()
+		if router != nil {
+			router.ResetClients()
+		}
+	}
+
 	subFS, err := gui.FrontendSubFS()
 	if err != nil {
 		slog.Error("Failed to load frontend assets", "error", err)
