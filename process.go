@@ -73,6 +73,7 @@ func processMode(
 	*cancelLLM = cancelFn
 	mu.Unlock()
 
+	showedDoneSummary := false
 	defer func() {
 		cancelFn()
 		mu.Lock()
@@ -82,7 +83,11 @@ func processMode(
 		if stopAnim != nil {
 			stopAnim()
 		}
-		gui.HideIndicator()
+		// Don't hide if we just showed a completion summary — PopIndicator
+		// has its own auto-hide timer.
+		if !showedDoneSummary {
+			gui.HideIndicator()
+		}
 		processingActive.Store(false)
 		processingGuard.Unlock()
 	}()
@@ -280,11 +285,12 @@ func processMode(
 	resp, err := router.Process(ctx, promptIdx, textToSend)
 	llmElapsed := time.Since(llmStart)
 
-	// LLM call complete — show a brief "done" summary on the indicator so
+	// LLM call complete — show a "done" summary on the indicator so
 	// the user can see which prompt ran, the model used, and how long it took.
-	// Then auto-hide after 2 seconds (#233).
+	// PopIndicator auto-hides after 5 seconds (#233).
 	doneMsg := fmt.Sprintf("%s  %s  %.1fs", promptName, indicatorModel, llmElapsed.Seconds())
 	gui.PopIndicator(promptIcon, doneMsg)
+	showedDoneSummary = true
 	kb.RestoreForegroundWindow()
 
 	// Extract provider/model metadata from response (if available).

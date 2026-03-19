@@ -567,6 +567,27 @@ func (s *SettingsService) GetPlatform() string {
 
 // --- Indicator interactions (#211) ------------------------------------------
 
+// ShowCurrentPrompt shows the current active prompt as a pop indicator (no cycling).
+func (s *SettingsService) ShowCurrentPrompt() string {
+	slog.Info("[GUI] ShowCurrentPrompt called")
+	cfg := s.indicatorCfg()
+	if cfg == nil || len(cfg.Prompts) == 0 {
+		return "error: no prompts"
+	}
+	idx := cfg.ActivePrompt
+	if idx < 0 || idx >= len(cfg.Prompts) {
+		idx = 0
+	}
+	p := cfg.Prompts[idx]
+	// Build display with model info.
+	label := p.Name
+	if cfg.DefaultModel != "" {
+		label = p.Name + "  " + cfg.DefaultModel
+	}
+	PopIndicator(p.Icon, label)
+	return "ok"
+}
+
 // CyclePromptFromIndicator cycles to the next prompt (called from indicator click).
 func (s *SettingsService) CyclePromptFromIndicator() string {
 	slog.Info("[GUI] CyclePromptFromIndicator called")

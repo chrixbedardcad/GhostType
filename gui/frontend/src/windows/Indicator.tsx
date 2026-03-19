@@ -113,15 +113,28 @@ export function IndicatorWindow() {
     };
   }, []);
 
-  // --- Click handler: single click opens settings ---
+  // --- Click handler: single click expands to show prompt info, double-click opens settings ---
+  const clickTimer = useRef<number | null>(null);
+
   function onClick(e: React.MouseEvent) {
-    // Don't trigger click on drag.
     if (e.detail === 0) return;
     console.log("[Indicator] onClick: state=" + state);
     if (state !== "idle" && state !== "pop") return;
-    // Single click opens settings.
-    console.log("[Indicator] Opening settings...");
-    goCall("openSettingsFromIndicator").then(r => console.log("[Indicator] openSettings result:", r));
+    // Use timer to distinguish single from double click.
+    if (clickTimer.current) {
+      clearTimeout(clickTimer.current);
+      clickTimer.current = null;
+      // Double click — open settings.
+      console.log("[Indicator] Double-click: opening settings...");
+      goCall("openSettingsFromIndicator");
+      return;
+    }
+    clickTimer.current = window.setTimeout(() => {
+      clickTimer.current = null;
+      // Single click — expand to show current prompt + model.
+      console.log("[Indicator] Single-click: showing current prompt...");
+      goCall("showCurrentPrompt");
+    }, 300);
   }
 
   async function onContextMenu(e: React.MouseEvent) {
