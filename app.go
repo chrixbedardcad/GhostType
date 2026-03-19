@@ -501,12 +501,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				if idx >= 0 && idx < len(cfg.Prompts) {
 					icon = cfg.Prompts[idx].Icon
 				}
-				popLabel := name
-				if cfg.DefaultModel != "" {
-					popLabel = name + "  |  " + cfg.DefaultModel
-				}
+				defaultModel := cfg.DefaultModel
 				mu.Unlock()
-				gui.PopIndicator(icon, popLabel)
+				gui.PopIndicatorWithModel(icon, name, defaultModel)
 			}); err != nil {
 				slog.Warn("Cycle-prompt hotkey registration failed (non-fatal, may be taken by another app)", "key", cfg.Hotkeys.CyclePrompt, "error", err)
 				fmt.Fprintf(os.Stderr, "Warning: cycle-prompt hotkey %s unavailable: %v\n", cfg.Hotkeys.CyclePrompt, err)

@@ -297,7 +297,7 @@ export function IndicatorWindow() {
               </>
             )}
           </div>
-          {(state === "processing" || state === "done") && model && (
+          {model && (
             <span style={{ fontSize: "9px", color: "#585b70", paddingLeft: icon ? "22px" : "0",
               fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
               {model}

@@ -323,8 +323,17 @@ func PopIndicatorDone(promptIcon, promptName, modelName string, elapsedSec float
 	}()
 }
 
+// PopIndicatorWithModel shows prompt name + model briefly, then auto-hides.
+func PopIndicatorWithModel(promptIcon, promptName, modelName string) {
+	popIndicatorInner(promptIcon, promptName, modelName)
+}
+
 // PopIndicator shows prompt name briefly, then auto-hides.
 func PopIndicator(promptIcon, promptName string) {
+	popIndicatorInner(promptIcon, promptName, "")
+}
+
+func popIndicatorInner(promptIcon, promptName, modelName string) {
 	indicatorMu.Lock()
 	ensureIndicatorWindow()
 	win := indicatorWin
@@ -341,7 +350,11 @@ func PopIndicator(promptIcon, promptName string) {
 	x, y := getIndicatorPosition()
 	slog.Info("[indicator] PopIndicator: positioning", "size", "260x52", "x", x, "y", y)
 	win.SetPosition(x, y)
-	emitIndicatorEvent(map[string]any{"state": "pop", "icon": promptIcon, "name": promptName})
+	evt := map[string]any{"state": "pop", "icon": promptIcon, "name": promptName}
+	if modelName != "" {
+		evt["model"] = modelName
+	}
+	emitIndicatorEvent(evt)
 
 	go func() {
 		time.Sleep(8 * time.Second)
