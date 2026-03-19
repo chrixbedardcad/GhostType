@@ -263,84 +263,101 @@ Sound requires PulseAudio (`paplay`) or ALSA (`aplay`).
 
 ## Building from Source
 
-Requires **Go 1.25+** and **Node.js 22+**.
+### Prerequisites
 
-```bash
-git clone https://github.com/chrixbedardcad/GhostSpell.git
-cd GhostSpell
+| Tool | Version | Install |
+|------|---------|---------|
+| **Go** | 1.25+ | https://go.dev/dl/ |
+| **Node.js** | 22+ | https://nodejs.org (LTS) — includes npm |
+| **Git** | any | https://git-scm.com |
+| **MinGW** (Windows only) | latest | `winget install MSYS2.MSYS2` then see below |
+
+#### Windows: Install MinGW (required for CGO)
+
+GhostSpell uses CGO for the Ghost-AI engine. On Windows, you need MinGW:
+
+```powershell
+# Install MSYS2 (if not installed)
+winget install MSYS2.MSYS2
+
+# Open MSYS2 UCRT64 terminal and install GCC:
+pacman -S --noconfirm mingw-w64-x86_64-gcc mingw-w64-x86_64-ninja
+
+# Add to PATH (run in PowerShell or add to system PATH permanently):
+$env:PATH = "C:\msys64\mingw64\bin;" + $env:PATH
 ```
 
-### 1. Build the React frontend
+Verify: `gcc --version` should show the MinGW GCC version.
 
-The UI is built with React + Vite + Tailwind. This step must run before `go build`.
+### Build Steps (Windows)
+
+Open a terminal (PowerShell, CMD, or Git Bash) in the project directory:
 
 ```bash
+# 1. Clone the repo
+git clone https://github.com/chrixbedardcad/GhostSpell.git
+cd GhostSpell
+
+# 2. Build the React frontend (required — without this, windows are blank)
 cd gui/frontend
 npm install
 npm run build
 cd ../..
-```
 
-This creates `gui/frontend/dist/` with the compiled assets. If you skip this step, the app will show blank windows.
+# 3. Build Ghost-AI static libraries (optional — for local AI)
+# In MSYS2 UCRT64 terminal or Git Bash:
+bash scripts/build-ghostai.sh
 
-### 2. Build Ghost-AI (optional)
-
-To include the built-in local AI engine (embedded llama.cpp), build the static libraries first:
-
-```bash
-./scripts/build-ghostai.sh   # downloads llama.cpp b8281, builds static libs
-```
-
-Skip this step if you only want cloud providers (OpenAI, Anthropic, etc.).
-
-### 3. Build the binary
-
-All platforms require `CGO_ENABLED=1`.
-
-**Windows** (requires MinGW):
-```bash
+# 4. Build the binary
+# With Ghost-AI (local AI):
 go build -tags "production ghostai" -ldflags "-H=windowsgui -extldflags '-static'" -o ghostspell.exe .
+
+# Without Ghost-AI (cloud providers only):
+go build -tags "production" -ldflags "-H=windowsgui" -o ghostspell.exe .
+
+# 5. Run (with console output for debugging):
+.\ghostspell.exe
 ```
 
-**Linux**:
+> **Note:** The `-H=windowsgui` flag hides the console window. For debugging, remove it to see log output:
+> ```bash
+> go build -tags "production ghostai" -extldflags '-static'" -o ghostspell.exe .
+> .\ghostspell.exe
+> ```
+
+### Build Steps (macOS)
+
+```bash
+git clone https://github.com/chrixbedardcad/GhostSpell.git
+cd GhostSpell
+cd gui/frontend && npm install && npm run build && cd ../..
+bash scripts/build-ghostai.sh
+go build -tags "production ghostai" -o ghostspell .
+./ghostspell
+```
+
+### Build Steps (Linux)
+
 ```bash
 sudo apt install libwebkit2gtk-4.1-dev libgtk-3-dev
+git clone https://github.com/chrixbedardcad/GhostSpell.git
+cd GhostSpell
+cd gui/frontend && npm install && npm run build && cd ../..
+bash scripts/build-ghostai.sh
 go build -tags "webkit2_41 production ghostai" -o ghostspell .
-```
-
-**macOS**:
-```bash
-go build -tags "production ghostai" -o ghostspell .
-```
-
-Drop the `ghostai` tag if you skipped step 2:
-```bash
-go build -tags "production" -o ghostspell.exe .
-```
-
-### 4. Run
-
-```bash
-./ghostspell          # macOS / Linux
-.\ghostspell.exe      # Windows
+./ghostspell
 ```
 
 ### Development
 
-For frontend development with hot reload:
-
 ```bash
-cd gui/frontend
-npm run dev           # starts Vite dev server with HMR
-```
+# Frontend hot reload (Vite dev server):
+cd gui/frontend && npm run dev
 
-Type-check without building:
-```bash
-npm run typecheck
-```
+# Type-check without building:
+cd gui/frontend && npm run typecheck
 
-**Tests:**
-```bash
+# Go tests:
 go test -tags webkit2_41 ./...
 ```
 
