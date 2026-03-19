@@ -62,7 +62,14 @@ func ensureIndicatorWindow() {
 		IgnoreMouseEvents: ignoreMouse,
 		URL:               "/dist/react.html?window=indicator",
 		Windows: application.WindowsWindow{
-			HiddenOnTaskbar:                  true,
+			// Don't use HiddenOnTaskbar — it adds WS_EX_NOACTIVATE which
+			// prevents WebView2 from receiving mouse events.
+			// Use ExStyle override with WS_EX_TOOLWINDOW instead (hides
+			// from taskbar but allows activation for mouse input).
+			// 0x10000 = WS_EX_CONTROLPARENT
+			// 0x00008 = WS_EX_TOPMOST
+			// 0x00080 = WS_EX_TOOLWINDOW
+			ExStyle:                          0x10088,
 			DisableFramelessWindowDecorations: true,
 		},
 		Mac: application.MacWindow{

@@ -40,14 +40,16 @@ export function IndicatorWindow() {
   const [menuItems, setMenuItems] = useState<MenuPrompt[]>([]);
   const timerRef = useRef<number | null>(null);
 
-  // Force transparent background — critical for Windows WebView2.
+  // Set up backgrounds and log mount status.
   useEffect(() => {
-    console.log("[Indicator] React mounted, setting transparent background");
+    console.log("[Indicator] React mounted");
     console.log("[Indicator] window.wails available:", typeof window.wails !== "undefined");
-    document.documentElement.style.cssText = "background:transparent!important;margin:0;padding:0;overflow:hidden";
-    document.body.style.cssText = "background:transparent!important;margin:0;padding:0;overflow:hidden";
+    // Match the solid dark background from Go-side BackgroundTypeSolid.
+    const bg = "rgb(30,30,46)";
+    document.documentElement.style.cssText = `background:${bg};margin:0;padding:0;overflow:hidden`;
+    document.body.style.cssText = `background:${bg};margin:0;padding:0;overflow:hidden`;
     const root = document.getElementById("root");
-    if (root) root.style.cssText = "background:transparent!important;width:100%;height:100%";
+    if (root) root.style.cssText = `background:${bg};width:100%;height:100%`;
     console.log("[Indicator] Background set, initial state:", state);
 
     // Fetch current active prompt so idle indicator shows which prompt is selected.
@@ -212,36 +214,27 @@ export function IndicatorWindow() {
 
   return (
     <div
+      onMouseDown={onMouseDown}
+      onClick={onClick}
+      onDoubleClick={onDoubleClick}
+      onContextMenu={onContextMenu}
+      title={state === "idle" ? `${icon} ${name}`.trim() || "GhostSpell" : undefined}
       style={{
-        /* Solid background on Windows (matches Go-side BackgroundTypeSolid).
-           Transparent backgrounds make WebView2 fully click-through on Windows. */
         background: "rgb(30, 30, 46)",
         width: "100%", height: "100%", overflow: "hidden",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: isPill ? "flex-start" : "center",
+        gap: "8px",
+        padding: isPill ? "6px 14px 6px 6px" : "0",
+        boxSizing: "border-box",
+        cursor: "pointer",
+        border: "1px solid rgba(69, 71, 90, 0.5)",
         borderRadius: isPill ? "16px" : "50%",
       }}
     >
       {!menuOpen && (
-        <div
-          onMouseDown={onMouseDown}
-          onClick={onClick}
-          onDoubleClick={onDoubleClick}
-          onContextMenu={onContextMenu}
-          title={state === "idle" ? `${icon} ${name}`.trim() || "GhostSpell" : undefined}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            background: "rgba(30, 30, 46, 0.92)",
-            borderRadius: isPill ? "16px" : "50%",
-            padding: isPill ? "6px 14px 6px 6px" : "4px",
-            cursor: "pointer",
-            width: isPill ? "auto" : "40px",
-            height: isPill ? "auto" : "40px",
-            justifyContent: isPill ? "flex-start" : "center",
-            border: "1px solid rgba(69, 71, 90, 0.5)",
-            transition: "border-radius 200ms ease, padding 200ms ease",
-          }}
-        >
+        <>
           {/* Ghost icon */}
           <img
             src="/ghostspell-ghost.png"
@@ -278,7 +271,7 @@ export function IndicatorWindow() {
               )}
             </div>
           )}
-        </div>
+        </>
       )}
 
       {/* Context menu */}
