@@ -331,6 +331,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	gui.CreateIndicator(wailsApp)
 	gui.SetIndicatorPosition(cfg.IndicatorPosition)
 	gui.SetIndicatorMode(cfg.IndicatorMode)
+	if cfg.IndicatorX > 0 || cfg.IndicatorY > 0 {
+		gui.SetIndicatorSavedPosition(cfg.IndicatorX, cfg.IndicatorY)
+	}
 
 	// Wire indicator → settings callback (#211).
 	gui.OnIndicatorOpenSettings = func() {
