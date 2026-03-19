@@ -1,12 +1,25 @@
 @echo off
 setlocal enabledelayedexpansion
 
+:: All output goes to both console and build.log via PowerShell Tee-Object.
+set "LOGFILE=%~dp0build.log"
+if "%~1"=="__INNER__" goto :main
+powershell -NoProfile -Command "& { cmd /c '\"%~f0\" __INNER__' 2>&1 | Tee-Object -FilePath '%LOGFILE%' }"
+exit /b %errorlevel%
+
+:main
+
 echo ============================================
 echo          GhostSpell Full Build
 echo ============================================
 echo.
 
 cd /d "%~dp0"
+
+:: Auto-detect MSYS2 MinGW64 toolchain and add to PATH if present.
+if exist "C:\msys64\mingw64\bin\gcc.exe" (
+    set "PATH=C:\msys64\mingw64\bin;%PATH%"
+)
 
 set LLAMA_VERSION=b8281
 set BUILD_DIR=%~dp0build
@@ -27,7 +40,7 @@ if %errorlevel% neq 0 (
     echo   ERROR: 'go' not found. Install Go from https://go.dev/dl/
     set MISSING=1
 ) else (
-    echo   go ......... OK
+    for /f "delims=" %%v in ('go version 2^>^&1') do echo   go ......... OK ^(%%v^)
 )
 
 where node >nul 2>&1
@@ -35,7 +48,7 @@ if %errorlevel% neq 0 (
     echo   ERROR: 'node' not found. Install Node.js from https://nodejs.org/
     set MISSING=1
 ) else (
-    echo   node ....... OK
+    for /f "delims=" %%v in ('node --version 2^>^&1') do echo   node ....... OK ^(%%v^)
 )
 
 where npm >nul 2>&1
@@ -43,7 +56,7 @@ if %errorlevel% neq 0 (
     echo   ERROR: 'npm' not found. Install Node.js from https://nodejs.org/
     set MISSING=1
 ) else (
-    echo   npm ........ OK
+    for /f "delims=" %%v in ('npm --version 2^>^&1') do echo   npm ........ OK ^(%%v^)
 )
 
 if %MISSING%==1 (
@@ -79,8 +92,16 @@ if !HAS_GENERATOR!==0 (
 )
 
 if !HAS_CMAKE!==1 if !HAS_GCC!==1 if !HAS_GENERATOR!==1 (
-    echo   cmake ...... OK
-    echo   gcc ........ OK
+    for /f "delims=" %%v in ('cmake --version 2^>^&1 ^| findstr /n "." ^| findstr "^1:"') do (
+        set "cmake_ver=%%v"
+        set "cmake_ver=!cmake_ver:~2!"
+        echo   cmake ...... OK ^(!cmake_ver!^)
+    )
+    for /f "delims=" %%v in ('gcc --version 2^>^&1 ^| findstr /n "." ^| findstr "^1:"') do (
+        set "gcc_ver=%%v"
+        set "gcc_ver=!gcc_ver:~2!"
+        echo   gcc ........ OK ^(!gcc_ver!^)
+    )
     echo   generator .. OK ^(!GENERATOR_NAME!^)
     set GHOSTAI=1
 )
@@ -93,7 +114,7 @@ if !GHOSTAI!==0 (
     echo.
     echo         To enable local AI, install MSYS2 ^(https://www.msys2.org^) then run:
     echo           pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
-    echo         and re-run this script from the MSYS2 MinGW64 shell.
+    echo         and re-run this script.
 )
 
 echo.
@@ -102,6 +123,18 @@ echo.
 :: Step 1 — Build Ghost-AI static libraries (if toolchain found)
 :: ============================================================
 if !GHOSTAI!==0 goto :skip_ghostai
+
+:: Skip if libraries already built
+set /a EXISTING_LIBS=0
+if exist "%LLAMA_OUT%\lib" (
+    for %%f in ("%LLAMA_OUT%\lib\*.a") do set /a EXISTING_LIBS+=1
+)
+if !EXISTING_LIBS! geq 3 (
+    echo [1] Ghost-AI libraries already built ^(!EXISTING_LIBS! libs^) — skipping.
+    echo     To rebuild: delete the build\llama folder and re-run.
+    echo.
+    goto :skip_ghostai
+)
 
 echo [1] Building Ghost-AI ^(llama.cpp %LLAMA_VERSION%^)...
 echo.
@@ -307,3 +340,6 @@ echo ============================================
 echo.
 echo Starting GhostSpell...
 start "" ghostspell.exe
+echo.
+echo Build log saved to: %LOGFILE%
+goto :eof
