@@ -228,10 +228,12 @@ export function IndicatorWindow() {
     );
   }
 
-  // Pill state (processing/pop): 260x52 pill with icon, prompt name, timer, model.
+  // Pill state (processing/pop): pill with icon, prompt name, timer, model.
   if (isPill && !menuOpen) {
     return (
       <div
+        onClick={onClick}
+        onContextMenu={onContextMenu}
         style={{
           "--wails-draggable": "drag",
           background: "rgb(30, 30, 46)",
