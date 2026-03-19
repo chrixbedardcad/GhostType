@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/*
+ * GhostSpell — Dark Zen Theme
+ * Minimalistic. Calm. Modern. Clean.
+ */
+
+/* ── Custom Catppuccin Mocha tokens for Tailwind v4 ── */
+
+@theme {
+  --color-crust: #11111b;
+  --color-base: #1e1e2e;
+  --color-mantle: #181825;
+  --color-surface-0: #313244;
+  --color-surface-1: #45475a;
+  --color-surface-2: #585b70;
+
+  --color-text: #cdd6f4;
+  --color-subtext-1: #bac2de;
+  --color-subtext-0: #a6adc8;
+  --color-overlay-2: #9399b2;
+  --color-overlay-1: #7f849c;
+  --color-overlay-0: #6c7086;
+
+  --color-accent-blue: #89b4fa;
+  --color-accent-green: #a6e3a1;
+  --color-accent-red: #f38ba8;
+  --color-accent-yellow: #f9e2af;
+  --color-accent-peach: #fab387;
+  --color-accent-pink: #f5c2e7;
+  --color-accent-teal: #94e2d5;
+  --color-accent-sky: #74c7ec;
+  --color-accent-lavender: #b4befe;
+  --color-accent-mauve: #cba6f7;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+}
+
+/* ── Base Reset ── */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-base);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Allow text selection in inputs and textareas */
+input,
+textarea,
+[contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ── Scrollbar — thin, minimal ── */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-1);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-surface-2);
+}
+
+/* ── Focus Ring — soft blue glow ── */
+
+:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent-blue) 50%, transparent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Transitions — everything animates softly ── */
+
+button,
+a,
+input,
+select,
+textarea {
+  transition: all 150ms ease;
+}

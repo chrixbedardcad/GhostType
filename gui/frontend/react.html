@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GhostSpell</title>
+</head>
+<body>
+  <div id="root"></div>
+  <!-- Wails runtime is injected at serve-time, not build-time -->
+  <script>
+    var s = document.createElement('script');
+    s.type = 'module';
+    s.src = '/wails/runtime.js';
+    document.head.appendChild(s);
+  </script>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
