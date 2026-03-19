@@ -579,10 +579,11 @@ func (s *SettingsService) ShowCurrentPrompt() string {
 		idx = 0
 	}
 	p := cfg.Prompts[idx]
-	// Build display with model info.
+	// Build display: icon + prompt name + | + model.
+	go sound.PlayClick()
 	label := p.Name
 	if cfg.DefaultModel != "" {
-		label = p.Name + "  " + cfg.DefaultModel
+		label = p.Name + "  |  " + cfg.DefaultModel
 	}
 	PopIndicator(p.Icon, label)
 	return "ok"
@@ -600,7 +601,12 @@ func (s *SettingsService) CyclePromptFromIndicator() string {
 	p := cfg.Prompts[cfg.ActivePrompt]
 	slog.Info("[GUI] CyclePromptFromIndicator: cycled", "index", cfg.ActivePrompt, "name", p.Name)
 	go sound.PlayClick()
-	PopIndicator(p.Icon, p.Name)
+	// Show: icon + prompt name + | + model
+	label := p.Name
+	if cfg.DefaultModel != "" {
+		label = p.Name + "  |  " + cfg.DefaultModel
+	}
+	PopIndicator(p.Icon, label)
 	return "ok"
 }
 

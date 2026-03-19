@@ -113,27 +113,33 @@ export function IndicatorWindow() {
     };
   }, []);
 
-  // --- Click handler: single click expands to show prompt info, double-click opens settings ---
+  // --- Click handler ---
+  // idle: single click = show prompt info, double click = open settings
+  // pop/pill: single click = cycle to next prompt, double click = open settings
   const clickTimer = useRef<number | null>(null);
 
   function onClick(e: React.MouseEvent) {
     if (e.detail === 0) return;
     console.log("[Indicator] onClick: state=" + state);
     if (state !== "idle" && state !== "pop") return;
-    // Use timer to distinguish single from double click.
     if (clickTimer.current) {
       clearTimeout(clickTimer.current);
       clickTimer.current = null;
-      // Double click — open settings.
       console.log("[Indicator] Double-click: opening settings...");
       goCall("openSettingsFromIndicator");
       return;
     }
     clickTimer.current = window.setTimeout(() => {
       clickTimer.current = null;
-      // Single click — expand to show current prompt + model.
-      console.log("[Indicator] Single-click: showing current prompt...");
-      goCall("showCurrentPrompt");
+      if (state === "pop") {
+        // Already expanded — cycle to next prompt.
+        console.log("[Indicator] Click on pill: cycling prompt...");
+        goCall("cyclePromptFromIndicator");
+      } else {
+        // Idle — expand to show current prompt + model.
+        console.log("[Indicator] Click on idle: showing current prompt...");
+        goCall("showCurrentPrompt");
+      }
     }, 300);
   }
 
@@ -149,9 +155,9 @@ export function IndicatorWindow() {
         setMenuItems(data.prompts || []);
         if (data.version) setMenuVersion(data.version);
         setMenuOpen(true);
-        // Height: version header(24) + prompts(32 each) + divider(1) + settings(32) + quit(32) + padding(16)
-        const menuH = 24 + (data.prompts?.length || 0) * 32 + 1 + 32 + 32 + 16;
-        goCall("resizeIndicatorForMenu", 220, Math.max(menuH, 120));
+        // Height: version(26) + prompts(34 each) + divider(5) + settings(34) + quit(34) + border/padding(20)
+        const menuH = 26 + (data.prompts?.length || 0) * 34 + 5 + 34 + 34 + 20;
+        goCall("resizeIndicatorForMenu", 220, menuH);
       } catch (err) { console.error("[Indicator] onContextMenu: parse error", err); }
     }
   }
@@ -193,8 +199,12 @@ export function IndicatorWindow() {
           border: "1px solid rgba(69, 71, 90, 0.5)",
           boxSizing: "border-box",
           cursor: "grab",
+          opacity: 0.5,
+          transition: "opacity 200ms",
         } as React.CSSProperties}
         title={`${icon} ${name}`.trim() || "GhostSpell"}
+        onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+        onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.5")}
       >
         <img
           src="/ghostspell-ghost.png"
