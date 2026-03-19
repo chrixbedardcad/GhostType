@@ -70,6 +70,19 @@ func (r *Router) ProcessWithImages(ctx context.Context, promptIdx int, text stri
 		Text:   text,
 		Images: images,
 	})
+
+	// Vision fallback: if this is a vision request and the selected model
+	// doesn't support it, try other configured models that might (#221).
+	if err != nil && len(images) > 0 && strings.Contains(err.Error(), "vision is not supported") {
+		slog.Info("Vision fallback: primary model doesn't support vision, trying alternatives", "primary", label)
+		fallbackLabel, fallbackErr := r.tryVisionFallback(ctx, prompt, text, images, label)
+		if fallbackErr == nil {
+			return fallbackLabel, nil
+		}
+		// All fallbacks failed — return the original error with a better message.
+		return nil, fmt.Errorf("LLM request failed: %w — configure a cloud provider (ChatGPT, Claude, Gemini) for vision prompts", err)
+	}
+
 	if err != nil {
 		slog.Debug("LLM request failed", "prompt", entry.Name, "llm", label, "input_len", len(text), "error", err)
 		return nil, fmt.Errorf("LLM request failed: %w", err)
@@ -79,6 +92,48 @@ func (r *Router) ProcessWithImages(ctx context.Context, promptIdx int, text stri
 
 	resp.Text = strings.TrimSpace(resp.Text)
 	return resp, nil
+}
+
+// tryVisionFallback tries other configured models for a vision request.
+// Returns the response from the first model that succeeds.
+func (r *Router) tryVisionFallback(ctx context.Context, prompt, text string, images [][]byte, skipLabel string) (*llm.Response, error) {
+	// Try the default model first (if different from the skipped one).
+	if r.cfg.DefaultModel != "" && r.cfg.DefaultModel != skipLabel {
+		client, err := r.resolveClient(r.cfg.DefaultModel)
+		if err == nil {
+			slog.Info("Vision fallback: trying default model", "label", r.cfg.DefaultModel)
+			resp, err := client.Send(ctx, llm.Request{Prompt: prompt, Text: text, Images: images})
+			if err == nil {
+				slog.Info("Vision fallback: success with default model", "label", r.cfg.DefaultModel)
+				resp.Text = strings.TrimSpace(resp.Text)
+				return resp, nil
+			}
+		}
+	}
+
+	// Try all other configured models (prefer cloud providers).
+	for label, model := range r.cfg.Models {
+		if label == skipLabel || label == r.cfg.DefaultModel {
+			continue
+		}
+		// Skip local models — they don't support vision.
+		if model.Provider == "local" {
+			continue
+		}
+		client, err := r.resolveClient(label)
+		if err != nil {
+			continue
+		}
+		slog.Info("Vision fallback: trying", "label", label, "provider", model.Provider)
+		resp, err := client.Send(ctx, llm.Request{Prompt: prompt, Text: text, Images: images})
+		if err == nil {
+			slog.Info("Vision fallback: success", "label", label, "provider", model.Provider)
+			resp.Text = strings.TrimSpace(resp.Text)
+			return resp, nil
+		}
+	}
+
+	return nil, fmt.Errorf("no vision-capable model available")
 }
 
 // ResetClients clears all cached LLM clients so that the next request
