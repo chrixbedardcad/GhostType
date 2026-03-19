@@ -7,7 +7,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/chrixbedardcad/GhostSpell/config"
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
 var (
@@ -75,11 +77,38 @@ func ensureIndicatorWindow() {
 	fmt.Println("[indicator] Window created (React hybrid) URL=/indicator-react.html?window=indicator")
 	slog.Info("[gui] Indicator window created (React hybrid)", "url", "/indicator-react.html?window=indicator")
 
+	// Save position after drag via Wails native WindowDidMove event.
+	indicatorWin.OnWindowEvent(events.Windows.WindowDidMove, func(e *application.WindowEvent) {
+		x, y := indicatorWin.Position()
+		slog.Debug("[indicator] WindowDidMove", "x", x, "y", y)
+		indicatorMu.Lock()
+		indicatorSavedX = x
+		indicatorSavedY = y
+		indicatorMu.Unlock()
+		// Persist to config.
+		if indicatorConfigSaver != nil {
+			indicatorConfigSaver(x, y)
+		}
+	})
+
 	// Block until React has time to mount and register event listeners.
 	fmt.Println("[indicator] Waiting 800ms for React to mount...")
 	time.Sleep(800 * time.Millisecond)
 	indicatorReady = true
 	fmt.Println("[indicator] React page assumed ready")
+}
+
+// indicatorConfigSaver persists drag position to config file.
+var indicatorConfigSaver func(x, y int)
+
+// SetIndicatorConfigSaver sets the callback to persist position to config.
+func SetIndicatorConfigSaver(cfg *config.Config, configPath string) {
+	indicatorConfigSaver = func(x, y int) {
+		cfg.IndicatorX = x
+		cfg.IndicatorY = y
+		config.WriteDefault(configPath, cfg)
+		slog.Info("[indicator] Position saved to config", "x", x, "y", y)
+	}
 }
 
 // indicatorPos stores the configured position.
@@ -282,7 +311,7 @@ func PopIndicator(promptIcon, promptName string) {
 	emitIndicatorEvent(map[string]any{"state": "pop", "icon": promptIcon, "name": promptName})
 
 	go func() {
-		time.Sleep(2500 * time.Millisecond)
+		time.Sleep(5 * time.Second)
 		HideIndicator()
 	}()
 }

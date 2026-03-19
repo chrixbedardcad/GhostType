@@ -344,6 +344,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	gui.CreateIndicator(wailsApp)
 	gui.SetIndicatorPosition(cfg.IndicatorPosition)
 	gui.SetIndicatorMode(cfg.IndicatorMode)
+	gui.SetIndicatorConfigSaver(cfg, configPath)
 	if cfg.IndicatorX > 0 || cfg.IndicatorY > 0 {
 		gui.SetIndicatorSavedPosition(cfg.IndicatorX, cfg.IndicatorY)
 	}
