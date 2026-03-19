@@ -28,7 +28,10 @@ interface MenuPrompt {
 }
 
 export function IndicatorWindow() {
-  const [state, setState] = useState<IndicatorState>("hidden");
+  // Start as "idle" so the ghost is visible immediately when the page loads.
+  // Go will update the state via events. If events never arrive, the ghost
+  // is still visible (helps debug React loading issues).
+  const [state, setState] = useState<IndicatorState>("idle");
   const [icon, setIcon] = useState("");
   const [name, setName] = useState("");
   const [model, setModel] = useState("");
