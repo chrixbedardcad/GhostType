@@ -19,6 +19,8 @@ type PromptEntry struct {
 	TimeoutMs   int    `json:"timeout_ms,omitempty"`    // per-prompt timeout override (0 = use model default)
 	DisplayMode string `json:"display_mode,omitempty"`  // "replace" (default) or "popup" — how to show the LLM result
 	Vision      bool   `json:"vision,omitempty"`        // capture screenshot instead of text
+	Voice       bool   `json:"voice,omitempty"`         // record microphone instead of capture text
+	VoiceMode   string `json:"voice_mode,omitempty"`    // "skill" (default) or "dictation"
 }
 
 // LLMProviderDef defines a named LLM provider configuration.
@@ -61,6 +63,13 @@ type Hotkeys struct {
 	CyclePrompt string `json:"cycle_prompt"`
 }
 
+// VoiceConfig holds voice input settings (#236).
+type VoiceConfig struct {
+	Enabled  bool   `json:"enabled,omitempty"`
+	Language string `json:"language,omitempty"` // BCP-47 code or empty for auto-detect
+	Model    string `json:"model,omitempty"`    // e.g. "whisper-base"
+}
+
 // Overlay defines overlay display settings.
 type Overlay struct {
 	Enabled            bool    `json:"enabled"`
@@ -92,6 +101,9 @@ type Config struct {
 	IndicatorMode     string `json:"indicator_mode,omitempty"`     // "processing" (default), "always", "hidden" (#211)
 	IndicatorX        int    `json:"indicator_x,omitempty"`        // saved drag position X
 	IndicatorY        int    `json:"indicator_y,omitempty"`        // saved drag position Y
+
+	Voice VoiceConfig `json:"voice,omitempty"` // voice input settings (#236)
+
 	LogLevel          string `json:"log_level"`
 	LogFile           string `json:"log_file"`
 	LastSeenVersion   string `json:"last_seen_version,omitempty"`
@@ -116,6 +128,8 @@ const (
 	DefaultDefinePrompt           = "Define the following word or phrase. Provide a clear, concise definition. If applicable, include the part of speech and a brief example of usage. Keep it short and helpful."
 	DefaultDescribeScreenPrompt   = "Describe what you see in this image. Be concise."
 	DefaultScreenshotOCRPrompt    = "Extract all text from this image. Return only the text, preserving formatting."
+	DefaultDictatePrompt          = "Transcribe the following speech accurately. Preserve the speaker's words exactly, only fixing obvious speech-to-text errors. Do not rephrase or summarize."
+	DefaultVoiceNotePrompt        = "The following is a voice transcription. Clean it up into well-structured text. Fix grammar and remove filler words, but preserve the meaning."
 )
 
 // DefaultPrompts returns the default prompt list.
@@ -131,6 +145,8 @@ func DefaultPrompts() []PromptEntry {
 		{Name: "Define", Prompt: DefaultDefinePrompt, Icon: "\U0001F4D6", DisplayMode: "popup"},
 		{Name: "Describe Screenshot", Prompt: DefaultDescribeScreenPrompt, Icon: "\U0001F4F8", Vision: true, DisplayMode: "popup"},
 		{Name: "Screenshot OCR", Prompt: DefaultScreenshotOCRPrompt, Icon: "\U0001F441\uFE0F", Vision: true, DisplayMode: "popup"},
+		{Name: "Dictate", Prompt: DefaultDictatePrompt, Icon: "\U0001F399\uFE0F", Voice: true, VoiceMode: "dictation"},
+		{Name: "Voice Note", Prompt: DefaultVoiceNotePrompt, Icon: "\U0001F4DD", Voice: true, VoiceMode: "skill"},
 	}
 }
 
@@ -574,6 +590,36 @@ func applyDefaults(cfg *Config) {
 			Icon:        "\U0001F441\uFE0F",
 			Vision:      true,
 			DisplayMode: "popup",
+		})
+	}
+
+	// Migrate: add voice prompts if missing (added in v0.56.0).
+	hasDictate := false
+	hasVoiceNote := false
+	for _, p := range cfg.Prompts {
+		if p.Name == "Dictate" {
+			hasDictate = true
+		}
+		if p.Name == "Voice Note" {
+			hasVoiceNote = true
+		}
+	}
+	if !hasDictate {
+		cfg.Prompts = append(cfg.Prompts, PromptEntry{
+			Name:      "Dictate",
+			Prompt:    DefaultDictatePrompt,
+			Icon:      "\U0001F399\uFE0F",
+			Voice:     true,
+			VoiceMode: "dictation",
+		})
+	}
+	if !hasVoiceNote {
+		cfg.Prompts = append(cfg.Prompts, PromptEntry{
+			Name:      "Voice Note",
+			Prompt:    DefaultVoiceNotePrompt,
+			Icon:      "\U0001F4DD",
+			Voice:     true,
+			VoiceMode: "skill",
 		})
 	}
 

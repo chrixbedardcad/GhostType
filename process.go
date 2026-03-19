@@ -11,6 +11,7 @@ import (
 
 	"github.com/chrixbedardcad/GhostSpell/clipboard"
 	"github.com/chrixbedardcad/GhostSpell/config"
+	"github.com/chrixbedardcad/GhostSpell/stt"
 	"github.com/chrixbedardcad/GhostSpell/gui"
 	"github.com/chrixbedardcad/GhostSpell/keyboard"
 	"github.com/chrixbedardcad/GhostSpell/mode"
@@ -21,6 +22,9 @@ import (
 
 // appStats is the global stats tracker, set from app.go.
 var appStats *stats.Stats
+
+// appSTT is the global speech-to-text transcriber, set from app.go.
+var appSTT stt.Transcriber
 
 // processingGuard prevents concurrent processMode execution.
 // macOS Carbon RegisterEventHotKey can send multiple Keydown events for a
@@ -101,6 +105,12 @@ func processMode(
 	// --- Vision path: capture screenshot instead of text ---
 	if promptIdx >= 0 && promptIdx < len(cfg.Prompts) && cfg.Prompts[promptIdx].Vision {
 		processVision(promptName, promptIdx, cfg, router, kb, cancelCtx, startAnim, stopAnim)
+		return
+	}
+
+	// --- Voice path: record microphone instead of capture text (#236) ---
+	if promptIdx >= 0 && promptIdx < len(cfg.Prompts) && cfg.Prompts[promptIdx].Voice {
+		processVoice(promptName, promptIdx, cfg, router, cb, kb, mu, cancelCtx, startAnim, stopAnim, appSTT)
 		return
 	}
 
