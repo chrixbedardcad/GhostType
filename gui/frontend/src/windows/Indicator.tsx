@@ -278,7 +278,7 @@ export function IndicatorWindow() {
         />
         {/* Top-right: active skill icon */}
         {icon && (
-          <span style={{ ...badgeBase, top: "1px", right: "1px" }}>{icon}</span>
+          <span style={{ ...badgeBase, top: "3px", right: "3px" }}>{icon}</span>
         )}
         {/* Top-left: camera (vision skill) */}
         {isVision && <span style={{ ...badgeBase, top: "3px", left: "5px" }}>{"\uD83D\uDCF7"}</span>}
