@@ -917,6 +917,28 @@
     </div>
 
     <div class="section">
+      <h2>Language</h2>
+      <div class="form-group">
+        <label>Writing Language</label>
+        <select id="pref-language" onchange="onLanguageChange(this.value)" style="width:200px">
+          <option value="">Auto (original language)</option>
+          <option value="English">English</option>
+          <option value="French">French</option>
+          <option value="Spanish">Spanish</option>
+          <option value="German">German</option>
+          <option value="Italian">Italian</option>
+          <option value="Portuguese">Portuguese</option>
+          <option value="Japanese">Japanese</option>
+          <option value="Korean">Korean</option>
+          <option value="Chinese">Chinese</option>
+          <option value="Arabic">Arabic</option>
+          <option value="Russian">Russian</option>
+        </select>
+        <div style="font-size:0.75em;color:#6c7086;margin-top:4px">Your writing language. Skills like Correct, Polish, Ask, Define will keep text in this language. Use <code>{{language}}</code> in custom skill prompts to reference it.</div>
+      </div>
+    </div>
+
+    <div class="section">
       <h2>Preferences</h2>
       <div class="toggle-row">
         <div>
@@ -3015,6 +3037,7 @@ async function movePromptDown(idx) {
 
 async function renderGeneral() {
   await reloadConfig();
+  document.getElementById('pref-language').value = configData.language || '';
   document.getElementById('pref-sound').checked = configData.sound_enabled !== false && configData.sound_enabled !== null;
   document.getElementById('pref-clipboard').checked = configData.preserve_clipboard !== false;
   document.getElementById('pref-maxchars').value = configData.max_input_chars != null ? configData.max_input_chars : 2000;
@@ -3242,6 +3265,7 @@ async function onOpenPermissions() {
   await goCall('openPermissions');
 }
 
+async function onLanguageChange(lang) { await goCall('setLanguage', lang); }
 async function onToggleSound(enabled) { await goCall('setSoundEnabled', enabled); }
 async function onToggleClipboard(enabled) { await goCall('setPreserveClipboard', enabled); }
 async function onMaxCharsChange(val) { await goCall('setMaxInputChars', parseInt(val) || 0); }

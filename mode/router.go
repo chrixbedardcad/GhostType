@@ -53,6 +53,15 @@ func (r *Router) ProcessWithImages(ctx context.Context, promptIdx int, text stri
 	entry := r.cfg.Prompts[promptIdx]
 	prompt := entry.Prompt
 
+	// Resolve {{language}} template variable from global config.
+	if r.cfg.Language != "" {
+		prompt = strings.ReplaceAll(prompt, "{{language}}", r.cfg.Language)
+	} else {
+		// No language set — fall back to "its original language".
+		prompt = strings.ReplaceAll(prompt, "in {{language}}", "in its original language")
+		prompt = strings.ReplaceAll(prompt, "{{language}}", "the original language")
+	}
+
 	label := r.llmLabelForPrompt(promptIdx)
 	client, err := r.resolveClient(label)
 	if err != nil {

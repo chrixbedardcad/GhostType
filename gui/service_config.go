@@ -685,6 +685,16 @@ func (s *SettingsService) ResetPrompts() string {
 
 // --- General settings ------------------------------------------------------
 
+// SetLanguage sets the global writing language (injected into prompts via {{language}}).
+func (s *SettingsService) SetLanguage(lang string) string {
+	guiLog("[GUI] JS called: SetLanguage(%s)", lang)
+	s.cfgCopy.Language = lang
+	if err := s.validateAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
 // SetSoundEnabled toggles sound.
 func (s *SettingsService) SetSoundEnabled(enabled bool) string {
 	guiLog("[GUI] JS called: SetSoundEnabled(%v)", enabled)

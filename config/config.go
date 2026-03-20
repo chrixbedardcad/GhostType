@@ -108,6 +108,7 @@ type Config struct {
 	Models       map[string]ModelEntry     `json:"models,omitempty"`
 	DefaultModel string                    `json:"default_model,omitempty"`
 
+	Language     string        `json:"language,omitempty"` // user's writing language (e.g. "French") — injected into prompts via {{language}}
 	ActivePrompt int           `json:"active_prompt"`
 	Prompts      []PromptEntry `json:"prompts"`
 	Hotkeys      Hotkeys       `json:"hotkeys"`
@@ -139,18 +140,18 @@ func boolPtr(v bool) *bool { return &v }
 
 // Default prompt texts.
 const (
-	DefaultCorrectPrompt   = "Fix only spelling and grammar errors. Do not rewrite, rephrase, or restructure the sentence. Keep the text in its original language — never translate it. Preserve slang, abbreviations, acronyms, and informal tone exactly as written. Only fix what is objectively incorrect. Return ONLY the corrected text with no explanation."
-	DefaultPolishPrompt    = "Improve the following text to make it clearer, more natural, and better structured while preserving its original meaning and tone. Fix grammar, punctuation, and awkward phrasing. Smooth out rough sentences into polished, ready-to-send prose. Keep the text in its original language — never translate it. Return ONLY the improved text with no explanation."
-	DefaultFunnyPrompt     = "Rewrite the following text to be funny, witty, and entertaining while preserving the original meaning and key information. Add humor, clever wordplay, or a lighthearted twist. Keep the text in its original language — never translate it. Return ONLY the funny version with no explanation."
-	DefaultElaboratePrompt = "Expand the following text by adding relevant detail, context, and completeness while preserving the original meaning and intent. Flesh out terse or incomplete points into well-developed statements. Maintain the same tone and style as the original. Keep the text in its original language — never translate it. Return ONLY the elaborated text with no explanation."
-	DefaultShortenPrompt   = "Condense the following text to be as concise as possible while preserving all essential meaning and key information. Remove redundancy, filler words, and unnecessary qualifiers. Keep the same tone and intent. Keep the text in its original language — never translate it. Return ONLY the shortened text with no explanation."
+	DefaultCorrectPrompt   = "Fix only spelling and grammar errors. Do not rewrite, rephrase, or restructure the sentence. Keep the text in {{language}} — never translate it. Preserve slang, abbreviations, acronyms, and informal tone exactly as written. Only fix what is objectively incorrect. Return ONLY the corrected text with no explanation."
+	DefaultPolishPrompt    = "Improve the following text to make it clearer, more natural, and better structured while preserving its original meaning and tone. Fix grammar, punctuation, and awkward phrasing. Smooth out rough sentences into polished, ready-to-send prose. Keep the text in {{language}} — never translate it. Return ONLY the improved text with no explanation."
+	DefaultFunnyPrompt     = "Rewrite the following text to be funny, witty, and entertaining while preserving the original meaning and key information. Add humor, clever wordplay, or a lighthearted twist. Keep the text in {{language}} — never translate it. Return ONLY the funny version with no explanation."
+	DefaultElaboratePrompt = "Expand the following text by adding relevant detail, context, and completeness while preserving the original meaning and intent. Flesh out terse or incomplete points into well-developed statements. Maintain the same tone and style as the original. Keep the text in {{language}} — never translate it. Return ONLY the elaborated text with no explanation."
+	DefaultShortenPrompt   = "Condense the following text to be as concise as possible while preserving all essential meaning and key information. Remove redundancy, filler words, and unnecessary qualifiers. Keep the same tone and intent. Keep the text in {{language}} — never translate it. Return ONLY the shortened text with no explanation."
 	DefaultTranslatePrompt = "Translate the following text to English regardless of its source language. Return ONLY the translated text with no explanation."
-	DefaultAskPrompt              = "Answer this question clearly and concisely. Return the question and then the answer."
-	DefaultDefinePrompt           = "Define the following word or phrase. Provide a clear, concise definition. If applicable, include the part of speech and a brief example of usage. Keep it short and helpful."
-	DefaultDescribeScreenPrompt   = "Describe what you see in this image. Be concise."
+	DefaultAskPrompt              = "Answer this question clearly and concisely in {{language}}. Return the question and then the answer."
+	DefaultDefinePrompt           = "Define the following word or phrase in {{language}}. Provide a clear, concise definition. If applicable, include the part of speech and a brief example of usage. Keep it short and helpful."
+	DefaultDescribeScreenPrompt   = "Describe what you see in this image in {{language}}. Be concise."
 	DefaultScreenshotOCRPrompt    = "Extract all text from this image. Return only the text, preserving formatting."
-	DefaultVoiceToTextPrompt      = "Transcribe the following speech accurately. Preserve the speaker's words exactly, only fixing obvious speech-to-text errors. Do not rephrase or summarize."
-	DefaultVoiceNotePrompt        = "The following is a voice transcription. Clean it up into well-structured text. Fix grammar and remove filler words, but preserve the meaning."
+	DefaultVoiceToTextPrompt      = "Transcribe the following speech accurately in {{language}}. Preserve the speaker's words exactly, only fixing obvious speech-to-text errors. Do not rephrase or summarize."
+	DefaultVoiceNotePrompt        = "The following is a voice transcription. Clean it up into well-structured {{language}} text. Fix grammar and remove filler words, but preserve the meaning."
 )
 
 // DefaultPrompts returns the default prompt list.
