@@ -99,8 +99,8 @@ export function IndicatorWindow() {
         if (d.state === "done" && d.elapsed !== undefined) {
           setDoneElapsed(d.elapsed);
         }
-        // Re-fetch prompt info on pop/idle to update voice/vision badges.
-        if (d.state === "pop" || d.state === "idle") {
+        // Re-fetch prompt info on idle to update voice/vision badges.
+        if (d.state === "idle") {
           fetchPromptInfo();
         }
       });
@@ -175,8 +175,8 @@ export function IndicatorWindow() {
         if (data.activeModel) setMenuModel(data.activeModel);
         if (data.indicatorMode) setMenuMode(data.indicatorMode);
         setMenuOpen(true);
-        // Height: version(26) + prompts(34 each) + divider(5) + mode section(90) + settings(34) + quit(34) + padding(20)
-        const menuH = 26 + (data.prompts?.length || 0) * 34 + 5 + 90 + 34 + 34 + 20;
+        // Height: version(26) + prompts(34 each) + divider(5) + "Display" label(22) + 3 modes(28 each) + divider(5) + settings(34) + quit(34) + padding(20)
+        const menuH = 26 + (data.prompts?.length || 0) * 34 + 5 + 22 + 3 * 28 + 5 + 34 + 34 + 20;
         goCall("resizeIndicatorForMenu", 220, menuH);
       } catch (err) { console.error("[Indicator] onContextMenu: parse error", err); }
     }
@@ -205,11 +205,10 @@ export function IndicatorWindow() {
   // --- Badge style for mic/camera on idle circle ---
   const badgeStyle = (position: "bottom-right" | "bottom-left"): React.CSSProperties => ({
     position: "absolute",
-    ...(position === "bottom-right" ? { bottom: "1px", right: "1px" } : { bottom: "1px", left: "1px" }),
+    ...(position === "bottom-right" ? { bottom: "3px", right: "2px" } : { bottom: "3px", left: "2px" }),
     fontSize: "10px",
     lineHeight: 1,
     pointerEvents: "none",
-    opacity: 0.8,
   });
 
   // --- Render ---
@@ -237,6 +236,7 @@ export function IndicatorWindow() {
           opacity: 0.5,
           transition: "opacity 200ms",
           position: "relative",
+          overflow: "visible",
         } as React.CSSProperties}
         title={`${icon} ${name}`.trim() || "GhostSpell"}
         onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
