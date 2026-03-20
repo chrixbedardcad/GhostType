@@ -63,6 +63,9 @@ type SettingsService struct {
 	// Ghost-AI engine and release the file lock on Windows.
 	ResetClientsFn func()
 
+	// RefreshTrayMenuFn refreshes the tray menu to reflect prompt changes.
+	RefreshTrayMenuFn func()
+
 	// Stats callbacks.
 	GetStatsFn    func() string
 	ClearStatsFn  func()
@@ -597,6 +600,11 @@ func (s *SettingsService) CyclePromptFromIndicator() string {
 	slog.Info("[GUI] CyclePromptFromIndicator: cycled", "index", cfg.ActivePrompt, "name", p.Name)
 	go sound.PlayClick()
 	PopIndicatorWithModel(p.Icon, p.Name, cfg.DefaultModel)
+	// Sync tray menu + settings UI.
+	if s.RefreshTrayMenuFn != nil {
+		s.RefreshTrayMenuFn()
+	}
+	EmitConfigChanged()
 	return "ok"
 }
 
@@ -668,6 +676,11 @@ func (s *SettingsService) SetActivePromptFromIndicator(idx int) string {
 	slog.Info("[GUI] SetActivePromptFromIndicator: set", "index", idx, "name", p.Name)
 	go sound.PlayClick()
 	PopIndicator(p.Icon, p.Name)
+	// Sync tray menu + settings UI.
+	if s.RefreshTrayMenuFn != nil {
+		s.RefreshTrayMenuFn()
+	}
+	EmitConfigChanged()
 	return "ok"
 }
 

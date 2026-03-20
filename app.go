@@ -326,6 +326,9 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	var setUpdateAvailable func(string)
 	trayRun, stopTrayFn, dismissTrayMenu, trayStartAnim, trayStopAnim, setUpdateAvailable, refreshTrayMenu = tray.Start(trayCfg, wailsApp)
 
+	// Wire tray menu refresh so indicator prompt cycling keeps everything in sync.
+	settingsSvc.RefreshTrayMenuFn = refreshTrayMenu
+
 	// Background update checker — checks after 60s, then every 24h.
 	go func() {
 		time.Sleep(60 * time.Second)
