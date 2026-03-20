@@ -3,19 +3,19 @@
 package audio
 
 import (
-	"context"
 	"encoding/binary"
-	"time"
 )
 
-// Recorder captures audio from the system microphone.
-type Recorder interface {
-	// Record captures audio until ctx is cancelled or stop is closed.
-	// Returns raw PCM data (16kHz, mono, 16-bit signed).
-	Record(ctx context.Context, stop <-chan struct{}) ([]byte, time.Duration, error)
+// CommandRecorder is the shared recorder type used on all platforms.
+// Platform-specific files implement Available() and Record() methods.
+type CommandRecorder struct {
+	cmd     interface{} // *exec.Cmd on Unix, unused on Windows
+	tmpFile string
+}
 
-	// Available returns true if audio recording hardware is accessible.
-	Available() bool
+// NewRecorder creates a new audio recorder.
+func NewRecorder() *CommandRecorder {
+	return &CommandRecorder{}
 }
 
 // EncodeWAV wraps raw 16-bit PCM samples in a WAV container.

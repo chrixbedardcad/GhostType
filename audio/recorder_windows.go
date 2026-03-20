@@ -58,10 +58,6 @@ type waveHdr struct {
 	Reserved      uintptr
 }
 
-func init() {
-	// Override the platform recorder.
-}
-
 func (r *CommandRecorder) Available() bool {
 	return true // winmm.dll is always available on Windows
 }
