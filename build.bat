@@ -368,12 +368,17 @@ cd /d "%~dp0"
 if not exist "!WHISPER_OUT!\include" mkdir "!WHISPER_OUT!\include"
 if not exist "!WHISPER_OUT!\lib" mkdir "!WHISPER_OUT!\lib"
 
-:: Headers — copy whisper.h and ggml headers
+:: Headers — copy all .h files from whisper source include dirs
 :: NOTE: for /r does not work with delayed-expansion paths (!VAR!), use dir+for /f
-if exist "!WHISPER_SRC!\include\whisper.h" copy /y "!WHISPER_SRC!\include\whisper.h" "!WHISPER_OUT!\include\" >nul 2>&1
-if exist "!WHISPER_SRC!\whisper.h" copy /y "!WHISPER_SRC!\whisper.h" "!WHISPER_OUT!\include\" >nul 2>&1
-for %%h in (ggml.h ggml-alloc.h ggml-backend.h) do (
-    for /f "delims=" %%p in ('dir /s /b "!WHISPER_SRC!\%%h" 2^>nul') do (
+echo   Collecting headers...
+for /f "delims=" %%p in ('dir /s /b "!WHISPER_SRC!\include\*.h" 2^>nul') do (
+    echo     Header: %%~nxp
+    copy /y "%%p" "!WHISPER_OUT!\include\" >nul 2>&1
+)
+:: Also grab ggml headers from ggml/include if present
+if exist "!WHISPER_SRC!\ggml\include" (
+    for /f "delims=" %%p in ('dir /s /b "!WHISPER_SRC!\ggml\include\*.h" 2^>nul') do (
+        echo     Header: %%~nxp
         copy /y "%%p" "!WHISPER_OUT!\include\" >nul 2>&1
     )
 )
@@ -387,7 +392,9 @@ for /f "delims=" %%f in ('dir /s /b "!WBUILD!\*.a" 2^>nul') do (
 )
 for /f "delims=" %%f in ('dir /b "!WHISPER_OUT!\lib\*.a" 2^>nul') do (
     set "wfn=%%f"
-    if not "!wfn:~0,3!"=="lib" rename "!WHISPER_OUT!\lib\%%f" "lib%%f"
+    if not "!wfn:~0,3!"=="lib" (
+        if not exist "!WHISPER_OUT!\lib\lib%%f" rename "!WHISPER_OUT!\lib\%%f" "lib%%f"
+    )
 )
 
 set /a WCOUNT=0
