@@ -35,6 +35,7 @@ export function IndicatorWindow() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuVersion, setMenuVersion] = useState("");
   const [menuModel, setMenuModel] = useState("");
+  const [menuVoiceModel, setMenuVoiceModel] = useState("");
   const [menuMode, setMenuMode] = useState("processing");
   const [isVoice, setIsVoice] = useState(false);
   const [isVision, setIsVision] = useState(false);
@@ -208,10 +209,11 @@ export function IndicatorWindow() {
         const data = JSON.parse(raw);
         if (data.version) setMenuVersion(data.version);
         if (data.activeModel) setMenuModel(data.activeModel);
+        if (data.voiceModel) setMenuVoiceModel(data.voiceModel);
         if (data.indicatorMode) setMenuMode(data.indicatorMode);
         setMenuOpen(true);
-        // Height: version(26) + "Display" label(22) + 3 modes(28 each) + divider(5) + settings(34) + quit(34) + padding(20)
-        const menuH = 26 + 22 + 3 * 28 + 5 + 34 + 34 + 20;
+        // Height: version(20) + LLM(18) + voice(18) + gap(4) + "Display" label(22) + 3 modes(28 each) + divider(5) + settings(34) + quit(34) + padding(16)
+        const menuH = 20 + 18 + 18 + 4 + 22 + 3 * 28 + 5 + 34 + 34 + 16;
         goCall("resizeIndicatorForMenu", 220, menuH);
       } catch (err) { console.error("[Indicator] onContextMenu: parse error", err); }
     }
@@ -417,12 +419,11 @@ export function IndicatorWindow() {
       minWidth: "200px",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     }}>
-      {(menuVersion || menuModel) && (
-        <div style={{ padding: "6px 12px 4px", fontSize: "10px", color: "#585b70", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between" }}>
-          <span>GhostSpell v{menuVersion}</span>
-          {menuModel && <span style={{ color: "#6c7086" }}>{menuModel}</span>}
-        </div>
-      )}
+      <div style={{ padding: "6px 12px 2px", fontSize: "10px", color: "#585b70", letterSpacing: "0.5px", lineHeight: 1.6 }}>
+        <div>GhostSpell v{menuVersion}</div>
+        {menuModel && <div style={{ color: "#6c7086" }}>LLM: {menuModel}</div>}
+        {menuVoiceModel && <div style={{ color: "#6c7086" }}>Voice: {menuVoiceModel}</div>}
+      </div>
       {/* Display mode section */}
       <div style={{ padding: "4px 12px 2px", fontSize: "10px", color: "#585b70", letterSpacing: "0.5px" }}>
         Display

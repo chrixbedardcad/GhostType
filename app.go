@@ -296,6 +296,11 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 			}
 			return cfg.DefaultModel
 		},
+		GetVoiceModelName: func() string {
+			mu.Lock()
+			defer mu.Unlock()
+			return cfg.Voice.Model
+		},
 		GetModelLabels: func() []tray.ModelLabel {
 			mu.Lock()
 			defer mu.Unlock()

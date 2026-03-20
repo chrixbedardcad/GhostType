@@ -65,6 +65,9 @@ type Config struct {
 	// GetDefaultModelName returns the display name of the active/default model.
 	GetDefaultModelName func() string
 
+	// GetVoiceModelName returns the active voice model name (e.g. "whisper-base").
+	GetVoiceModelName func() string
+
 	// GetInitError returns a non-empty string when the LLM failed to init at startup.
 	// Used to show a warning in the tray menu so users know to fix their model config.
 	GetInitError func() string
@@ -254,10 +257,17 @@ func (ts *trayState) refreshMenu() {
 	// Version header (disabled).
 	menu.Add(fmt.Sprintf("GhostSpell v%s", version.Version)).SetEnabled(false)
 
-	// Active model indicator (disabled).
+	// Active LLM model (disabled label).
 	if ts.cfg.GetDefaultModelName != nil {
 		if modelName := ts.cfg.GetDefaultModelName(); modelName != "" {
-			menu.Add(fmt.Sprintf("Model: %s", modelName)).SetEnabled(false)
+			menu.Add(fmt.Sprintf("LLM: %s", modelName)).SetEnabled(false)
+		}
+	}
+
+	// Active voice model (disabled label).
+	if ts.cfg.GetVoiceModelName != nil {
+		if voiceName := ts.cfg.GetVoiceModelName(); voiceName != "" {
+			menu.Add(fmt.Sprintf("Voice: %s", voiceName)).SetEnabled(false)
 		}
 	}
 

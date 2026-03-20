@@ -659,6 +659,7 @@ func (s *SettingsService) GetIndicatorMenu() string {
 		Prompts       []menuPrompt `json:"prompts"`
 		Version       string       `json:"version"`
 		ActiveModel   string       `json:"activeModel"`
+		VoiceModel    string       `json:"voiceModel"`
 		IndicatorMode string       `json:"indicatorMode"`
 	}
 	var data menuData
@@ -680,6 +681,7 @@ func (s *SettingsService) GetIndicatorMenu() string {
 			})
 		}
 		data.ActiveModel = cfg.DefaultModel
+		data.VoiceModel = cfg.Voice.Model
 	} else {
 		slog.Warn("[GUI] GetIndicatorMenu: no config available")
 	}
