@@ -537,7 +537,14 @@ func applyDefaults(cfg *Config) {
 	}
 	if cfg.IndicatorPosition == "" || cfg.IndicatorPosition == "center" {
 		cfg.IndicatorPosition = "top-right"
-		// Clear saved drag position so the new corner preset takes effect.
+		cfg.IndicatorX = 0
+		cfg.IndicatorY = 0
+	}
+	// One-time cleanup: clear drag coordinates that were saved by the old
+	// WindowDidMove handler (which fired on programmatic SetPosition too).
+	// Without this, the preset corner position is overridden by stale coords.
+	if cfg.LastSeenVersion != "" && cfg.LastSeenVersion < "0.75" && cfg.IndicatorX > 0 {
+		slog.Info("Migrating: clearing stale indicator drag position", "x", cfg.IndicatorX, "y", cfg.IndicatorY)
 		cfg.IndicatorX = 0
 		cfg.IndicatorY = 0
 	}

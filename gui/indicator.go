@@ -75,15 +75,22 @@ func ensureIndicatorWindow() {
 	fmt.Println("[indicator] Window created (React hybrid) URL=/indicator-react.html?window=indicator")
 	slog.Info("[gui] Indicator window created (React hybrid)", "url", "/indicator-react.html?window=indicator")
 
-	// Save position after drag via Wails native WindowDidMove event.
+	// Save position after USER drag via Wails native WindowDidMove event.
+	// Only saves when indicatorDragSaveEnabled is true — prevents programmatic
+	// SetPosition calls from overwriting the preset corner position.
 	indicatorWin.OnWindowEvent(events.Windows.WindowDidMove, func(e *application.WindowEvent) {
+		indicatorMu.Lock()
+		save := indicatorDragSaveEnabled
+		indicatorMu.Unlock()
+		if !save {
+			return
+		}
 		x, y := indicatorWin.Position()
-		slog.Debug("[indicator] WindowDidMove", "x", x, "y", y)
+		slog.Debug("[indicator] WindowDidMove (drag)", "x", x, "y", y)
 		indicatorMu.Lock()
 		indicatorSavedX = x
 		indicatorSavedY = y
 		indicatorMu.Unlock()
-		// Persist to config.
 		if indicatorConfigSaver != nil {
 			indicatorConfigSaver(x, y)
 		}
@@ -147,6 +154,10 @@ var indicatorMode = "processing"
 // indicatorSavedX/Y stores the user's dragged position.
 var indicatorSavedX, indicatorSavedY int
 
+// indicatorDragSaveEnabled controls whether WindowDidMove saves position.
+// Disabled during programmatic moves (SetPosition), enabled after first user interaction.
+var indicatorDragSaveEnabled bool
+
 func SetIndicatorPosition(pos string) {
 	indicatorMu.Lock()
 	indicatorPos = pos
@@ -163,6 +174,14 @@ func SetIndicatorSavedPosition(x, y int) {
 	indicatorMu.Lock()
 	indicatorSavedX = x
 	indicatorSavedY = y
+	indicatorMu.Unlock()
+}
+
+// EnableIndicatorDragSave enables WindowDidMove position saving.
+// Called at startup when the config has saved drag coordinates.
+func EnableIndicatorDragSave() {
+	indicatorMu.Lock()
+	indicatorDragSaveEnabled = true
 	indicatorMu.Unlock()
 }
 
@@ -461,8 +480,12 @@ func popIndicatorInner(promptIcon, promptName, modelName string) {
 }
 
 // SaveIndicatorPosition saves the drag position (called from React JS).
+// This is a user-initiated drag — enable drag save so WindowDidMove persists future moves.
 func (s *SettingsService) SaveIndicatorPosition(x, y int) string {
 	slog.Debug("[GUI] SaveIndicatorPosition", "x", x, "y", y)
+	indicatorMu.Lock()
+	indicatorDragSaveEnabled = true
+	indicatorMu.Unlock()
 	SetIndicatorSavedPosition(x, y)
 	if s.cfgCopy != nil {
 		s.cfgCopy.IndicatorX = x
