@@ -37,6 +37,7 @@ export function IndicatorWindow() {
   const [menuMode, setMenuMode] = useState("processing");
   const [isVoice, setIsVoice] = useState(false);
   const [isVision, setIsVision] = useState(false);
+  const [lastStatusIcon, setLastStatusIcon] = useState("");
   const timerRef = useRef<number | null>(null);
   const [eventsReady, setEventsReady] = useState(false);
 
@@ -82,17 +83,32 @@ export function IndicatorWindow() {
         if (d.model !== undefined) setModel(d.model);
         setMenuOpen(false);
 
-        // Timer for processing state.
-        if (timerRef.current) clearInterval(timerRef.current);
+        // Timer for processing state — keep running across phase changes
+        // (e.g. voice recording → transcription → LLM).
         if (d.state === "processing") {
-          setElapsed(0);
-          timerRef.current = window.setInterval(() => {
-            setElapsed((prev) => prev + 1);
-          }, 1000);
+          if (!timerRef.current) {
+            // Only start timer if not already running.
+            setElapsed(0);
+            timerRef.current = window.setInterval(() => {
+              setElapsed((prev) => prev + 1);
+            }, 1000);
+          }
+        } else {
+          // Stop timer for non-processing states.
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
         }
         // Capture final elapsed for done state.
         if (d.state === "done" && d.elapsed !== undefined) {
           setDoneElapsed(d.elapsed);
+        }
+        // Save last status icon from pop/done for idle center display.
+        if (d.state === "pop" && d.icon) {
+          setLastStatusIcon(d.icon);
+        } else if (d.state === "processing") {
+          setLastStatusIcon(""); // clear on new processing
         }
         // Voice/vision flags come with every event from Go.
         if (d.voice !== undefined) setIsVoice(d.voice);
@@ -250,6 +266,15 @@ export function IndicatorWindow() {
             pointerEvents: "none",
           }}
         />
+        {/* Center: last status icon (error, cancel, etc.) */}
+        {lastStatusIcon && (
+          <span style={{
+            position: "absolute", top: "50%", left: "50%",
+            transform: "translate(-50%, -50%)",
+            fontSize: "16px", lineHeight: 1, pointerEvents: "none",
+            filter: "drop-shadow(0 0 3px rgba(0,0,0,0.8))",
+          }}>{lastStatusIcon}</span>
+        )}
         {/* Top-right: active skill icon */}
         {icon && (
           <span style={{ ...badgeBase, top: "1px", right: "1px" }}>{icon}</span>

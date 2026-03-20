@@ -89,7 +89,8 @@ func processVoice(
 	slog.Info("[voice] Recording complete", "duration", duration, "wav_size", len(wavData))
 	sound.PlayMicStop()
 
-	// Transcribe.
+	// Transcribe — distinct sound to indicate phase change.
+	sound.PlayClick()
 	gui.ShowIndicator("🎙️", "Transcribing...", "")
 
 	if transcriber == nil {
@@ -152,6 +153,10 @@ func processVoice(
 	}
 
 	// Skill mode — process transcript with active prompt.
+	// Distinct sound to indicate transition from transcription to LLM processing.
+	sound.PlayToggle()
+	sound.StartWorkingLoop()
+
 	promptIcon := ""
 	if promptIdx >= 0 && promptIdx < len(cfg.Prompts) {
 		promptIcon = cfg.Prompts[promptIdx].Icon
