@@ -322,6 +322,15 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 	// Wire tray menu refresh so indicator prompt cycling keeps everything in sync.
 	settingsSvc.RefreshTrayMenuFn = refreshTrayMenu
 
+	// Wire active prompt setter so indicator cycling uses the same synchronized
+	// path as the tray menu (mutex + router.SetPrompt).
+	settingsSvc.SetActivePromptFn = func(idx int) {
+		setActivePrompt(idx)
+		if router != nil {
+			router.SetPrompt(idx)
+		}
+	}
+
 	// Background update checker — checks after 60s, then every 24h.
 	go func() {
 		time.Sleep(60 * time.Second)

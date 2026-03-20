@@ -66,6 +66,10 @@ type SettingsService struct {
 	// RefreshTrayMenuFn refreshes the tray menu to reflect prompt changes.
 	RefreshTrayMenuFn func()
 
+	// SetActivePromptFn sets the active prompt index with proper synchronization.
+	// Wired by app.go to call setActivePrompt + router.SetPrompt under mutex.
+	SetActivePromptFn func(idx int)
+
 	// Stats callbacks.
 	GetStatsFn    func() string
 	ClearStatsFn  func()
@@ -602,16 +606,16 @@ func (s *SettingsService) CyclePromptFromIndicator() string {
 		slog.Warn("[GUI] CyclePromptFromIndicator: all prompts disabled")
 		return "error: all prompts disabled"
 	}
-	cfg.ActivePrompt = next
+	// Use the app.go callback for proper mutex + router sync.
+	if s.SetActivePromptFn != nil {
+		s.SetActivePromptFn(next)
+	} else {
+		cfg.ActivePrompt = next
+	}
 	p := cfg.Prompts[next]
 	slog.Info("[GUI] CyclePromptFromIndicator: cycled", "index", next, "name", p.Name)
-	go sound.PlayClick()
 	SetCurrentPromptFlags(p.Voice, p.Vision)
 	PopIndicatorWithModel(p.Icon, p.Name, cfg.DefaultModel)
-	// Sync tray menu + settings UI.
-	if s.RefreshTrayMenuFn != nil {
-		s.RefreshTrayMenuFn()
-	}
 	EmitConfigChanged()
 	return "ok"
 }
@@ -689,16 +693,16 @@ func (s *SettingsService) SetActivePromptFromIndicator(idx int) string {
 		slog.Warn("[GUI] SetActivePromptFromIndicator: invalid", "cfg_nil", cfg == nil, "idx", idx)
 		return "error: invalid index"
 	}
-	cfg.ActivePrompt = idx
+	// Use the app.go callback for proper mutex + router sync.
+	if s.SetActivePromptFn != nil {
+		s.SetActivePromptFn(idx)
+	} else {
+		cfg.ActivePrompt = idx
+	}
 	p := cfg.Prompts[idx]
 	slog.Info("[GUI] SetActivePromptFromIndicator: set", "index", idx, "name", p.Name)
-	go sound.PlayClick()
 	SetCurrentPromptFlags(p.Voice, p.Vision)
 	PopIndicator(p.Icon, p.Name)
-	// Sync tray menu + settings UI.
-	if s.RefreshTrayMenuFn != nil {
-		s.RefreshTrayMenuFn()
-	}
 	EmitConfigChanged()
 	return "ok"
 }
