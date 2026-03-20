@@ -524,23 +524,22 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		// (e.g. Ctrl+Shift+T is taken by Chrome on Windows).
 		if cfg.Hotkeys.CyclePrompt != "" {
 			if err := mgr.Register("cycle_prompt", cfg.Hotkeys.CyclePrompt, func() {
+				// Cycling doesn't need the router — it just changes the active prompt.
+				// Works even when no model is configured.
 				mu.Lock()
-				localRouter := router
-				// Try to recover the router if nil (e.g., OAuth token refreshed since startup).
-				if localRouter == nil && cfg.DefaultModel != "" {
-					client, clientErr := newClientFromConfig(cfg, cfg.DefaultModel)
-					if clientErr == nil {
-						router = mode.NewRouter(cfg, client)
-						localRouter = router
-						slog.Info("Router recovered on cycle prompt", "model", cfg.DefaultModel)
-					}
+				next, found := config.NextEnabledPrompt(cfg.Prompts, cfg.ActivePrompt)
+				if found {
+					cfg.ActivePrompt = next
+				}
+				idx := cfg.ActivePrompt
+				name := ""
+				if idx >= 0 && idx < len(cfg.Prompts) {
+					name = cfg.Prompts[idx].Name
+				}
+				if router != nil {
+					router.SetPrompt(idx)
 				}
 				mu.Unlock()
-				if localRouter == nil {
-					slog.Warn("Cycle prompt: no active model")
-					return
-				}
-				idx, name := localRouter.CyclePrompt()
 				slog.Info("Prompt cycled", "index", idx, "name", name)
 				fmt.Printf("Active prompt: %s\n", name)
 				sound.PlayClick()
