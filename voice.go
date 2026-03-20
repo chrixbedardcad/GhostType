@@ -59,16 +59,18 @@ func processVoice(
 	// Show recording indicator.
 	gui.ShowIndicator("🎙️", "Recording...", "")
 
-	// Record audio.
+	// Record audio via malgo (miniaudio).
 	recorder := audio.NewRecorder()
 	if !recorder.Available() {
-		slog.Error("[voice] No audio recording tool available")
+		slog.Error("[voice] No microphone available")
+		fmt.Println("[voice] ERROR: No microphone found")
 		gui.HideIndicator()
-		gui.PopIndicator("🎙️❌", "No mic tool")
+		gui.PopIndicator("🎙️❌", "No microphone")
 		sound.PlayError()
 		return
 	}
 
+	fmt.Println("[voice] Starting audio capture...")
 	wavData, duration, err := recorder.Record(cancelCtx, stopCh)
 	if err != nil {
 		slog.Error("[voice] Recording failed", "error", err)

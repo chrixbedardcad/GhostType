@@ -290,3 +290,7 @@ golang.org/x/text/unicode/norm
 # gopkg.in/warnings.v0 v0.1.2
 ## explicit
 gopkg.in/warnings.v0
+explicit; go 1.20
+# github.com/gen2brain/malgo v0.11.24
+## explicit; go 1.20
+github.com/gen2brain/malgo
