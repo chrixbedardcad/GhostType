@@ -9,7 +9,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/chrixbedardcad/GhostSpell/audio"
 	"github.com/chrixbedardcad/GhostSpell/clipboard"
 	"github.com/chrixbedardcad/GhostSpell/config"
 	"github.com/chrixbedardcad/GhostSpell/gui"
@@ -60,8 +59,8 @@ func processVoice(
 	gui.ShowIndicator("🎙️", "Recording...", "")
 
 	// Record audio via malgo (miniaudio).
-	recorder := audio.NewRecorder()
-	if !recorder.Available() {
+	recorder := sound.NewRecorder()
+	if !recorder.MicAvailable() {
 		slog.Error("[voice] No microphone available")
 		fmt.Println("[voice] ERROR: No microphone found")
 		gui.HideIndicator()

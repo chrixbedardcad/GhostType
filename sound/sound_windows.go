@@ -80,6 +80,15 @@ var click4WAV []byte
 //go:embed click5.wav
 var click5WAV []byte
 
+//go:embed mic_start.wav
+var micStartWAV []byte
+
+//go:embed mic_stop.wav
+var micStopWAV []byte
+
+//go:embed camera_snap.wav
+var cameraSnapWAV []byte
+
 //go:embed cancel.wav
 var cancelWAV []byte
 
@@ -144,9 +153,10 @@ func PlaySuccess() { play(pickRandom([][]byte{successWAV, success2WAV, success3W
 func PlayError()   { play(pickRandom([][]byte{errorWAV, error2WAV})) }
 func PlayToggle()  { play(pickRandom([][]byte{toggleWAV, toggle1WAV, toggle2WAV, toggle3WAV, toggle4WAV})) }
 func PlayClick()    { play(pickRandom([][]byte{click1WAV, click2WAV, click3WAV, click4WAV, click5WAV})) }
-func PlayMicStart() { play(startWAV) }
-func PlayMicStop()  { play(toggleWAV) }
-func PlayCancel()   { play(cancelWAV) }
+func PlayMicStart()    { play(micStartWAV) }
+func PlayMicStop()     { play(micStopWAV) }
+func PlayCameraSnap()  { play(cameraSnapWAV) }
+func PlayCancel()      { play(cancelWAV) }
 func PlayWorking()    { play(workingWAV) }
 func PlayBenchmark()  { play(pickRandom([][]byte{benchmarkingWAV, benchmarking2WAV})) }
 

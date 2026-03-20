@@ -577,6 +577,7 @@ func processVision(
 		return
 	}
 	slog.Info("Vision: screenshot captured", "prompt", promptName, "size_bytes", len(imgData))
+	sound.PlayCameraSnap()
 
 	// Check if cancelled during capture.
 	if cancelCtx.Err() != nil {

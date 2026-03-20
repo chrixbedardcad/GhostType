@@ -1,10 +1,4 @@
-// Package audio provides cross-platform microphone recording using miniaudio.
-// Used by the voice input pipeline to capture audio for speech-to-text.
-//
-// Uses malgo (github.com/gen2brain/malgo) — Go bindings for miniaudio.
-// Zero external dependencies: no sox, ffmpeg, arecord, or system libraries.
-// Works on Windows, macOS, and Linux out of the box.
-package audio
+package sound
 
 import (
 	"bytes"
@@ -20,10 +14,10 @@ import (
 )
 
 // Recorder captures audio from the system microphone using miniaudio.
+// Zero external dependencies — works on Windows, macOS, and Linux.
 type Recorder struct {
 	mu        sync.Mutex
 	recording bool
-	ctx       *malgo.AllocatedContext
 }
 
 // NewRecorder creates a new audio recorder.
@@ -31,25 +25,24 @@ func NewRecorder() *Recorder {
 	return &Recorder{}
 }
 
-// Available returns true if a microphone is accessible.
-func (r *Recorder) Available() bool {
+// MicAvailable returns true if a microphone is accessible.
+func (r *Recorder) MicAvailable() bool {
 	ctx, err := malgo.InitContext(nil, malgo.ContextConfig{}, nil)
 	if err != nil {
-		slog.Debug("[audio] malgo context init failed", "error", err)
+		slog.Debug("[mic] malgo context init failed", "error", err)
 		return false
 	}
 	defer func() { _ = ctx.Uninit() }()
 
-	// Try to enumerate capture devices.
 	devices, err := ctx.Devices(malgo.Capture)
 	if err != nil {
-		slog.Debug("[audio] no capture devices", "error", err)
+		slog.Debug("[mic] no capture devices", "error", err)
 		return false
 	}
 
 	available := len(devices) > 0
 	if available {
-		slog.Debug("[audio] capture devices found", "count", len(devices), "default", devices[0].Name())
+		slog.Debug("[mic] capture devices found", "count", len(devices), "default", devices[0].Name())
 	}
 	return available
 }
@@ -66,7 +59,6 @@ func (r *Recorder) Record(ctx context.Context, stop <-chan struct{}) ([]byte, ti
 	r.mu.Unlock()
 	defer func() { r.mu.Lock(); r.recording = false; r.mu.Unlock() }()
 
-	// Initialize miniaudio context.
 	mctx, err := malgo.InitContext(nil, malgo.ContextConfig{}, nil)
 	if err != nil {
 		return nil, 0, fmt.Errorf("audio init: %w", err)
@@ -76,29 +68,23 @@ func (r *Recorder) Record(ctx context.Context, stop <-chan struct{}) ([]byte, ti
 		mctx.Free()
 	}()
 
-	// Configure capture: 16kHz, mono, 16-bit signed integer.
 	deviceConfig := malgo.DefaultDeviceConfig(malgo.Capture)
 	deviceConfig.Capture.Format = malgo.FormatS16
 	deviceConfig.Capture.Channels = 1
 	deviceConfig.SampleRate = 16000
-	deviceConfig.PeriodSizeInMilliseconds = 100 // 100ms buffer periods
+	deviceConfig.PeriodSizeInMilliseconds = 100
 
 	var pcm bytes.Buffer
 	var pcmMu sync.Mutex
 	start := time.Now()
 
-	// Callback receives audio data from the microphone.
 	onRecvFrames := func(outputSamples, inputSamples []byte, frameCount uint32) {
 		pcmMu.Lock()
 		pcm.Write(inputSamples)
 		pcmMu.Unlock()
 	}
 
-	callbacks := malgo.DeviceCallbacks{
-		Data: onRecvFrames,
-	}
-
-	device, err := malgo.InitDevice(mctx.Context, deviceConfig, callbacks)
+	device, err := malgo.InitDevice(mctx.Context, deviceConfig, malgo.DeviceCallbacks{Data: onRecvFrames})
 	if err != nil {
 		return nil, 0, fmt.Errorf("mic init: %w", err)
 	}
@@ -109,21 +95,20 @@ func (r *Recorder) Record(ctx context.Context, stop <-chan struct{}) ([]byte, ti
 	}
 	defer device.Stop()
 
-	slog.Info("[audio] Recording started (malgo/miniaudio)", "sampleRate", 16000, "channels", 1, "format", "s16")
-	fmt.Println("[audio] Recording started — speak now...")
+	slog.Info("[mic] Recording started", "sampleRate", 16000, "channels", 1)
+	fmt.Println("[mic] Recording — speak now...")
 
-	// Wait for stop signal, context cancellation, or max duration (120s).
 	maxTimer := time.NewTimer(120 * time.Second)
 	defer maxTimer.Stop()
 
 	select {
 	case <-stop:
-		slog.Info("[audio] Recording stopped by user")
-		fmt.Println("[audio] Recording stopped")
+		slog.Info("[mic] Recording stopped by user")
+		fmt.Println("[mic] Stopped")
 	case <-ctx.Done():
-		slog.Info("[audio] Recording stopped by context")
+		slog.Info("[mic] Recording stopped by context")
 	case <-maxTimer.C:
-		slog.Info("[audio] Recording reached max duration (120s)")
+		slog.Info("[mic] Max duration reached (120s)")
 	}
 
 	duration := time.Since(start)
@@ -136,17 +121,10 @@ func (r *Recorder) Record(ctx context.Context, stop <-chan struct{}) ([]byte, ti
 		return nil, duration, fmt.Errorf("recording too short (%d bytes, %.1fs)", len(rawPCM), duration.Seconds())
 	}
 
-	// Encode as WAV.
 	wav := EncodeWAV(rawPCM, 16000, 1)
 
-	slog.Info("[audio] Recording complete",
-		"duration", duration,
-		"pcm_bytes", len(rawPCM),
-		"wav_bytes", len(wav),
-		"samples", len(rawPCM)/2,
-		"seconds", float64(len(rawPCM)/2)/16000.0,
-	)
-	fmt.Printf("[audio] Recorded %.1fs (%d bytes)\n", duration.Seconds(), len(wav))
+	slog.Info("[mic] Recording complete", "duration", duration, "pcm_bytes", len(rawPCM), "wav_bytes", len(wav))
+	fmt.Printf("[mic] Recorded %.1fs (%d bytes)\n", duration.Seconds(), len(wav))
 
 	return wav, duration, nil
 }
@@ -165,7 +143,7 @@ func EncodeWAV(pcm []byte, sampleRate, channels int) []byte {
 	copy(buf[8:12], "WAVE")
 	copy(buf[12:16], "fmt ")
 	binary.LittleEndian.PutUint32(buf[16:20], 16)
-	binary.LittleEndian.PutUint16(buf[20:22], 1) // PCM
+	binary.LittleEndian.PutUint16(buf[20:22], 1)
 	binary.LittleEndian.PutUint16(buf[22:24], uint16(channels))
 	binary.LittleEndian.PutUint32(buf[24:28], uint32(sampleRate))
 	binary.LittleEndian.PutUint32(buf[28:32], uint32(byteRate))
@@ -174,12 +152,10 @@ func EncodeWAV(pcm []byte, sampleRate, channels int) []byte {
 	copy(buf[36:40], "data")
 	binary.LittleEndian.PutUint32(buf[40:44], uint32(dataSize))
 	copy(buf[44:], pcm)
-
 	return buf
 }
 
-// PCMToFloat32 converts 16-bit signed PCM bytes to float32 samples [-1.0, 1.0].
-// Used by whisper.cpp which expects float32 input.
+// PCMToFloat32 converts 16-bit signed PCM to float32 samples [-1.0, 1.0].
 func PCMToFloat32(pcm []byte) []float32 {
 	nSamples := len(pcm) / 2
 	floats := make([]float32, nSamples)
