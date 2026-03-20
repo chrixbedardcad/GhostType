@@ -278,10 +278,12 @@ set WHISPER_SRC=%BUILD_DIR%\whisper-src
 set WHISPER_OUT=%BUILD_DIR%\whisper
 
 set /a WLIBS=0
+set WHEADERS_OK=0
 if exist "!WHISPER_OUT!\lib" (
     for /f "delims=" %%f in ('dir /b "!WHISPER_OUT!\lib\*.a" 2^>nul') do set /a WLIBS+=1
 )
-if !WLIBS! geq 2 (
+if exist "!WHISPER_OUT!\include\whisper.h" if exist "!WHISPER_OUT!\include\ggml.h" set WHEADERS_OK=1
+if !WLIBS! geq 2 if !WHEADERS_OK!==1 (
     echo [1.5] Ghost Voice libraries already built ^(!WLIBS! libs^) — skipping.
     echo.
     goto :skip_ghostvoice
