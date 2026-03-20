@@ -728,10 +728,6 @@ func (s *SettingsService) SetIndicatorPosition(pos string) string {
 	// Update the live position immediately (don't wait for onSaved callback).
 	SetIndicatorPosition(pos)
 	SetIndicatorSavedPosition(0, 0)
-	// Disable drag save — preset positions compute from screen geometry.
-	indicatorMu.Lock()
-	indicatorDragSaveEnabled = false
-	indicatorMu.Unlock()
 	if err := s.validateAndSave(); err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}

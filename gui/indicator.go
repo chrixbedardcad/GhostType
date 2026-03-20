@@ -9,7 +9,6 @@ import (
 
 	"github.com/chrixbedardcad/GhostSpell/config"
 	"github.com/wailsapp/wails/v3/pkg/application"
-	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
 var (
@@ -75,26 +74,10 @@ func ensureIndicatorWindow() {
 	fmt.Println("[indicator] Window created (React hybrid) URL=/indicator-react.html?window=indicator")
 	slog.Info("[gui] Indicator window created (React hybrid)", "url", "/indicator-react.html?window=indicator")
 
-	// Save position after USER drag via Wails native WindowDidMove event.
-	// Only saves when indicatorDragSaveEnabled is true — prevents programmatic
-	// SetPosition calls from overwriting the preset corner position.
-	indicatorWin.OnWindowEvent(events.Windows.WindowDidMove, func(e *application.WindowEvent) {
-		indicatorMu.Lock()
-		save := indicatorDragSaveEnabled
-		indicatorMu.Unlock()
-		if !save {
-			return
-		}
-		x, y := indicatorWin.Position()
-		slog.Debug("[indicator] WindowDidMove (drag)", "x", x, "y", y)
-		indicatorMu.Lock()
-		indicatorSavedX = x
-		indicatorSavedY = y
-		indicatorMu.Unlock()
-		if indicatorConfigSaver != nil {
-			indicatorConfigSaver(x, y)
-		}
-	})
+	// WindowDidMove is NOT used for position saving. Programmatic SetPosition
+	// calls (ShowIndicator, PopIndicator, etc.) trigger this event and would
+	// overwrite the user's drag position with pill/idle coordinates.
+	// Position is saved ONLY from React JS SaveIndicatorPosition (user drag).
 
 	// Block until React has time to mount and register event listeners.
 	fmt.Println("[indicator] Waiting 800ms for React to mount...")
@@ -155,9 +138,6 @@ var indicatorMode = "processing"
 // indicatorSavedX/Y stores the user's dragged position.
 var indicatorSavedX, indicatorSavedY int
 
-// indicatorDragSaveEnabled controls whether WindowDidMove saves position.
-// Disabled during programmatic moves (SetPosition), enabled after first user interaction.
-var indicatorDragSaveEnabled bool
 
 func SetIndicatorPosition(pos string) {
 	indicatorMu.Lock()
@@ -178,13 +158,6 @@ func SetIndicatorSavedPosition(x, y int) {
 	indicatorMu.Unlock()
 }
 
-// EnableIndicatorDragSave enables WindowDidMove position saving.
-// Called at startup when the config has saved drag coordinates.
-func EnableIndicatorDragSave() {
-	indicatorMu.Lock()
-	indicatorDragSaveEnabled = true
-	indicatorMu.Unlock()
-}
 
 // emitIndicatorEvent sends a state update to the React indicator.
 func emitIndicatorEvent(data map[string]any) {
@@ -533,11 +506,11 @@ func popIndicatorInner(promptIcon, promptName, modelName string) {
 
 // SaveIndicatorPosition saves the drag position (called from React JS).
 // Sets position to "custom" so preset corners don't override the drag position.
+// This is the ONLY place position is saved — never from programmatic SetPosition.
 func (s *SettingsService) SaveIndicatorPosition(x, y int) string {
 	slog.Debug("[GUI] SaveIndicatorPosition", "x", x, "y", y)
 	indicatorMu.Lock()
 	indicatorPos = "custom"
-	indicatorDragSaveEnabled = true
 	indicatorMu.Unlock()
 	SetIndicatorSavedPosition(x, y)
 	if s.cfgCopy != nil {
