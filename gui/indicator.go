@@ -109,10 +109,11 @@ var indicatorConfigSaver func(x, y int)
 // SetIndicatorConfigSaver sets the callback to persist position and mode to config.
 func SetIndicatorConfigSaver(cfg *config.Config, configPath string) {
 	indicatorConfigSaver = func(x, y int) {
+		cfg.IndicatorPosition = "custom"
 		cfg.IndicatorX = x
 		cfg.IndicatorY = y
 		config.WriteDefault(configPath, cfg)
-		slog.Info("[indicator] Position saved to config", "x", x, "y", y)
+		slog.Info("[indicator] Position saved to config (custom)", "x", x, "y", y)
 	}
 	indicatorModeSaver = func(mode string) {
 		cfg.IndicatorMode = mode
@@ -199,12 +200,16 @@ func emitIndicatorEvent(data map[string]any) {
 }
 
 // getIndicatorPositionForSize calculates position based on configured corner.
+// Preset positions (top-right, top-left, etc.) always compute from screen geometry.
+// Custom drag position (indicator_position="custom") uses saved X/Y coordinates.
 func getIndicatorPositionForSize(w, h int) (int, int) {
-	// Use saved drag position if available.
 	indicatorMu.Lock()
+	pos := indicatorPos
 	sx, sy := indicatorSavedX, indicatorSavedY
 	indicatorMu.Unlock()
-	if sx > 0 || sy > 0 {
+
+	// Custom position: user has dragged the indicator to a specific spot.
+	if pos == "custom" && (sx > 0 || sy > 0) {
 		return sx, sy
 	}
 
@@ -217,15 +222,10 @@ func getIndicatorPositionForSize(w, h int) (int, int) {
 		return 100, 100
 	}
 
-	indicatorMu.Lock()
-	pos := indicatorPos
-	indicatorMu.Unlock()
-
+	// Preset positions — always computed from screen, never from saved X/Y.
 	switch pos {
 	case "top-left":
 		return screen.WorkArea.X + 20, screen.WorkArea.Y + 20
-	case "top-right":
-		return screen.WorkArea.X + screen.WorkArea.Width - w - 20, screen.WorkArea.Y + 20
 	case "center-top":
 		return screen.WorkArea.X + (screen.WorkArea.Width-w)/2, screen.WorkArea.Y + 20
 	case "bottom-left":
@@ -234,7 +234,7 @@ func getIndicatorPositionForSize(w, h int) (int, int) {
 		return screen.WorkArea.X + screen.WorkArea.Width - w - 20, screen.WorkArea.Y + screen.WorkArea.Height - h - 20
 	case "center":
 		return screen.WorkArea.X + (screen.WorkArea.Width-w)/2, screen.WorkArea.Y + screen.WorkArea.Height/3
-	default: // fallback to top-right
+	default: // "top-right" and any unknown value
 		return screen.WorkArea.X + screen.WorkArea.Width - w - 20, screen.WorkArea.Y + 20
 	}
 }
@@ -480,10 +480,11 @@ func popIndicatorInner(promptIcon, promptName, modelName string) {
 }
 
 // SaveIndicatorPosition saves the drag position (called from React JS).
-// This is a user-initiated drag — enable drag save so WindowDidMove persists future moves.
+// Sets position to "custom" so preset corners don't override the drag position.
 func (s *SettingsService) SaveIndicatorPosition(x, y int) string {
 	slog.Debug("[GUI] SaveIndicatorPosition", "x", x, "y", y)
 	indicatorMu.Lock()
+	indicatorPos = "custom"
 	indicatorDragSaveEnabled = true
 	indicatorMu.Unlock()
 	SetIndicatorSavedPosition(x, y)

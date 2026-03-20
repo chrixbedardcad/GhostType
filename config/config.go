@@ -537,15 +537,10 @@ func applyDefaults(cfg *Config) {
 	}
 	if cfg.IndicatorPosition == "" || cfg.IndicatorPosition == "center" {
 		cfg.IndicatorPosition = "top-right"
-		cfg.IndicatorX = 0
-		cfg.IndicatorY = 0
 	}
-	// One-time cleanup: clear drag coordinates that were saved by the old
-	// WindowDidMove handler (which fired on programmatic SetPosition too).
-	// Without this, the preset corner position is overridden by stale coords.
-	// Fires for any version before 0.75.1 (which fixed drag-save behavior).
-	if cfg.IndicatorX > 0 && !versionAtLeast(cfg.LastSeenVersion, 0, 75, 1) {
-		slog.Info("Migrating: clearing stale indicator drag position", "x", cfg.IndicatorX, "y", cfg.IndicatorY)
+	// Preset positions never use saved X/Y. Only "custom" (user dragged) does.
+	// Clear stale X/Y from old versions that saved coordinates for presets.
+	if cfg.IndicatorPosition != "custom" {
 		cfg.IndicatorX = 0
 		cfg.IndicatorY = 0
 	}
