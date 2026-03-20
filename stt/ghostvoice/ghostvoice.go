@@ -22,6 +22,7 @@ import (
 type engine interface {
 	load(modelPath string) error
 	transcribe(pcmFloat []float32, language string) (text string, lang string, err error)
+	abort() // request cancellation of in-progress transcription
 	isLoaded() bool
 	unload()
 	close()
@@ -70,6 +71,7 @@ func (e *Engine) Load(modelPath string) error {
 // Transcribe converts PCM audio (16-bit signed, mono, 16kHz WAV) to text.
 // The wavData should include the WAV header (44 bytes) followed by PCM samples.
 // language is a BCP-47 code (e.g. "en", "fr") or empty for auto-detect.
+// Respects context cancellation — aborts whisper.cpp mid-inference via abort callback.
 func (e *Engine) Transcribe(ctx context.Context, wavData []byte, language string) (string, error) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -78,6 +80,11 @@ func (e *Engine) Transcribe(ctx context.Context, wavData []byte, language string
 	}
 	if !e.be.isLoaded() {
 		return "", fmt.Errorf("ghost-voice: model not loaded")
+	}
+
+	// Check context before starting.
+	if ctx.Err() != nil {
+		return "", ctx.Err()
 	}
 
 	// Parse WAV and convert 16-bit PCM to float32 (whisper.cpp expects float).
@@ -89,7 +96,25 @@ func (e *Engine) Transcribe(ctx context.Context, wavData []byte, language string
 	slog.Info("[ghost-voice] transcribing", "samples", len(pcmFloat), "duration_sec", float64(len(pcmFloat))/16000.0)
 	start := time.Now()
 
+	// Monitor context — abort whisper inference if cancelled.
+	done := make(chan struct{})
+	go func() {
+		select {
+		case <-ctx.Done():
+			slog.Info("[ghost-voice] context cancelled — aborting inference")
+			e.be.abort()
+		case <-done:
+		}
+	}()
+
 	text, detectedLang, err := e.be.transcribe(pcmFloat, language)
+	close(done)
+
+	// If context was cancelled, return the cancel error regardless of whisper result.
+	if ctx.Err() != nil {
+		return "", ctx.Err()
+	}
+
 	if err != nil {
 		return "", fmt.Errorf("ghost-voice transcribe: %w", err)
 	}

@@ -16,7 +16,18 @@
 struct ghost_voice_engine {
     struct whisper_context *ctx;
     int32_t threads;
+    volatile int abort_flag;
 };
+
+/* Abort callback — whisper.cpp checks this periodically during inference. */
+static bool ghost_voice_abort_cb(void *user_data) {
+    ghost_voice_engine *eng = (ghost_voice_engine *)user_data;
+    return eng && eng->abort_flag;
+}
+
+void ghost_voice_abort(ghost_voice_engine *eng) {
+    if (eng) eng->abort_flag = 1;
+}
 
 ghost_voice_engine *ghost_voice_new(int32_t threads) {
     ghost_voice_engine *eng = (ghost_voice_engine *)calloc(1, sizeof(ghost_voice_engine));
@@ -70,6 +81,11 @@ int ghost_voice_transcribe(ghost_voice_engine *eng,
         params.language = "auto";
         params.detect_language = 1;
     }
+
+    /* Wire abort callback so Go can cancel mid-inference via context. */
+    eng->abort_flag = 0;
+    params.abort_callback = ghost_voice_abort_cb;
+    params.abort_callback_user_data = eng;
 
     int ret = whisper_full(eng->ctx, params, pcm, n_samples);
     if (ret != 0) {

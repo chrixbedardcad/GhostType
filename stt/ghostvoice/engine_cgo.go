@@ -85,6 +85,12 @@ func (e *cgoEngine) transcribe(pcmFloat []float32, language string) (string, str
 	return text, lang, nil
 }
 
+func (e *cgoEngine) abort() {
+	if e.handle != nil {
+		C.ghost_voice_abort(e.handle)
+	}
+}
+
 func (e *cgoEngine) isLoaded() bool {
 	if e.handle == nil {
 		return false

@@ -39,7 +39,6 @@ func TranscribeStreaming(
 	lastText := ""
 	lastSize := 0
 	minNewBytes := 16000 // ~0.5s of 16kHz mono 16-bit audio
-	maxPassDuration := 3 * time.Second // skip streaming if model is too slow
 
 	for {
 		select {
@@ -62,9 +61,7 @@ func TranscribeStreaming(
 		}
 		lastSize = len(wav)
 
-		passStart := time.Now()
 		text, err := transcriber.Transcribe(ctx, wav, language)
-		passDuration := time.Since(passStart)
 		if err != nil {
 			if ctx.Err() != nil {
 				return lastText
@@ -72,17 +69,6 @@ func TranscribeStreaming(
 			slog.Debug("[stt] streaming transcription error", "error", err)
 			continue
 		}
-
-		// If a single pass takes too long, the model is too slow for streaming.
-		// Stop streaming to avoid blocking the final accurate transcription.
-		if passDuration > maxPassDuration {
-			slog.Info("[stt] streaming: model too slow for real-time, disabling", "pass_duration", passDuration)
-			if text = strings.TrimSpace(text); text != "" {
-				onPartial(text)
-			}
-			return text
-		}
-
 		text = strings.TrimSpace(text)
 		if text != "" && text != lastText {
 			lastText = text

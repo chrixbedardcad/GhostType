@@ -15,6 +15,7 @@ type stubEngine struct{}
 
 func (s *stubEngine) load(_ string) error                              { return ErrNotAvailable }
 func (s *stubEngine) transcribe(_ []float32, _ string) (string, string, error) { return "", "", ErrNotAvailable }
+func (s *stubEngine) abort()                                           {}
 func (s *stubEngine) isLoaded() bool                                   { return false }
 func (s *stubEngine) unload()                                          {}
 func (s *stubEngine) close()                                           {}

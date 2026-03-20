@@ -52,6 +52,9 @@ int ghost_voice_transcribe(ghost_voice_engine *eng,
 /* Check if a model is loaded. */
 int ghost_voice_is_loaded(ghost_voice_engine *eng);
 
+/* Request abort of in-progress transcription. Thread-safe. */
+void ghost_voice_abort(ghost_voice_engine *eng);
+
 /* Unload the current model (free memory). */
 void ghost_voice_unload(ghost_voice_engine *eng);
 
