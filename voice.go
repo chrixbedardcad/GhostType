@@ -91,8 +91,10 @@ func processVoice(
 		}
 	}
 	var overStopped atomic.Bool
+	streamDone := make(chan struct{})
 	if canStream {
 		go func() {
+			defer close(streamDone)
 			slog.Info("[voice] Streaming transcription enabled")
 			stt.TranscribeStreaming(
 				recCtx, transcriber, recorder.SnapshotWAV,
@@ -117,11 +119,17 @@ func processVoice(
 				2*time.Second,
 			)
 		}()
+	} else {
+		close(streamDone)
 	}
 
 	fmt.Println("[voice] Starting audio capture...")
 	wavData, duration, err := recorder.Record(cancelCtx, stopCh)
 	recCancel() // stop level polling + streaming transcription
+	// Wait for streaming goroutine to finish and release the whisper mutex.
+	// Without this, the final transcription queues behind a slow streaming
+	// call — especially on large models (whisper-large-v3 takes 20s+ per pass).
+	<-streamDone
 	if err != nil {
 		slog.Error("[voice] Recording failed", "error", err)
 		gui.HideIndicator()
