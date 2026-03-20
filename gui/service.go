@@ -70,6 +70,9 @@ type SettingsService struct {
 	// Wired by app.go to call setActivePrompt + router.SetPrompt under mutex.
 	SetActivePromptFn func(idx int)
 
+	// ReloadSTTFn re-initializes the speech-to-text engine after the voice model changes.
+	ReloadSTTFn func()
+
 	// Stats callbacks.
 	GetStatsFn    func() string
 	ClearStatsFn  func()

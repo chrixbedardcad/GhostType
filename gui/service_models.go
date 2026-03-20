@@ -178,13 +178,17 @@ func (s *SettingsService) VoiceStatus() string {
 	return string(data)
 }
 
-// SetVoiceModel sets the active voice model in config.
+// SetVoiceModel sets the active voice model in config and reloads the STT engine.
 func (s *SettingsService) SetVoiceModel(model string) string {
 	guiLog("[GUI] JS called: SetVoiceModel(%s)", model)
 	s.cfgCopy.Voice.Model = model
 	s.cfgCopy.Voice.Enabled = true
 	if err := s.validateAndSave(); err != nil {
 		return fmt.Sprintf("error: %v", err)
+	}
+	// Reload the STT engine with the new model.
+	if s.ReloadSTTFn != nil {
+		s.ReloadSTTFn()
 	}
 	return "ok"
 }

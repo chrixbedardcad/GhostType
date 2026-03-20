@@ -543,7 +543,8 @@ func applyDefaults(cfg *Config) {
 	// One-time cleanup: clear drag coordinates that were saved by the old
 	// WindowDidMove handler (which fired on programmatic SetPosition too).
 	// Without this, the preset corner position is overridden by stale coords.
-	if cfg.LastSeenVersion != "" && cfg.LastSeenVersion < "0.75" && cfg.IndicatorX > 0 {
+	// Fires for any version before 0.75.1 (which fixed drag-save behavior).
+	if cfg.IndicatorX > 0 && !versionAtLeast(cfg.LastSeenVersion, 0, 75, 1) {
 		slog.Info("Migrating: clearing stale indicator drag position", "x", cfg.IndicatorX, "y", cfg.IndicatorY)
 		cfg.IndicatorX = 0
 		cfg.IndicatorY = 0
@@ -752,6 +753,22 @@ func applyDefaults(cfg *Config) {
 			cfg.Models[name] = me
 		}
 	}
+}
+
+// versionAtLeast returns true if ver >= major.minor.patch using numeric comparison.
+func versionAtLeast(ver string, major, minor, patch int) bool {
+	if ver == "" {
+		return false
+	}
+	var a, b, c int
+	fmt.Sscanf(ver, "%d.%d.%d", &a, &b, &c)
+	if a != major {
+		return a > major
+	}
+	if b != minor {
+		return b > minor
+	}
+	return c >= patch
 }
 
 // Validate checks that the config has all required fields.

@@ -331,6 +331,21 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		}
 	}
 
+	// Wire STT reload so changing the voice model in Settings takes effect immediately.
+	settingsSvc.ReloadSTTFn = func() {
+		// Reload config from disk to pick up the new voice model.
+		newCfg, err := config.LoadRaw(configPath)
+		if err != nil {
+			slog.Error("Failed to reload config for STT", "error", err)
+			return
+		}
+		mu.Lock()
+		cfg.Voice = newCfg.Voice
+		mu.Unlock()
+		initSTT(cfg)
+		slog.Info("STT engine reloaded after voice model change", "model", cfg.Voice.Model)
+	}
+
 	// Background update checker — checks after 60s, then every 24h.
 	go func() {
 		time.Sleep(60 * time.Second)
