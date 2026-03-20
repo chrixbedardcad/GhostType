@@ -23,7 +23,6 @@ interface StateData {
   voice?: boolean;
   vision?: boolean;
   recording?: boolean;
-  transcript?: string;
 }
 
 export function IndicatorWindow() {
@@ -42,7 +41,6 @@ export function IndicatorWindow() {
   const [lastStatusIcon, setLastStatusIcon] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
-  const [transcript, setTranscript] = useState("");
   const timerRef = useRef<number | null>(null);
   const [eventsReady, setEventsReady] = useState(false);
 
@@ -117,8 +115,7 @@ export function IndicatorWindow() {
         }
         // Recording flag for red dot + voice pulse.
         setIsRecording(!!d.recording);
-        if (!d.recording) { setAudioLevel(0); setTranscript(""); }
-        if (d.transcript !== undefined) setTranscript(d.transcript);
+        if (!d.recording) setAudioLevel(0);
         // Voice/vision flags come with every event from Go.
         if (d.voice !== undefined) setIsVoice(d.voice);
         if (d.vision !== undefined) setIsVision(d.vision);
@@ -383,20 +380,10 @@ export function IndicatorWindow() {
               </>
             )}
           </div>
-          {model && !transcript && (
+          {model && (
             <span style={{ fontSize: "9px", color: "#585b70", paddingLeft: icon ? "22px" : "0",
               fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
               {model}
-            </span>
-          )}
-          {transcript && (
-            <span style={{
-              fontSize: "10px", color: "#a6adc8", paddingLeft: icon ? "22px" : "0",
-              maxWidth: "280px", overflow: "hidden", textOverflow: "ellipsis",
-              fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-              fontStyle: "italic",
-            }}>
-              {transcript}
             </span>
           )}
         </div>

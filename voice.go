@@ -83,29 +83,29 @@ func processVoice(
 		}
 	}()
 
-	// Streaming transcription: run partial whisper passes during recording (#245).
-	canStream := false
-	if cfg.Voice.Streaming {
-		if st, ok := transcriber.(stt.StreamingTranscriber); ok {
-			canStream = st.SupportsStreaming()
-		}
-	}
+	// "Over" voice command detection — runs streaming whisper in the background
+	// purely to detect the stop command. No live text display.
 	var overStopped atomic.Bool
 	streamDone := make(chan struct{})
+	canStream := cfg.Voice.Streaming
+	if canStream {
+		if st, ok := transcriber.(stt.StreamingTranscriber); ok {
+			canStream = st.SupportsStreaming()
+		} else {
+			canStream = false
+		}
+	}
 	if canStream {
 		go func() {
 			defer close(streamDone)
-			slog.Info("[voice] Streaming transcription enabled")
+			slog.Info("[voice] 'Over' detection enabled (streaming)")
 			stt.TranscribeStreaming(
 				recCtx, transcriber, recorder.SnapshotWAV,
 				cfg.Voice.Language,
 				func(text string) {
-					slog.Debug("[voice] Partial transcript", "text", text)
-					gui.UpdateTranscript(text)
-					// "Over" voice command — stop recording when detected at end of speech.
 					if endsWithOver(text) {
 						slog.Info("[voice] 'over' voice command detected — stopping recording")
-						fmt.Println("[voice] 'over' detected — auto-stopping recording")
+						fmt.Println("[voice] 'over' detected — auto-stopping")
 						overStopped.Store(true)
 						sound.PlayMicStop()
 						voiceStopMu.Lock()
@@ -126,22 +126,19 @@ func processVoice(
 	fmt.Println("[voice] Starting audio capture...")
 	wavData, duration, err := recorder.Record(cancelCtx, stopCh)
 
-	// IMMEDIATELY clear the recording flag so Ctrl+G stops hitting the
-	// "stop recording" branch. From here, Ctrl+G goes to "cancel request."
+	// IMMEDIATELY clear the recording flag so Ctrl+G goes to "cancel request."
 	voiceRecording.Store(false)
 	voiceStopMu.Lock()
 	voiceStopCh = nil
 	voiceStopMu.Unlock()
 
-	recCancel() // stop level polling + streaming transcription
+	recCancel() // stop level polling + over detection
 
-	// Wait for streaming goroutine to finish and release the whisper mutex.
-	// Use a timeout — if whisper is slow to abort (large models), don't block forever.
+	// Wait briefly for streaming goroutine to release whisper mutex.
 	select {
 	case <-streamDone:
-		// Streaming goroutine finished cleanly.
 	case <-time.After(5 * time.Second):
-		slog.Warn("[voice] Streaming goroutine slow to stop — proceeding without waiting")
+		slog.Warn("[voice] Over-detection goroutine slow to stop — proceeding")
 	}
 
 	if err != nil {
@@ -160,7 +157,6 @@ func processVoice(
 	}
 
 	slog.Info("[voice] Recording complete", "duration", duration, "wav_size", len(wavData))
-	// Play mic stop sound unless "over" command already played it.
 	if !overStopped.Load() {
 		sound.PlayMicStop()
 	}
@@ -197,7 +193,6 @@ func processVoice(
 	}
 
 	transcript = strings.TrimSpace(transcript)
-	// Strip "over" voice command from the final transcript.
 	transcript = stripOverCommand(transcript)
 	if transcript == "" {
 		slog.Warn("[voice] Empty transcription")
@@ -325,16 +320,14 @@ func processVoice(
 }
 
 // endsWithOver checks if the transcript ends with the "over" voice command.
-// Handles punctuation and case variations: "over", "Over.", "OVER!", etc.
 func endsWithOver(text string) bool {
 	text = strings.TrimSpace(strings.ToLower(text))
-	// Strip trailing punctuation.
 	text = strings.TrimRight(text, ".,!?;:")
 	text = strings.TrimSpace(text)
 	return text == "over" || strings.HasSuffix(text, " over")
 }
 
-// stripOverCommand removes the trailing "over" voice command from a transcript.
+// stripOverCommand removes the trailing "over" from a transcript.
 func stripOverCommand(text string) string {
 	lower := strings.TrimSpace(strings.ToLower(text))
 	stripped := strings.TrimRight(lower, ".,!?;:")
@@ -343,15 +336,12 @@ func stripOverCommand(text string) string {
 		return ""
 	}
 	if strings.HasSuffix(stripped, " over") {
-		// Find the position in the original text and trim.
 		idx := len(text) - 1
 		for idx >= 0 && (text[idx] == '.' || text[idx] == ',' || text[idx] == '!' || text[idx] == '?' || text[idx] == ' ') {
 			idx--
 		}
-		// idx now points to the last char of "over" — back up 4 more chars ("over" = 4).
 		if idx >= 3 {
-			result := strings.TrimSpace(text[:idx-3])
-			return result
+			return strings.TrimSpace(text[:idx-3])
 		}
 	}
 	return text
