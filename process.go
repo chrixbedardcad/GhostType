@@ -52,6 +52,20 @@ func processMode(
 	stopAnim func(),
 ) {
 	if !processingGuard.TryLock() {
+		// If voice is recording, second Ctrl+G stops the recording (not cancel).
+		if voiceRecording.Load() {
+			slog.Info("Hotkey pressed again — stopping voice recording")
+			fmt.Println("[voice] Second Ctrl+G — stopping recording")
+			sound.PlayMicStop()
+			voiceStopMu.Lock()
+			if voiceStopCh != nil {
+				close(voiceStopCh)
+				voiceStopCh = nil
+			}
+			voiceStopMu.Unlock()
+			return
+		}
+
 		// Second press while processing — cancel the active LLM request.
 		slog.Info("Hotkey pressed again — cancelling active request")
 		mu.Lock()
@@ -60,7 +74,7 @@ func processMode(
 		}
 		mu.Unlock()
 		sound.StopWorkingLoop()
-		sound.PlayCancel() // Play cancel sound immediately — before GUI cleanup for sharp feedback.
+		sound.PlayCancel()
 		if stopAnim != nil {
 			stopAnim()
 		}
