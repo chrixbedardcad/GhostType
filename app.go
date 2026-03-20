@@ -25,20 +25,6 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
-// modelInitOrder returns model labels to try, default first then others.
-func modelInitOrder(cfg *config.Config) []string {
-	var order []string
-	if cfg.DefaultModel != "" {
-		order = append(order, cfg.DefaultModel)
-	}
-	for label := range cfg.Models {
-		if label != cfg.DefaultModel {
-			order = append(order, label)
-		}
-	}
-	return order
-}
-
 func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSetup bool, initError error) {
 	cb := newClipboard()
 	kb := newKeyboard()
@@ -352,17 +338,12 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		// Always try to create the router if it's nil — don't gate on initErr.
 		// The user may have fixed their config, added a new provider, or the
 		// OAuth token may have been refreshed.
-		if router == nil {
-			// Try default model first, then fall back to any working model.
-			for _, label := range modelInitOrder(cfg) {
-				client, clientErr := newClientFromConfig(cfg, label)
-				if clientErr == nil {
-					cfg.DefaultModel = label
-					router = mode.NewRouter(cfg, client)
-					initErr = nil
-					slog.Info("Router created after settings save", "model", label)
-					break
-				}
+		if router == nil && cfg.DefaultModel != "" {
+			client, clientErr := newClientFromConfig(cfg, cfg.DefaultModel)
+			if clientErr == nil {
+				router = mode.NewRouter(cfg, client)
+				initErr = nil
+				slog.Info("Router created after settings save", "model", cfg.DefaultModel)
 			}
 		}
 		mu.Unlock()
@@ -508,17 +489,13 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				promptLLM = cfg.Prompts[promptIdx].LLM
 			}
 			localRouter := router
-			// Try to recover the router if nil — try all models, not just default.
-			if localRouter == nil {
-				for _, label := range modelInitOrder(cfg) {
-					client, clientErr := newClientFromConfig(cfg, label)
-					if clientErr == nil {
-						cfg.DefaultModel = label
-						router = mode.NewRouter(cfg, client)
-						localRouter = router
-						slog.Info("Router recovered on hotkey press", "model", label)
-						break
-					}
+			// Try to recover the router if nil.
+			if localRouter == nil && cfg.DefaultModel != "" {
+				client, clientErr := newClientFromConfig(cfg, cfg.DefaultModel)
+				if clientErr == nil {
+					router = mode.NewRouter(cfg, client)
+					localRouter = router
+					slog.Info("Router recovered on hotkey press", "model", cfg.DefaultModel)
 				}
 			}
 			slog.Info("Hotkey: config snapshot", "default_model", cfg.DefaultModel, "prompt", promptName, "prompt_llm", promptLLM, "prompt_idx", promptIdx)
