@@ -335,12 +335,17 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 		if router != nil {
 			router.ResetClients()
 		}
-		if router == nil && initErr != nil && cfg.DefaultModel != "" {
+		// Always try to create the router if it's nil — don't gate on initErr.
+		// The user may have fixed their config, added a new provider, or the
+		// OAuth token may have been refreshed.
+		if router == nil && cfg.DefaultModel != "" {
 			client, clientErr := newClientFromConfig(cfg, cfg.DefaultModel)
 			if clientErr == nil {
 				router = mode.NewRouter(cfg, client)
 				initErr = nil
-				slog.Info("Model error resolved after settings save")
+				slog.Info("Router created after settings save", "model", cfg.DefaultModel)
+			} else {
+				slog.Warn("Router creation failed after settings save", "model", cfg.DefaultModel, "error", clientErr)
 			}
 		}
 		mu.Unlock()
@@ -514,6 +519,7 @@ func runApp(cfg *config.Config, router *mode.Router, configPath string, needsSet
 				localRouter := router
 				mu.Unlock()
 				if localRouter == nil {
+					slog.Warn("Cycle prompt: no active model")
 					return
 				}
 				idx, name := localRouter.CyclePrompt()
