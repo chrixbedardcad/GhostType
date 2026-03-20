@@ -279,7 +279,7 @@ set WHISPER_OUT=%BUILD_DIR%\whisper
 
 set /a WLIBS=0
 if exist "!WHISPER_OUT!\lib" (
-    for %%f in ("!WHISPER_OUT!\lib\*.a") do set /a WLIBS+=1
+    for /f "delims=" %%f in ('dir /b "!WHISPER_OUT!\lib\*.a" 2^>nul') do set /a WLIBS+=1
 )
 if !WLIBS! geq 2 (
     echo [1.5] Ghost Voice libraries already built ^(!WLIBS! libs^) — skipping.
@@ -372,24 +372,19 @@ if exist "!WHISPER_SRC!\whisper.h" copy /y "!WHISPER_SRC!\whisper.h" "!WHISPER_O
 for /r "!WHISPER_SRC!" %%h in (ggml.h ggml-alloc.h ggml-backend.h) do copy /y "%%h" "!WHISPER_OUT!\include\" >nul 2>&1
 
 :: Libraries — collect all .a files from whisper build tree
+:: NOTE: for /r does not work with delayed-expansion paths (!VAR!), use dir+for /f
 echo   Collecting libraries from !WBUILD!...
-for /r "!WBUILD!" %%f in (*.a) do (
+for /f "delims=" %%f in ('dir /s /b "!WBUILD!\*.a" 2^>nul') do (
     echo     Found: %%f
     copy /y "%%f" "!WHISPER_OUT!\lib\" >nul
 )
-:: Also check for .lib files (MSVC-style output)
-for /r "!WBUILD!" %%f in (whisper*.lib ggml*.lib) do (
-    echo     Found: %%f
-    copy /y "%%f" "!WHISPER_OUT!\lib\" >nul
-)
-for %%f in ("!WHISPER_OUT!\lib\*.a") do (
-    set "wfn=%%~nxf"
-    if not "!wfn:~0,3!"=="lib" rename "%%f" "lib!wfn!"
+for /f "delims=" %%f in ('dir /b "!WHISPER_OUT!\lib\*.a" 2^>nul') do (
+    set "wfn=%%f"
+    if not "!wfn:~0,3!"=="lib" rename "!WHISPER_OUT!\lib\%%f" "lib%%f"
 )
 
 set /a WCOUNT=0
-for %%f in ("!WHISPER_OUT!\lib\*.a") do set /a WCOUNT+=1
-for %%f in ("!WHISPER_OUT!\lib\*.lib") do set /a WCOUNT+=1
+for /f "delims=" %%f in ('dir /b "!WHISPER_OUT!\lib\*.a" 2^>nul') do set /a WCOUNT+=1
 if !WCOUNT!==0 (
     echo   WARNING: No whisper libraries found — listing build output:
     dir /s /b "!WBUILD!\*.a" "!WBUILD!\*.lib" "!WBUILD!\*.dll" 2>nul
