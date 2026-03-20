@@ -1092,7 +1092,7 @@
     <div class="section">
       <h2>Settings</h2>
       <div class="form-group">
-        <label>Language</label>
+        <label>Speaking Language</label>
         <select id="voice-language" onchange="onVoiceLanguageChange(this.value)" style="width:200px">
           <option value="">Auto-detect</option>
           <option value="en">English</option>
@@ -1107,6 +1107,25 @@
           <option value="ar">Arabic</option>
           <option value="ru">Russian</option>
         </select>
+        <div style="font-size:0.75em;color:#6c7086;margin-top:4px">The language you are speaking in. Helps whisper transcribe more accurately.</div>
+      </div>
+      <div class="form-group">
+        <label>Native Language</label>
+        <select id="voice-native-language" onchange="onVoiceNativeLanguageChange(this.value)" style="width:200px">
+          <option value="">None (no accent correction)</option>
+          <option value="English">English</option>
+          <option value="French">French</option>
+          <option value="Spanish">Spanish</option>
+          <option value="German">German</option>
+          <option value="Italian">Italian</option>
+          <option value="Portuguese">Portuguese</option>
+          <option value="Japanese">Japanese</option>
+          <option value="Korean">Korean</option>
+          <option value="Chinese">Chinese</option>
+          <option value="Arabic">Arabic</option>
+          <option value="Russian">Russian</option>
+        </select>
+        <div style="font-size:0.75em;color:#6c7086;margin-top:4px">Your native language. If different from speaking language, the LLM will account for accent-related transcription errors in Voice &rarr; LLM skills.</div>
       </div>
     </div>
 
@@ -2804,8 +2823,8 @@ function buildInlineForm(idx, p) {
       <label>Input Mode</label>
       <select id="pe-input-mode" onchange="onInputModeChange(this.value)">
         <option value="text"${!p.voice && !p.vision ? ' selected' : ''}>Text (select &amp; process)</option>
-        <option value="voice-skill"${p.voice && p.voice_mode !== 'dictation' ? ' selected' : ''}>Voice (record &amp; process)</option>
-        <option value="voice-dictation"${p.voice && p.voice_mode === 'dictation' ? ' selected' : ''}>Voice (dictation — paste directly)</option>
+        <option value="voice-skill"${p.voice && p.voice_mode !== 'dictation' ? ' selected' : ''}>Voice &rarr; LLM (record, transcribe, process)</option>
+        <option value="voice-dictation"${p.voice && p.voice_mode === 'dictation' ? ' selected' : ''}>Voice &rarr; Direct (record, transcribe, paste)</option>
         <option value="screenshot"${p.vision ? ' selected' : ''}>Screenshot (capture &amp; process)</option>
       </select>
       <div style="font-size:0.75em;color:#6c7086;margin-top:4px"><strong>Text</strong> captures selected text. <strong>Voice</strong> records from mic. <strong>Screenshot</strong> captures the active window (requires vision model).</div>
@@ -3022,6 +3041,9 @@ async function renderVoice() {
   var lang = (cfg.voice && cfg.voice.language) || '';
   var langSel = document.getElementById('voice-language');
   if (langSel) langSel.value = lang;
+  var nativeLang = (cfg.voice && cfg.voice.native_language) || '';
+  var nativeSel = document.getElementById('voice-native-language');
+  if (nativeSel) nativeSel.value = nativeLang;
 
   var html = '';
   for (var i = 0; i < models.length; i++) {
@@ -3107,6 +3129,10 @@ async function voiceDeleteModel(name) {
 
 async function onVoiceLanguageChange(lang) {
   await goCall('setVoiceLanguage', lang);
+}
+
+async function onVoiceNativeLanguageChange(lang) {
+  await goCall('setVoiceNativeLanguage', lang);
 }
 
 // --- Microphone test ---

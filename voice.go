@@ -249,11 +249,19 @@ func processVoice(
 	}
 	gui.ShowIndicator(promptIcon, promptName, indicatorModel)
 
+	// Add native language context so the LLM can correct accent-related
+	// transcription errors (e.g., French speaker saying English words).
+	textToSend := transcript
+	if cfg.Voice.NativeLanguage != "" {
+		textToSend = "[Speaker's native language: " + cfg.Voice.NativeLanguage +
+			". The transcription may contain errors due to accent. Correct accordingly.]\n\n" + transcript
+	}
+
 	timeout := time.Duration(router.TimeoutForPrompt(promptIdx)) * time.Millisecond
 	ctx, cancel := context.WithTimeout(cancelCtx, timeout)
 	defer cancel()
 
-	resp, err := router.Process(ctx, promptIdx, transcript)
+	resp, err := router.Process(ctx, promptIdx, textToSend)
 	gui.HideIndicator()
 
 	if err != nil {

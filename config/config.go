@@ -84,10 +84,11 @@ type Hotkeys struct {
 
 // VoiceConfig holds voice input settings (#236).
 type VoiceConfig struct {
-	Enabled   bool   `json:"enabled,omitempty"`
-	Language  string `json:"language,omitempty"` // BCP-47 code or empty for auto-detect
-	Model     string `json:"model,omitempty"`    // e.g. "whisper-base"
-	Streaming bool   `json:"streaming"` // live partial transcription while recording (#245)
+	Enabled        bool   `json:"enabled,omitempty"`
+	Language       string `json:"language,omitempty"`        // BCP-47 code or empty for auto-detect
+	NativeLanguage string `json:"native_language,omitempty"` // speaker's native language (helps LLM correct accent errors)
+	Model          string `json:"model,omitempty"`           // e.g. "whisper-base"
+	Streaming      bool   `json:"streaming"`                 // live partial transcription while recording (#245)
 }
 
 // Overlay defines overlay display settings.

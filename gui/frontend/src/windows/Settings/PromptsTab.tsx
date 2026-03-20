@@ -265,8 +265,8 @@ function PromptEditor({
                        focus:outline-none"
           >
             <option value="text">Text</option>
-            <option value="voice-skill">Voice</option>
-            <option value="voice-dictation">Voice (Dictation)</option>
+            <option value="voice-skill">Voice → LLM</option>
+            <option value="voice-dictation">Voice → Direct</option>
             <option value="screenshot">Screenshot</option>
           </select>
         </div>

@@ -193,10 +193,20 @@ func (s *SettingsService) SetVoiceModel(model string) string {
 	return "ok"
 }
 
-// SetVoiceLanguage sets the voice language preference.
+// SetVoiceLanguage sets the voice language preference (speaking language).
 func (s *SettingsService) SetVoiceLanguage(lang string) string {
 	guiLog("[GUI] JS called: SetVoiceLanguage(%s)", lang)
 	s.cfgCopy.Voice.Language = lang
+	if err := s.validateAndSave(); err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+	return "ok"
+}
+
+// SetVoiceNativeLanguage sets the speaker's native language for accent correction.
+func (s *SettingsService) SetVoiceNativeLanguage(lang string) string {
+	guiLog("[GUI] JS called: SetVoiceNativeLanguage(%s)", lang)
+	s.cfgCopy.Voice.NativeLanguage = lang
 	if err := s.validateAndSave(); err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}
