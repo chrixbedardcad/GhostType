@@ -9,6 +9,7 @@ import (
 
 	"github.com/chrixbedardcad/GhostSpell/config"
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
 var (
@@ -74,10 +75,26 @@ func ensureIndicatorWindow() {
 	fmt.Println("[indicator] Window created (React hybrid) URL=/indicator-react.html?window=indicator")
 	slog.Info("[gui] Indicator window created (React hybrid)", "url", "/indicator-react.html?window=indicator")
 
-	// WindowDidMove is NOT used for position saving. Programmatic SetPosition
-	// calls (ShowIndicator, PopIndicator, etc.) trigger this event and would
-	// overwrite the user's drag position with pill/idle coordinates.
-	// Position is saved ONLY from React JS SaveIndicatorPosition (user drag).
+	// Save position on user drag. Programmatic moves set indicatorMoving=true
+	// so they're ignored. Only actual Wails-native drag triggers a save.
+	indicatorWin.OnWindowEvent(events.Windows.WindowDidMove, func(e *application.WindowEvent) {
+		indicatorMu.Lock()
+		moving := indicatorMoving
+		indicatorMu.Unlock()
+		if moving {
+			return
+		}
+		x, y := indicatorWin.Position()
+		slog.Debug("[indicator] User drag detected", "x", x, "y", y)
+		indicatorMu.Lock()
+		indicatorPos = "custom"
+		indicatorSavedX = x
+		indicatorSavedY = y
+		indicatorMu.Unlock()
+		if indicatorConfigSaver != nil {
+			indicatorConfigSaver(x, y)
+		}
+	})
 
 	// Block until React has time to mount and register event listeners.
 	fmt.Println("[indicator] Waiting 800ms for React to mount...")
@@ -138,6 +155,10 @@ var indicatorMode = "processing"
 // indicatorSavedX/Y stores the user's dragged position.
 var indicatorSavedX, indicatorSavedY int
 
+// indicatorMoving is true during programmatic SetPosition calls.
+// WindowDidMove only saves position when this is false (user drag).
+var indicatorMoving bool
+
 
 func SetIndicatorPosition(pos string) {
 	indicatorMu.Lock()
@@ -156,6 +177,21 @@ func SetIndicatorSavedPosition(x, y int) {
 	indicatorSavedX = x
 	indicatorSavedY = y
 	indicatorMu.Unlock()
+}
+
+// moveIndicatorWindow sets position programmatically without triggering save.
+func moveIndicatorWindow(win *application.WebviewWindow, x, y int) {
+	indicatorMu.Lock()
+	indicatorMoving = true
+	indicatorMu.Unlock()
+	moveIndicatorWindow(win, x, y)
+	// Small delay to let WindowDidMove fire and be ignored before clearing flag.
+	go func() {
+		time.Sleep(50 * time.Millisecond)
+		indicatorMu.Lock()
+		indicatorMoving = false
+		indicatorMu.Unlock()
+	}()
 }
 
 
@@ -212,27 +248,29 @@ func getIndicatorPositionForSize(w, h int) (int, int) {
 	}
 }
 
-// getIndicatorPosition returns the pill position anchored to the same corner as idle.
-// The pill expands leftward from the idle circle's right edge (for right-side presets)
-// or rightward from the left edge (for left-side presets).
-func getIndicatorPosition() (int, int) {
-	ix, iy := getIndicatorPositionForSize(48, 48)
+// getIndicatorPosition returns the pill (300x52) position.
+func getIndicatorPosition() (int, int) { return getIndicatorPositionForSize(300, 52) }
+
+// getIdlePosition returns the idle circle (48x48) position.
+// For presets, the idle circle is positioned so the ghost image aligns with
+// where it appears in the pill — same left edge for left/center anchors,
+// same right edge for right anchors.
+func getIdlePosition() (int, int) {
+	px, py := getIndicatorPositionForSize(300, 52)
 	indicatorMu.Lock()
 	pos := indicatorPos
 	indicatorMu.Unlock()
-	// For right-anchored positions, pill extends leftward from the idle circle.
-	if pos == "top-right" || pos == "bottom-right" || pos == "custom" {
-		return ix - (300 - 48), iy
+	// Right-anchored: align right edges. Idle right = pill right.
+	if pos == "top-right" || pos == "bottom-right" {
+		return px + (300 - 48), py
 	}
-	// For center positions, center the pill on the idle circle.
+	// Center: center the circle within the pill span.
 	if pos == "center-top" || pos == "center" {
-		return ix - (300-48)/2, iy
+		return px + (300-48)/2, py
 	}
-	// Left-anchored: same left edge.
-	return ix, iy
+	// Left-anchored + custom: same left edge.
+	return px, py
 }
-
-func getIdlePosition() (int, int) { return getIndicatorPositionForSize(48, 48) }
 
 // PreviewIndicatorPosition shows the indicator briefly.
 func PreviewIndicatorPosition() {
@@ -251,7 +289,7 @@ func PreviewIndicatorPosition() {
 
 	win.SetSize(300, 52)
 	x, y := getIndicatorPosition()
-	win.SetPosition(x, y)
+	moveIndicatorWindow(win, x, y)
 	emitIndicatorEvent(map[string]any{"state": "pop", "icon": "✏️", "name": "Preview"})
 
 	go func() {
@@ -281,7 +319,7 @@ func ShowIdle() {
 	x, y := getIdlePosition()
 	slog.Info("[indicator] ShowIdle", "size", "48x48", "x", x, "y", y)
 	fmt.Printf("[indicator] ShowIdle: size=48x48 pos=%d,%d\n", x, y)
-	win.SetPosition(x, y)
+	moveIndicatorWindow(win, x, y)
 	emitIndicatorEvent(map[string]any{"state": "idle"})
 }
 
@@ -322,7 +360,7 @@ func ShowRecordingIndicator() {
 
 	win.SetSize(300, 52)
 	x, y := getIndicatorPosition()
-	win.SetPosition(x, y)
+	moveIndicatorWindow(win, x, y)
 	emitIndicatorEvent(map[string]any{
 		"state": "processing", "icon": "\U0001F399\uFE0F", "name": "Recording...",
 		"recording": true,
@@ -340,7 +378,7 @@ func UpdateTranscript(text string) {
 	// Widen the pill to fit transcript text.
 	win.SetSize(400, 72)
 	x, y := getIndicatorPosition()
-	win.SetPosition(x, y)
+	moveIndicatorWindow(win, x, y)
 	emitIndicatorEvent(map[string]any{
 		"state": "processing", "recording": true,
 		"icon": "\U0001F399\uFE0F", "name": "Recording...",
@@ -377,7 +415,7 @@ func ShowIndicator(promptIcon, promptName, modelLabel string) {
 	win.SetSize(300, 52)
 	x, y := getIndicatorPosition()
 	slog.Info("[indicator] ShowIndicator: positioning", "size", "260x52", "x", x, "y", y, "prompt", promptName, "model", modelLabel)
-	win.SetPosition(x, y)
+	moveIndicatorWindow(win, x, y)
 	emitIndicatorEvent(map[string]any{
 		"state": "processing", "icon": promptIcon, "name": promptName, "model": modelLabel,
 	})
@@ -414,14 +452,14 @@ func HideIndicator() {
 		win.SetSize(48, 48)
 		x, y := getIdlePosition()
 		slog.Debug("[indicator] HideIndicator: returning to idle", "x", x, "y", y)
-		win.SetPosition(x, y)
+		moveIndicatorWindow(win, x, y)
 		emitIndicatorEvent(map[string]any{"state": "idle"})
 		return
 	}
 
 	// Move off-screen. Keep 48x48 so WebView2 stays renderable.
 	slog.Debug("[indicator] HideIndicator: moving off-screen")
-	win.SetPosition(-9999, -9999)
+	moveIndicatorWindow(win, -9999, -9999)
 	win.SetSize(48, 48)
 	emitIndicatorEvent(map[string]any{"state": "hidden"})
 }
@@ -442,7 +480,7 @@ func PopIndicatorDone(promptIcon, promptName, modelName string, elapsedSec float
 
 	win.SetSize(300, 52)
 	x, y := getIndicatorPosition()
-	win.SetPosition(x, y)
+	moveIndicatorWindow(win, x, y)
 	emitIndicatorEvent(map[string]any{
 		"state": "done", "icon": promptIcon, "name": promptName,
 		"model": modelName, "elapsed": elapsedSec,
@@ -485,7 +523,7 @@ func popIndicatorInner(promptIcon, promptName, modelName string) {
 	win.SetSize(300, 52)
 	x, y := getIndicatorPosition()
 	slog.Info("[indicator] PopIndicator: positioning", "size", "260x52", "x", x, "y", y)
-	win.SetPosition(x, y)
+	moveIndicatorWindow(win, x, y)
 	evt := map[string]any{"state": "pop", "icon": promptIcon, "name": promptName}
 	if modelName != "" {
 		evt["model"] = modelName

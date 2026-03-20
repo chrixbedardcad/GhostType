@@ -783,7 +783,7 @@ func (s *SettingsService) MoveIndicatorWindow(x, y int) string {
 	win := indicatorWin
 	indicatorMu.Unlock()
 	if win != nil {
-		win.SetPosition(x, y)
+		moveIndicatorWindow(win, x, y)
 	}
 	return "ok"
 }
