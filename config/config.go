@@ -576,6 +576,10 @@ func applyDefaults(cfg *Config) {
 				cfg.Prompts[i].Icon = icon
 			}
 		}
+		// Migrate Voice to Text icon: 🎙️ → 💬 (old icon conflicts with mic badge).
+		if cfg.Prompts[i].Name == "Voice to Text" && cfg.Prompts[i].Icon == "\U0001F399\uFE0F" {
+			cfg.Prompts[i].Icon = "\U0001F4AC"
+		}
 	}
 
 	// Migrate: add Define prompt if missing (added in v0.36.0).
