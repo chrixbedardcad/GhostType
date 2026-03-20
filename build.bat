@@ -459,6 +459,14 @@ if !GHOSTVOICE!==1 echo   + Ghost Voice ^(local speech-to-text^)
 if !GHOSTAI!==0 if !GHOSTVOICE!==0 echo   Mode: API-only
 echo ============================================
 echo.
+
+:: Clear the app log for a fresh testing session.
+set APPDATA_DIR=%APPDATA%\GhostSpell
+if exist "%APPDATA_DIR%\ghostspell.log" (
+    del /q "%APPDATA_DIR%\ghostspell.log" 2>nul
+    echo Cleared %APPDATA_DIR%\ghostspell.log
+)
+echo.
 echo Starting GhostSpell...
 start "" ghostspell.exe
 echo.
