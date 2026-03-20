@@ -20,6 +20,8 @@ type Recorder struct {
 	recording bool
 	levelMu   sync.Mutex
 	level     float32 // current RMS audio level (0.0–1.0)
+	pcm       bytes.Buffer
+	pcmMu     sync.Mutex
 }
 
 // NewRecorder creates a new audio recorder.
@@ -84,14 +86,15 @@ func (r *Recorder) Record(ctx context.Context, stop <-chan struct{}) ([]byte, ti
 	deviceConfig.SampleRate = 16000
 	deviceConfig.PeriodSizeInMilliseconds = 100
 
-	var pcm bytes.Buffer
-	var pcmMu sync.Mutex
+	r.pcmMu.Lock()
+	r.pcm.Reset()
+	r.pcmMu.Unlock()
 	start := time.Now()
 
 	onRecvFrames := func(outputSamples, inputSamples []byte, frameCount uint32) {
-		pcmMu.Lock()
-		pcm.Write(inputSamples)
-		pcmMu.Unlock()
+		r.pcmMu.Lock()
+		r.pcm.Write(inputSamples)
+		r.pcmMu.Unlock()
 
 		// Compute RMS level from this frame's samples.
 		nSamples := len(inputSamples) / 2
@@ -142,9 +145,10 @@ func (r *Recorder) Record(ctx context.Context, stop <-chan struct{}) ([]byte, ti
 
 	duration := time.Since(start)
 
-	pcmMu.Lock()
-	rawPCM := pcm.Bytes()
-	pcmMu.Unlock()
+	r.pcmMu.Lock()
+	rawPCM := make([]byte, r.pcm.Len())
+	copy(rawPCM, r.pcm.Bytes())
+	r.pcmMu.Unlock()
 
 	if len(rawPCM) < 100 {
 		return nil, duration, fmt.Errorf("recording too short (%d bytes, %.1fs)", len(rawPCM), duration.Seconds())
@@ -156,6 +160,19 @@ func (r *Recorder) Record(ctx context.Context, stop <-chan struct{}) ([]byte, ti
 	fmt.Printf("[mic] Recorded %.1fs (%d bytes)\n", duration.Seconds(), len(wav))
 
 	return wav, duration, nil
+}
+
+// SnapshotWAV returns a WAV-encoded copy of the audio recorded so far.
+// Safe to call concurrently while Record() is running.
+func (r *Recorder) SnapshotWAV() []byte {
+	r.pcmMu.Lock()
+	raw := make([]byte, r.pcm.Len())
+	copy(raw, r.pcm.Bytes())
+	r.pcmMu.Unlock()
+	if len(raw) < 100 {
+		return nil
+	}
+	return EncodeWAV(raw, 16000, 1)
 }
 
 // EncodeWAV wraps raw 16-bit PCM samples in a WAV container.

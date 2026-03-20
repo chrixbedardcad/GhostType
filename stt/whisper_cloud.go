@@ -39,7 +39,8 @@ func NewWhisperCloud(apiKey, endpoint, model string) *WhisperCloud {
 	}
 }
 
-func (w *WhisperCloud) Name() string { return "Whisper (OpenAI)" }
+func (w *WhisperCloud) Name() string             { return "Whisper (OpenAI)" }
+func (w *WhisperCloud) SupportsStreaming() bool { return false }
 
 func (w *WhisperCloud) Transcribe(ctx context.Context, wavData []byte, language string) (string, error) {
 	slog.Info("[stt] Whisper cloud transcription", "size", len(wavData), "language", language)

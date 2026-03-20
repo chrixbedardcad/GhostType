@@ -52,7 +52,8 @@ func NewGhostVoiceClient(modelName, modelsDir string) (*GhostVoiceClient, error)
 	}, nil
 }
 
-func (c *GhostVoiceClient) Name() string { return "Ghost Voice" }
+func (c *GhostVoiceClient) Name() string             { return "Ghost Voice" }
+func (c *GhostVoiceClient) SupportsStreaming() bool { return true }
 
 func (c *GhostVoiceClient) Transcribe(ctx context.Context, wavData []byte, language string) (string, error) {
 	c.mu.Lock()

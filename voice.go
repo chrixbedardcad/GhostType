@@ -69,7 +69,7 @@ func processVoice(
 	}
 
 	// Poll audio level during recording for visual feedback on the indicator.
-	levelCtx, levelCancel := context.WithCancel(context.Background())
+	recCtx, recCancel := context.WithCancel(context.Background())
 	go func() {
 		ticker := time.NewTicker(80 * time.Millisecond)
 		defer ticker.Stop()
@@ -77,15 +77,37 @@ func processVoice(
 			select {
 			case <-ticker.C:
 				gui.EmitAudioLevel(recorder.Level())
-			case <-levelCtx.Done():
+			case <-recCtx.Done():
 				return
 			}
 		}
 	}()
 
+	// Streaming transcription: run partial whisper passes during recording (#245).
+	canStream := false
+	if cfg.Voice.Streaming {
+		if st, ok := transcriber.(stt.StreamingTranscriber); ok {
+			canStream = st.SupportsStreaming()
+		}
+	}
+	if canStream {
+		go func() {
+			slog.Info("[voice] Streaming transcription enabled")
+			stt.TranscribeStreaming(
+				recCtx, transcriber, recorder.SnapshotWAV,
+				cfg.Voice.Language,
+				func(text string) {
+					slog.Debug("[voice] Partial transcript", "text", text)
+					gui.UpdateTranscript(text)
+				},
+				2*time.Second,
+			)
+		}()
+	}
+
 	fmt.Println("[voice] Starting audio capture...")
 	wavData, duration, err := recorder.Record(cancelCtx, stopCh)
-	levelCancel() // stop level polling
+	recCancel() // stop level polling + streaming transcription
 	if err != nil {
 		slog.Error("[voice] Recording failed", "error", err)
 		gui.HideIndicator()

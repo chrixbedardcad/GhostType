@@ -84,9 +84,10 @@ type Hotkeys struct {
 
 // VoiceConfig holds voice input settings (#236).
 type VoiceConfig struct {
-	Enabled  bool   `json:"enabled,omitempty"`
-	Language string `json:"language,omitempty"` // BCP-47 code or empty for auto-detect
-	Model    string `json:"model,omitempty"`    // e.g. "whisper-base"
+	Enabled   bool   `json:"enabled,omitempty"`
+	Language  string `json:"language,omitempty"` // BCP-47 code or empty for auto-detect
+	Model     string `json:"model,omitempty"`    // e.g. "whisper-base"
+	Streaming bool   `json:"streaming,omitempty"` // live partial transcription while recording (#245)
 }
 
 // Overlay defines overlay display settings.
@@ -194,8 +195,9 @@ func DefaultConfig() Config {
 		PreserveClipboard: true,
 		SoundEnabled:      boolPtr(true),
 		Voice: VoiceConfig{
-			Enabled: true,
-			Model:   "whisper-base",
+			Enabled:   true,
+			Model:     "whisper-base",
+			Streaming: true,
 		},
 		LogLevel:          "debug",
 		LogFile:           "ghostspell.log",
@@ -620,6 +622,7 @@ func applyDefaults(cfg *Config) {
 	if cfg.Voice.Model == "" {
 		cfg.Voice.Enabled = true
 		cfg.Voice.Model = "whisper-base"
+		cfg.Voice.Streaming = true
 	}
 
 	// Migrate: add voice prompts if missing (added in v0.56.0).

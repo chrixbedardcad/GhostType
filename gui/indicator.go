@@ -297,6 +297,25 @@ func ShowRecordingIndicator() {
 	})
 }
 
+// UpdateTranscript sends partial transcription text to the indicator during recording.
+func UpdateTranscript(text string) {
+	indicatorMu.Lock()
+	win := indicatorWin
+	indicatorMu.Unlock()
+	if win == nil {
+		return
+	}
+	// Widen the pill to fit transcript text.
+	win.SetSize(400, 72)
+	x, y := getIndicatorPosition()
+	win.SetPosition(x, y)
+	emitIndicatorEvent(map[string]any{
+		"state": "processing", "recording": true,
+		"icon": "\U0001F399\uFE0F", "name": "Recording...",
+		"transcript": text,
+	})
+}
+
 // EmitAudioLevel sends the current mic level to the indicator for visual feedback.
 func EmitAudioLevel(level float32) {
 	app := application.Get()
