@@ -332,7 +332,7 @@ export function IndicatorWindow() {
             alt=""
             style={{
               width: "28px", height: "28px",
-              transform: isRecording ? `scale(${1 + audioLevel * 0.3})` : "none",
+              transform: isRecording ? `scale(${1 + Math.min(audioLevel * 4, 1) * 0.25})` : "none",
               transition: isRecording ? "transform 80ms ease-out" : "none",
               animation: !isRecording && state === "processing" ? "bounce 1.5s ease-in-out infinite" : "none",
               pointerEvents: "none",

@@ -130,19 +130,18 @@ func processVoice(
 		return
 	}
 
+	// Recording done — always clear the flag so the next Ctrl+G can start a new session.
+	voiceRecording.Store(false)
+	voiceStopMu.Lock()
+	voiceStopCh = nil
+	voiceStopMu.Unlock()
+
 	// Check if cancelled.
 	if cancelCtx.Err() != nil {
 		slog.Info("[voice] Cancelled during recording")
 		gui.HideIndicator()
 		return
 	}
-
-	// Recording done — clear the flag so Ctrl+G no longer tries to stop recording.
-	// From here on, Ctrl+G cancels via the context (same as text mode).
-	voiceRecording.Store(false)
-	voiceStopMu.Lock()
-	voiceStopCh = nil
-	voiceStopMu.Unlock()
 
 	slog.Info("[voice] Recording complete", "duration", duration, "wav_size", len(wavData))
 	// Play mic stop sound unless "over" command already played it.
