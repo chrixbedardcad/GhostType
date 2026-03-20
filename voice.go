@@ -125,11 +125,25 @@ func processVoice(
 
 	fmt.Println("[voice] Starting audio capture...")
 	wavData, duration, err := recorder.Record(cancelCtx, stopCh)
+
+	// IMMEDIATELY clear the recording flag so Ctrl+G stops hitting the
+	// "stop recording" branch. From here, Ctrl+G goes to "cancel request."
+	voiceRecording.Store(false)
+	voiceStopMu.Lock()
+	voiceStopCh = nil
+	voiceStopMu.Unlock()
+
 	recCancel() // stop level polling + streaming transcription
+
 	// Wait for streaming goroutine to finish and release the whisper mutex.
-	// Without this, the final transcription queues behind a slow streaming
-	// call — especially on large models (whisper-large-v3 takes 20s+ per pass).
-	<-streamDone
+	// Use a timeout — if whisper is slow to abort (large models), don't block forever.
+	select {
+	case <-streamDone:
+		// Streaming goroutine finished cleanly.
+	case <-time.After(5 * time.Second):
+		slog.Warn("[voice] Streaming goroutine slow to stop — proceeding without waiting")
+	}
+
 	if err != nil {
 		slog.Error("[voice] Recording failed", "error", err)
 		gui.HideIndicator()
@@ -137,12 +151,6 @@ func processVoice(
 		sound.PlayError()
 		return
 	}
-
-	// Recording done — always clear the flag so the next Ctrl+G can start a new session.
-	voiceRecording.Store(false)
-	voiceStopMu.Lock()
-	voiceStopCh = nil
-	voiceStopMu.Unlock()
 
 	// Check if cancelled.
 	if cancelCtx.Err() != nil {
