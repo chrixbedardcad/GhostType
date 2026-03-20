@@ -44,7 +44,6 @@ func processVoice(
 
 	// Start recording.
 	voiceRecording.Store(true)
-	defer voiceRecording.Store(false)
 
 	voiceStopMu.Lock()
 	voiceStopCh = make(chan struct{})
@@ -85,6 +84,13 @@ func processVoice(
 		gui.HideIndicator()
 		return
 	}
+
+	// Recording done — clear the flag so Ctrl+G no longer tries to stop recording.
+	// From here on, Ctrl+G cancels via the context (same as text mode).
+	voiceRecording.Store(false)
+	voiceStopMu.Lock()
+	voiceStopCh = nil
+	voiceStopMu.Unlock()
 
 	slog.Info("[voice] Recording complete", "duration", duration, "wav_size", len(wavData))
 	sound.PlayMicStop()
