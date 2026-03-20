@@ -281,7 +281,7 @@ export function IndicatorWindow() {
           <span style={{ ...badgeBase, top: "1px", right: "1px" }}>{icon}</span>
         )}
         {/* Top-left: camera (vision skill) */}
-        {isVision && <span style={{ ...badgeBase, top: "1px", left: "3px" }}>{"\uD83D\uDCF7"}</span>}
+        {isVision && <span style={{ ...badgeBase, top: "3px", left: "5px" }}>{"\uD83D\uDCF7"}</span>}
         {/* Bottom-center: mic (voice skill) */}
         {isVoice && <span style={{ ...badgeBase, bottom: "1px", left: "50%", transform: "translateX(-50%)" }}>{"\uD83C\uDF99\uFE0F"}</span>}
         <style>{`@keyframes breathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }`}</style>
