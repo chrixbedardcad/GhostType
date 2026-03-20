@@ -265,31 +265,46 @@ func main() {
 	}
 	var initError error
 	if !needsSetup {
-		// Initialize LLM client — if it fails and no providers exist, show wizard.
-		// If providers exist but model fails (e.g. legacy model removed), start
-		// the app with an error state instead of forcing the wizard.
+		// Initialize LLM client. Try the default model first, then fall back
+		// to any other configured model. One expired token shouldn't brick the app.
 		var client llm.Client
+		var initLabel string
 		if cfg.DefaultModel != "" {
 			client, err = newClientFromConfig(cfg, cfg.DefaultModel)
-		} else {
-			err = fmt.Errorf("no default_model configured")
-		}
-		if err != nil {
-			if len(cfg.Providers) > 0 {
-				// Providers configured but model failed — don't force wizard.
-				slog.Warn("LLM init failed (model error), starting without active model", "error", err)
-				fmt.Fprintf(os.Stderr, "LLM init failed: %v — open Settings to fix\n", err)
-				initError = err
-				sound.Init(*cfg.SoundEnabled)
+			if err == nil {
+				initLabel = cfg.DefaultModel
 			} else {
-				slog.Warn("LLM init failed, will show setup wizard", "error", err)
-				fmt.Fprintf(os.Stderr, "LLM init failed: %v — opening setup wizard\n", err)
-				needsSetup = true
+				slog.Warn("Default model init failed, trying alternatives", "model", cfg.DefaultModel, "error", err)
+				// Try every other model until one works.
+				for label := range cfg.Models {
+					if label == cfg.DefaultModel {
+						continue
+					}
+					c, e := newClientFromConfig(cfg, label)
+					if e == nil {
+						client = c
+						initLabel = label
+						cfg.DefaultModel = label
+						slog.Info("Fell back to alternative model", "model", label)
+						break
+					}
+				}
 			}
+		}
+		if client == nil && len(cfg.Providers) > 0 {
+			slog.Warn("All models failed to init, starting without active model", "error", err)
+			fmt.Fprintf(os.Stderr, "LLM init failed: %v — open Settings to fix\n", err)
+			initError = err
+			sound.Init(*cfg.SoundEnabled)
+		} else if client == nil {
+			slog.Warn("LLM init failed, will show setup wizard", "error", err)
+			fmt.Fprintf(os.Stderr, "LLM init failed: %v — opening setup wizard\n", err)
+			needsSetup = true
 		} else {
 			router = mode.NewRouter(cfg, client)
 			sound.Init(*cfg.SoundEnabled)
 			sound.PlayStart()
+			_ = initLabel
 			printStatus(cfg, client, router)
 		}
 	}
