@@ -537,6 +537,9 @@ func applyDefaults(cfg *Config) {
 	}
 	if cfg.IndicatorPosition == "" || cfg.IndicatorPosition == "center" {
 		cfg.IndicatorPosition = "top-right"
+		// Clear saved drag position so the new corner preset takes effect.
+		cfg.IndicatorX = 0
+		cfg.IndicatorY = 0
 	}
 	if cfg.Hotkeys.Action == "" {
 		cfg.Hotkeys.Action = defaultActionHotkey
