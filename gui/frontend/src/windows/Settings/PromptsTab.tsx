@@ -16,7 +16,7 @@ interface Prompt {
 }
 
 /**
- * Prompts tab — list of prompts with inline editing.
+ * Skills tab — list of skills (prompts) with inline editing.
  * Zen: clean cards, collapsible editors, no clutter.
  */
 export function PromptsTab() {
@@ -129,8 +129,8 @@ export function PromptsTab() {
       <button
         onClick={async () => {
           const newPrompt: Prompt = {
-            name: "New Prompt",
-            prompt: "Enter your prompt instructions...",
+            name: "New Skill",
+            prompt: "Enter your skill instructions...",
             icon: "📝",
             llm: "",
             timeout_ms: 30000,
@@ -146,7 +146,7 @@ export function PromptsTab() {
         className="w-full py-3 rounded-xl border border-dashed border-surface-1 text-sm text-overlay-0
                    hover:text-subtext-0 hover:border-surface-2 transition-colors"
       >
-        + Add Prompt
+        + Add Skill
       </button>
     </div>
   );
@@ -196,7 +196,7 @@ function PromptEditor({
           onChange={(e) => update({ name: e.target.value })}
           className="flex-1 bg-crust border border-surface-0 rounded-lg px-3 py-1.5
                      text-sm text-text focus:outline-none focus:border-accent-blue/50"
-          placeholder="Prompt name"
+          placeholder="Skill name"
         />
       </div>
 

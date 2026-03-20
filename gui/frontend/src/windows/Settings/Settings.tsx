@@ -18,7 +18,7 @@ const TABS = [
   { id: "about", label: "About" },
   { id: "general", label: "General" },
   { id: "models", label: "Models" },
-  { id: "prompts", label: "Prompts" },
+  { id: "prompts", label: "Skills" },
   { id: "hotkeys", label: "Hotkeys" },
   { id: "stats", label: "Stats" },
   { id: "debug", label: "Debug" },

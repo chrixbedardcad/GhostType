@@ -126,7 +126,7 @@ func ShowSettings(svc *SettingsService, cfg *config.Config, configPath string, o
 		Title:     "GhostSpell Settings",
 		Width:     760,
 		Height:    660,
-		URL:       "/index.html",
+		URL:       "/dist/react.html?window=settings",
 		Frameless: runtime.GOOS == "windows",
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
