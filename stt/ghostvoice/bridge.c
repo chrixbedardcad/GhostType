@@ -82,11 +82,6 @@ int ghost_voice_transcribe(ghost_voice_engine *eng,
         params.detect_language = 1;
     }
 
-    /* Wire abort callback so Go can cancel mid-inference via context. */
-    eng->abort_flag = 0;
-    params.abort_callback = ghost_voice_abort_cb;
-    params.abort_callback_user_data = eng;
-
     int ret = whisper_full(eng->ctx, params, pcm, n_samples);
     if (ret != 0) {
         snprintf(errBuf, errBufLen, "whisper_full failed with code %d", ret);

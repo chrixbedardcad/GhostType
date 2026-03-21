@@ -106,21 +106,9 @@ func (e *Engine) Transcribe(ctx context.Context, wavData []byte, language string
 	slog.Info("[ghost-voice] transcribing", "samples", len(pcmFloat), "duration_sec", float64(len(pcmFloat))/16000.0, "max_amplitude", maxAbs, "wav_bytes", len(wavData))
 	start := time.Now()
 
-	// Monitor context — abort whisper inference if cancelled.
-	done := make(chan struct{})
-	go func() {
-		select {
-		case <-ctx.Done():
-			slog.Info("[ghost-voice] context cancelled — aborting inference")
-			e.be.abort()
-		case <-done:
-		}
-	}()
-
 	text, detectedLang, err := e.be.transcribe(pcmFloat, language)
-	close(done)
 
-	// If context was cancelled, return the cancel error regardless of whisper result.
+	// Check if cancelled during inference — return cancel error.
 	if ctx.Err() != nil {
 		return "", ctx.Err()
 	}
