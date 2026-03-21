@@ -497,6 +497,14 @@ func (s *SettingsService) OpenLogFile() string {
 	return "ok"
 }
 
+// OpenLogsFolder opens the app data directory containing all log files.
+func (s *SettingsService) OpenLogsFolder() string {
+	guiLog("[GUI] JS called: OpenLogsFolder")
+	dir := filepath.Dir(s.configPath)
+	OpenFile(dir)
+	return "ok"
+}
+
 // OpenVoiceLogFile opens the ghostvoice.log file.
 func (s *SettingsService) OpenVoiceLogFile() string {
 	guiLog("[GUI] JS called: OpenVoiceLogFile")
