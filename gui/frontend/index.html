@@ -1162,6 +1162,7 @@
       </div>
       <div style="margin-top:12px">
         <button class="btn btn-primary btn-sm" id="voice-test-btn" onclick="onTestVoice()">Test Voice (3s recording)</button>
+        <button class="btn btn-secondary btn-sm" id="voice-test-sample-btn" onclick="onTestVoiceSample()">Test with sample</button>
         <div id="voice-test-result" style="font-size:0.82em;margin-top:8px;display:none;padding:8px;border-radius:6px;background:#1e1e2e;border:1px solid #45475a"></div>
       </div>
     </div>
@@ -3161,6 +3162,31 @@ async function onVoiceLanguageChange(lang) {
 
 async function onVoiceNativeLanguageChange(lang) {
   await goCall('setVoiceNativeLanguage', lang);
+}
+
+async function onTestVoiceSample() {
+  var btn = document.getElementById('voice-test-sample-btn');
+  var result = document.getElementById('voice-test-result');
+  btn.disabled = true;
+  btn.textContent = 'Testing...';
+  result.style.display = 'block';
+  result.style.color = '#a6adc8';
+  result.textContent = 'Running built-in sample through ghostvoice...';
+
+  var res = await goCall('testVoiceSample');
+  btn.disabled = false;
+  btn.textContent = 'Test with sample';
+
+  if (!res || res.startsWith('error')) {
+    result.style.color = '#f38ba8';
+    result.textContent = res || 'Test failed';
+  } else if (res === '') {
+    result.style.color = '#f38ba8';
+    result.textContent = 'ERROR: Whisper returned empty text from a known audio sample. The whisper build may be broken.';
+  } else {
+    result.style.color = '#a6e3a1';
+    result.textContent = 'Expected: "ghost voice 1 2 3" — Got: "' + res + '"';
+  }
 }
 
 async function onTestVoice() {

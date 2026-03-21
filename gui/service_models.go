@@ -246,8 +246,32 @@ func (s *SettingsService) TestVoice() string {
 	return text
 }
 
-// TestVoiceFn is set by app.go to call the STT transcriber.
-// Defined as a callback to avoid circular imports.
+// TestVoiceSample runs the built-in "GhostVoice 1 2 3" WAV through the transcriber.
+// No microphone needed — pure engine test.
+func (s *SettingsService) TestVoiceSample() string {
+	guiLog("[GUI] JS called: TestVoiceSample")
+
+	if s.TestVoiceFn == nil {
+		return "error: no voice transcriber configured"
+	}
+
+	wavData := sound.HumanVoiceTestWAV
+	if len(wavData) == 0 {
+		return "error: built-in test WAV not found"
+	}
+
+	guiLog("[GUI] TestVoiceSample: running %d bytes through ghostvoice", len(wavData))
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	text, err := s.TestVoiceFn(ctx, wavData)
+	if err != nil {
+		return fmt.Sprintf("error: %v", err)
+	}
+
+	return text
+}
 
 // SetVoiceNativeLanguage sets the speaker's native language for accent correction.
 func (s *SettingsService) SetVoiceNativeLanguage(lang string) string {
