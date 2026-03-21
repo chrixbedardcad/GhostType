@@ -78,6 +78,12 @@ func ensureIndicatorWindow() {
 	// Save position on user drag. Programmatic moves are detected by comparing
 	// the reported position against lastMoveX/Y — if they match, it's not a drag.
 	indicatorWin.OnWindowEvent(events.Windows.WindowDidMove, func(e *application.WindowEvent) {
+		indicatorMu.Lock()
+		if !indicatorInitialized {
+			indicatorMu.Unlock()
+			return // window creation noise — ignore
+		}
+		indicatorMu.Unlock()
 		x, y := indicatorWin.Position()
 		indicatorMu.Lock()
 		if x == lastMoveX && y == lastMoveY {
@@ -156,6 +162,10 @@ var indicatorSavedX, indicatorSavedY int
 // lastMoveX/Y tracks the last programmatic SetPosition target.
 // WindowDidMove ignores events matching this position (not a user drag).
 var lastMoveX, lastMoveY int
+
+// indicatorInitialized is set after the first ShowIdle completes.
+// WindowDidMove events before this are ignored (window creation noise).
+var indicatorInitialized bool
 
 
 func SetIndicatorPosition(pos string) {
@@ -313,6 +323,11 @@ func ShowIdle() {
 	fmt.Printf("[indicator] ShowIdle: size=48x48 pos=%d,%d\n", x, y)
 	moveIndicatorWindow(win, x, y)
 	emitIndicatorEvent(map[string]any{"state": "idle"})
+
+	// Mark initialized — WindowDidMove events before this were window creation noise.
+	indicatorMu.Lock()
+	indicatorInitialized = true
+	indicatorMu.Unlock()
 }
 
 // ClearIndicatorProcessing clears the processing flag without hiding.
@@ -343,6 +358,7 @@ func ShowRecordingIndicator() {
 		return
 	}
 	indicatorProcessing = true
+	indicatorInitialized = true
 	ensureIndicatorWindow()
 	win := indicatorWin
 	indicatorMu.Unlock()
@@ -397,6 +413,7 @@ func ShowIndicator(promptIcon, promptName, modelLabel string) {
 		return
 	}
 	indicatorProcessing = true
+	indicatorInitialized = true
 	ensureIndicatorWindow()
 	win := indicatorWin
 	indicatorMu.Unlock()
