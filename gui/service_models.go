@@ -217,8 +217,8 @@ func (s *SettingsService) TestVoice() string {
 		return "error: no microphone found"
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
-	defer cancel()
+	recCtx, recCancel := context.WithTimeout(context.Background(), 4*time.Second)
+	defer recCancel()
 
 	stopCh := make(chan struct{})
 	go func() {
@@ -226,7 +226,7 @@ func (s *SettingsService) TestVoice() string {
 		close(stopCh)
 	}()
 
-	wavData, duration, err := recorder.Record(ctx, stopCh)
+	wavData, duration, err := recorder.Record(recCtx, stopCh)
 	if err != nil {
 		return fmt.Sprintf("error: recording failed — %v", err)
 	}
@@ -238,7 +238,10 @@ func (s *SettingsService) TestVoice() string {
 		return "error: no voice transcriber configured"
 	}
 
-	text, err := s.TestVoiceFn(ctx, wavData)
+	sttCtx, sttCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer sttCancel()
+
+	text, err := s.TestVoiceFn(sttCtx, wavData)
 	if err != nil {
 		return fmt.Sprintf("error: transcription failed — %v", err)
 	}
