@@ -492,10 +492,11 @@ if !errorlevel! neq 0 (
 )
 
 :: Build ghostvoice.exe separately (whisper.cpp in its own process).
+:: Use -a to force rebuild of CGo packages (bridge.c changes need fresh compilation).
 if !GHOSTVOICE!==1 (
     echo.
     echo [4] Building ghostvoice.exe ^(whisper.cpp helper^)...
-    go build -tags "ghostvoice" -o ghostvoice.exe ./cmd/ghostvoice/
+    go build -a -tags "ghostvoice" -o ghostvoice.exe ./cmd/ghostvoice/
     if !errorlevel! neq 0 (
         echo   WARNING: ghostvoice.exe build failed — voice skills will not work
         set GHOSTVOICE=0
