@@ -34,8 +34,18 @@ func NewGhostVoiceClient(modelName, modelsDir string) (*GhostVoiceClient, error)
 	}
 
 	modelPath := filepath.Join(modelsDir, model.FileName)
-	if _, err := os.Stat(modelPath); os.IsNotExist(err) {
+	fi, err := os.Stat(modelPath)
+	if os.IsNotExist(err) {
 		return nil, fmt.Errorf("ghost-voice: model file not found: %s (download it first in Settings)", modelPath)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("ghost-voice: cannot stat model file: %w", err)
+	}
+	fileSizeMB := fi.Size() / (1024 * 1024)
+	expectedMB := model.Size / (1024 * 1024)
+	slog.Info("[ghost-voice] model file", "path", modelPath, "size_mb", fileSizeMB, "expected_mb", expectedMB)
+	if fileSizeMB < expectedMB/2 {
+		return nil, fmt.Errorf("ghost-voice: model file appears truncated (%dMB, expected ~%dMB) — re-download in Settings", fileSizeMB, expectedMB)
 	}
 
 	engine := ghostvoice.New(0) // auto-detect threads
