@@ -399,7 +399,7 @@ if exist "%WHISPER_SRC%\ggml\include" (
 
 :: Build ghostvoice.exe — GhostSpell's own speech-to-text helper (pure C++, links whisper static libs).
 echo   Building ghostvoice.exe...
-g++ -O2 -o "%~dp0ghostvoice.exe" "%~dp0ghostvoice\main.cpp" ^
+g++ -O2 -static -o "%~dp0ghostvoice.exe" "%~dp0ghostvoice\main.cpp" ^
     -I"%WHISPER_SRC%\include" -I"%WHISPER_SRC%\ggml\include" ^
     -L"%WHISPER_BUILD%\src" -L"%WHISPER_BUILD%\ggml\src" ^
     -l:libwhisper.a -l:ggml.a -l:ggml-cpu.a -l:ggml-base.a ^

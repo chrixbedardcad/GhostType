@@ -126,7 +126,7 @@ GHOSTVOICE_OUT="$PROJECT_ROOT/ghostvoice_bin"
 case "$OS" in
     MINGW*|MSYS*|CYGWIN*)
         GHOSTVOICE_OUT="$PROJECT_ROOT/ghostvoice.exe"
-        g++ -O2 -o "$GHOSTVOICE_OUT" "$GHOSTVOICE_SRC" \
+        g++ -O2 -static -o "$GHOSTVOICE_OUT" "$GHOSTVOICE_SRC" \
             -I"$WHISPER_SRC/include" -I"$WHISPER_SRC/ggml/include" \
             -L"$WHISPER_SRC/build-static/src" -L"$WHISPER_SRC/build-static/ggml/src" \
             -l:libwhisper.a -l:ggml.a -l:ggml-cpu.a -l:ggml-base.a \
