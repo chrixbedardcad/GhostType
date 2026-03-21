@@ -4,7 +4,7 @@ package ghostvoice
 
 /*
 #cgo CFLAGS: -I${SRCDIR}/../../build/whisper/include -O2
-#cgo LDFLAGS: -L${SRCDIR}/../../build/whisper/lib -L${SRCDIR}/../../build/llama/lib
+#cgo LDFLAGS: -L${SRCDIR}/../../build/whisper/lib
 #cgo linux LDFLAGS: -Wl,--start-group -lwhisper -lggml -lggml-cpu -lggml-base -Wl,--end-group -lstdc++ -lm -lpthread
 #cgo darwin LDFLAGS: -lwhisper -lggml -lggml-cpu -lggml-base -lc++ -lm -lpthread -framework Accelerate
 #cgo windows LDFLAGS: -lwhisper -lggml -lggml-cpu -lggml-base -lstdc++ -lm -lpthread -lkernel32

@@ -5,29 +5,24 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"os/exec"
 	"path/filepath"
-	"sync"
-
-	"github.com/chrixbedardcad/GhostSpell/stt/ghostvoice"
+	"runtime"
+	"strings"
 )
 
-// GhostVoiceClient implements Transcriber using the local whisper.cpp engine.
-// It manages model loading/unloading and provides the same interface as cloud STT.
+// GhostVoiceClient implements Transcriber by spawning the ghostvoice helper process.
+// Each transcription spawns a fresh process — no ggml symbol collision with Ghost-AI.
 type GhostVoiceClient struct {
-	mu        sync.Mutex
-	engine    *ghostvoice.Engine
-	modelPath string
-	modelName string
+	modelPath  string
+	modelName  string
+	helperPath string
 }
 
 // NewGhostVoiceClient creates a local STT client.
 // modelName is the friendly name (e.g. "whisper-base").
 // modelsDir is the directory containing downloaded GGML models.
 func NewGhostVoiceClient(modelName, modelsDir string) (*GhostVoiceClient, error) {
-	if !ghostvoice.Available() {
-		return nil, fmt.Errorf("ghost-voice: engine not available (build with -tags ghostvoice)")
-	}
-
 	model := findVoiceModel(modelName)
 	if model == nil {
 		return nil, fmt.Errorf("ghost-voice: unknown model %q", modelName)
@@ -48,52 +43,104 @@ func NewGhostVoiceClient(modelName, modelsDir string) (*GhostVoiceClient, error)
 		return nil, fmt.Errorf("ghost-voice: model file appears truncated (%dMB, expected ~%dMB) — re-download in Settings", fileSizeMB, expectedMB)
 	}
 
-	engine := ghostvoice.New(0) // auto-detect threads
-	if err := engine.Load(modelPath); err != nil {
-		engine.Close()
+	// Find the ghostvoice helper binary next to the main executable.
+	helperPath, err := findHelper()
+	if err != nil {
 		return nil, err
 	}
 
-	slog.Info("[ghost-voice] client ready", "model", modelName, "path", modelPath)
+	slog.Info("[ghost-voice] client ready (subprocess mode)", "model", modelName, "helper", helperPath)
 	return &GhostVoiceClient{
-		engine:    engine,
-		modelPath: modelPath,
-		modelName: modelName,
+		modelPath:  modelPath,
+		modelName:  modelName,
+		helperPath: helperPath,
 	}, nil
 }
 
 func (c *GhostVoiceClient) Name() string             { return "Ghost Voice" }
-func (c *GhostVoiceClient) SupportsStreaming() bool { return true }
+func (c *GhostVoiceClient) SupportsStreaming() bool { return false }
+func (c *GhostVoiceClient) Close()                  {}
 
 func (c *GhostVoiceClient) Transcribe(ctx context.Context, wavData []byte, language string) (string, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	// Write WAV to temp file.
+	tmp, err := os.CreateTemp("", "ghostvoice-*.wav")
+	if err != nil {
+		return "", fmt.Errorf("ghost-voice: temp file: %w", err)
+	}
+	tmpPath := tmp.Name()
+	defer os.Remove(tmpPath)
 
-	if c.engine == nil {
-		return "", fmt.Errorf("ghost-voice: engine not initialized")
+	if _, err := tmp.Write(wavData); err != nil {
+		tmp.Close()
+		return "", fmt.Errorf("ghost-voice: write temp: %w", err)
+	}
+	tmp.Close()
+
+	// Build command.
+	args := []string{"transcribe", "--model", c.modelPath}
+	if language != "" {
+		args = append(args, "--language", language)
+	}
+	args = append(args, tmpPath)
+
+	slog.Info("[ghost-voice] spawning helper", "helper", c.helperPath, "model", c.modelName, "wav_bytes", len(wavData))
+
+	// Spawn helper — context cancellation kills the process instantly.
+	cmd := exec.CommandContext(ctx, c.helperPath, args...)
+	var stderr strings.Builder
+	cmd.Stderr = &stderr
+
+	output, err := cmd.Output()
+	if err != nil {
+		if ctx.Err() != nil {
+			return "", ctx.Err()
+		}
+		errMsg := strings.TrimSpace(stderr.String())
+		if errMsg != "" {
+			return "", fmt.Errorf("ghost-voice: %s", errMsg)
+		}
+		return "", fmt.Errorf("ghost-voice: %w", err)
 	}
 
-	return c.engine.Transcribe(ctx, wavData, language)
+	text := strings.TrimSpace(string(output))
+	slog.Info("[ghost-voice] transcription complete", "text_len", len(text))
+	return text, nil
 }
 
-// Close shuts down the engine and frees resources.
-func (c *GhostVoiceClient) Close() {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if c.engine != nil {
-		c.engine.Close()
-		c.engine = nil
+// findHelper locates the ghostvoice helper binary.
+func findHelper() (string, error) {
+	name := "ghostvoice"
+	if runtime.GOOS == "windows" {
+		name = "ghostvoice.exe"
 	}
+
+	// Look next to the main executable.
+	exe, err := os.Executable()
+	if err == nil {
+		dir := filepath.Dir(exe)
+		path := filepath.Join(dir, name)
+		if _, err := os.Stat(path); err == nil {
+			return path, nil
+		}
+	}
+
+	// Look in PATH.
+	path, err := exec.LookPath(name)
+	if err == nil {
+		return path, nil
+	}
+
+	return "", fmt.Errorf("ghost-voice: helper binary %q not found (build it with: go build -tags ghostvoice -o %s ./cmd/ghostvoice/)", name, name)
 }
 
 // VoiceModel describes a downloadable whisper model.
 type VoiceModel struct {
-	Name     string // e.g. "whisper-base"
-	FileName string // e.g. "ggml-base.bin"
-	URL      string // HuggingFace download URL
-	Size     int64  // file size in bytes
-	Tag      string // "fast", "recommended", "best", "heavy"
-	Desc     string // human description
+	Name     string
+	FileName string
+	URL      string
+	Size     int64
+	Tag      string
+	Desc     string
 }
 
 // AvailableVoiceModels returns the curated list of downloadable whisper models.

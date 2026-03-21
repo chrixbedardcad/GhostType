@@ -402,14 +402,6 @@ for %%f in ("%WHISPER_OUT%\lib\*.a") do (
     )
 )
 
-:: Remove whisper's ggml libraries to avoid symbol collision with Ghost-AI's ggml.
-:: Both whisper.cpp and llama.cpp build their own libggml/libggml-cpu/libggml-base.
-:: When linked into the same binary, duplicate ggml_* symbols collide silently.
-:: Fix: whisper uses llama's ggml (linked via -L paths in engine_cgo.go).
-echo   Removing whisper ggml libs (using Ghost-AI ggml instead)...
-if exist "%WHISPER_OUT%\lib\libggml.a" del /q "%WHISPER_OUT%\lib\libggml.a"
-if exist "%WHISPER_OUT%\lib\libggml-cpu.a" del /q "%WHISPER_OUT%\lib\libggml-cpu.a"
-if exist "%WHISPER_OUT%\lib\libggml-base.a" del /q "%WHISPER_OUT%\lib\libggml-base.a"
 
 :: Verify we got libraries
 set /a WCOUNT=0
@@ -455,39 +447,28 @@ cd /d "%~dp0"
 echo.
 
 :: ============================================================
-:: Step 3 — Build Go binary
+:: Step 3 — Build Go binaries (separate processes)
 :: ============================================================
-set BUILD_TAGS=production
-if !GHOSTAI!==1 set BUILD_TAGS=!BUILD_TAGS! ghostai
-if !GHOSTVOICE!==1 set BUILD_TAGS=!BUILD_TAGS! ghostvoice
+:: ghostspell.exe links Ghost-AI (llama.cpp) only — no whisper CGo.
+:: ghostvoice.exe links Ghost Voice (whisper.cpp) only — no llama CGo.
+:: Separate binaries = separate ggml = zero symbol collision.
 
-if !GHOSTAI!==1 if !GHOSTVOICE!==1 (
-    echo [3] Building GhostSpell with Ghost-AI + Ghost Voice...
-) else if !GHOSTAI!==1 (
-    echo [3] Building GhostSpell with Ghost-AI ^(local AI^)...
+set MAIN_TAGS=production
+if !GHOSTAI!==1 set MAIN_TAGS=!MAIN_TAGS! ghostai
+
+if !GHOSTAI!==1 (
+    echo [3] Building ghostspell.exe with Ghost-AI...
 ) else (
-    echo [2] Building GhostSpell ^(API-only mode^)...
+    echo [2] Building ghostspell.exe ^(API-only mode^)...
 )
 set CGO_ENABLED=1
 
-go build -tags "!BUILD_TAGS!" -o ghostspell.exe .
+go build -tags "!MAIN_TAGS!" -o ghostspell.exe .
 if !errorlevel! neq 0 (
-    :: Retry 1: drop ghostai, keep ghostvoice
     if !GHOSTAI!==1 (
         echo.
         echo   Build failed — retrying without Ghost-AI...
         set GHOSTAI=0
-        set RETRY_TAGS=production
-        if !GHOSTVOICE!==1 set RETRY_TAGS=!RETRY_TAGS! ghostvoice
-        go build -tags "!RETRY_TAGS!" -o ghostspell.exe .
-    )
-)
-if !errorlevel! neq 0 (
-    :: Retry 2: drop ghostvoice too
-    if !GHOSTVOICE!==1 (
-        echo.
-        echo   Build failed — retrying without Ghost Voice...
-        set GHOSTVOICE=0
         go build -tags "production" -o ghostspell.exe .
     )
 )
@@ -497,11 +478,22 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
+:: Build ghostvoice.exe separately (whisper.cpp in its own process).
+if !GHOSTVOICE!==1 (
+    echo.
+    echo [4] Building ghostvoice.exe ^(whisper.cpp helper^)...
+    go build -tags "ghostvoice" -o ghostvoice.exe ./cmd/ghostvoice/
+    if !errorlevel! neq 0 (
+        echo   WARNING: ghostvoice.exe build failed — voice skills will not work
+        set GHOSTVOICE=0
+    )
+)
+
 echo.
 echo ============================================
 echo   BUILD COMPLETE: ghostspell.exe
 if !GHOSTAI!==1 echo   + Ghost-AI ^(local text AI^)
-if !GHOSTVOICE!==1 echo   + Ghost Voice ^(local speech-to-text^)
+if !GHOSTVOICE!==1 echo   + ghostvoice.exe ^(local speech-to-text^)
 if !GHOSTAI!==0 if !GHOSTVOICE!==0 echo   Mode: API-only
 echo ============================================
 echo.
