@@ -93,7 +93,17 @@ func (e *Engine) Transcribe(ctx context.Context, wavData []byte, language string
 		return "", fmt.Errorf("ghost-voice: %w", err)
 	}
 
-	slog.Info("[ghost-voice] transcribing", "samples", len(pcmFloat), "duration_sec", float64(len(pcmFloat))/16000.0)
+	// Verify audio data is real (not zeros).
+	var maxAbs float32
+	for _, s := range pcmFloat {
+		if s > maxAbs {
+			maxAbs = s
+		}
+		if -s > maxAbs {
+			maxAbs = -s
+		}
+	}
+	slog.Info("[ghost-voice] transcribing", "samples", len(pcmFloat), "duration_sec", float64(len(pcmFloat))/16000.0, "max_amplitude", maxAbs, "wav_bytes", len(wavData))
 	start := time.Now()
 
 	// Monitor context — abort whisper inference if cancelled.
@@ -119,11 +129,16 @@ func (e *Engine) Transcribe(ctx context.Context, wavData []byte, language string
 		return "", fmt.Errorf("ghost-voice transcribe: %w", err)
 	}
 
+	slog.Info("[ghost-voice] transcription raw result",
+		"elapsed", time.Since(start),
+		"raw_text", text,
+		"raw_len", len(text),
+		"language", detectedLang,
+	)
 	text = strings.TrimSpace(text)
 	slog.Info("[ghost-voice] transcription complete",
-		"elapsed", time.Since(start),
 		"text_len", len(text),
-		"language", detectedLang,
+		"text", text,
 	)
 
 	return text, nil
