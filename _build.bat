@@ -498,11 +498,15 @@ if !GHOSTAI!==0 if !GHOSTVOICE!==0 echo   Mode: API-only
 echo ============================================
 echo.
 
-:: Clear the app log for a fresh testing session.
+:: Clear logs for a fresh testing session.
 set APPDATA_DIR=%APPDATA%\GhostSpell
 if exist "%APPDATA_DIR%\ghostspell.log" (
     del /q "%APPDATA_DIR%\ghostspell.log" 2>nul
     echo Cleared %APPDATA_DIR%\ghostspell.log
+)
+if exist "%APPDATA_DIR%\ghostvoice.log" (
+    del /q "%APPDATA_DIR%\ghostvoice.log" 2>nul
+    echo Cleared %APPDATA_DIR%\ghostvoice.log
 )
 echo.
 echo Starting GhostSpell...

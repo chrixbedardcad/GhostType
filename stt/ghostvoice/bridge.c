@@ -90,16 +90,20 @@ int ghost_voice_transcribe(ghost_voice_engine *eng,
 
     /* Collect all segment text. */
     int n_segments = whisper_full_n_segments(eng->ctx);
-    fprintf(stderr, "[whisper] n_segments=%d, n_samples=%d\n", n_segments, n_samples);
+    fprintf(stderr, "[whisper] n_segments=%d, n_samples=%d, ret=%d\n", n_segments, n_samples, ret);
+    fflush(stderr);
     size_t total_len = 0;
     for (int i = 0; i < n_segments; i++) {
         const char *seg = whisper_full_get_segment_text(eng->ctx, i);
         if (seg) {
             fprintf(stderr, "[whisper] segment[%d]: \"%s\" (len=%zu)\n", i, seg, strlen(seg));
             total_len += strlen(seg);
+        } else {
+            fprintf(stderr, "[whisper] segment[%d]: NULL\n", i);
         }
     }
     fprintf(stderr, "[whisper] total_text_len=%zu\n", total_len);
+    fflush(stderr);
 
     char *text = (char *)malloc(total_len + 1);
     if (!text) {

@@ -494,6 +494,18 @@ func (s *SettingsService) OpenLogFile() string {
 	return "ok"
 }
 
+// OpenVoiceLogFile opens the ghostvoice.log file.
+func (s *SettingsService) OpenVoiceLogFile() string {
+	guiLog("[GUI] JS called: OpenVoiceLogFile")
+	dir := filepath.Dir(s.configPath)
+	path := filepath.Join(dir, "ghostvoice.log")
+	if _, err := os.Stat(path); err != nil {
+		return "error: ghostvoice.log not found"
+	}
+	OpenFile(path)
+	return "ok"
+}
+
 // ClearDebugLog truncates the log file.
 func (s *SettingsService) ClearDebugLog() string {
 	guiLog("[GUI] JS called: ClearDebugLog")
