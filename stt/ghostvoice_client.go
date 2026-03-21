@@ -56,26 +56,8 @@ func (c *GhostVoiceClient) Name() string             { return "Ghost Voice" }
 func (c *GhostVoiceClient) SupportsStreaming() bool { return true }
 
 func (c *GhostVoiceClient) Transcribe(ctx context.Context, wavData []byte, language string) (string, error) {
-	// Cancellable mutex acquisition — if the context is cancelled while waiting
-	// for a slow whisper call to release the lock, return immediately instead
-	// of blocking indefinitely.
-	locked := make(chan struct{})
-	go func() {
-		c.mu.Lock()
-		close(locked)
-	}()
-	select {
-	case <-locked:
-		defer c.mu.Unlock()
-	case <-ctx.Done():
-		// Context cancelled while waiting for lock. A goroutine will
-		// eventually acquire and release the lock in the background.
-		go func() {
-			<-locked
-			c.mu.Unlock()
-		}()
-		return "", ctx.Err()
-	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	if c.engine == nil {
 		return "", fmt.Errorf("ghost-voice: engine not initialized")
