@@ -53,11 +53,17 @@ func (r *Router) ProcessWithImages(ctx context.Context, promptIdx int, text stri
 	entry := r.cfg.Prompts[promptIdx]
 	prompt := entry.Prompt
 
-	// Resolve {{language}} template variable from global config.
-	if r.cfg.Language != "" {
-		prompt = strings.ReplaceAll(prompt, "{{language}}", r.cfg.Language)
+	// Resolve {{language}} template variable.
+	// For voice prompts, use the speaking language (Voice tab) since
+	// the user is dictating in that language. For text prompts, use the
+	// writing language (General tab).
+	lang := r.cfg.Language
+	if entry.Voice && r.cfg.Voice.Language != "" {
+		lang = voiceLanguageName(r.cfg.Voice.Language)
+	}
+	if lang != "" {
+		prompt = strings.ReplaceAll(prompt, "{{language}}", lang)
 	} else {
-		// No language set — fall back to "its original language".
 		prompt = strings.ReplaceAll(prompt, "in {{language}}", "in its original language")
 		prompt = strings.ReplaceAll(prompt, "{{language}}", "the original language")
 	}
@@ -261,6 +267,21 @@ func (r *Router) CurrentPromptIdx() int {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	return r.cfg.ActivePrompt
+}
+
+// voiceLanguageName converts a BCP-47 code to a full language name for prompts.
+func voiceLanguageName(code string) string {
+	names := map[string]string{
+		"en": "English", "fr": "French", "es": "Spanish", "de": "German",
+		"it": "Italian", "pt": "Portuguese", "ja": "Japanese", "ko": "Korean",
+		"zh": "Chinese", "ar": "Arabic", "ru": "Russian", "nl": "Dutch",
+		"pl": "Polish", "sv": "Swedish", "da": "Danish", "no": "Norwegian",
+		"fi": "Finnish", "tr": "Turkish", "hi": "Hindi", "th": "Thai",
+	}
+	if name, ok := names[code]; ok {
+		return name
+	}
+	return code
 }
 
 // CurrentPromptName returns the name of the current active prompt.
