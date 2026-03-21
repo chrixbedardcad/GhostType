@@ -159,44 +159,89 @@ func (e *Engine) Close() {
 	slog.Info("[ghost-voice] engine closed")
 }
 
-// wavToFloat32 parses a WAV file and returns the PCM data as float32 samples
-// normalized to [-1.0, 1.0]. Expects 16-bit signed, mono, 16kHz.
+// wavToFloat32 parses a WAV file and returns mono 16kHz float32 samples
+// normalized to [-1.0, 1.0]. Handles stereo→mono and resampling automatically.
 func wavToFloat32(wav []byte) ([]float32, error) {
 	if len(wav) < 44 {
 		return nil, fmt.Errorf("WAV data too short (%d bytes)", len(wav))
 	}
-
-	// Verify RIFF header.
 	if string(wav[0:4]) != "RIFF" || string(wav[8:12]) != "WAVE" {
 		return nil, fmt.Errorf("not a valid WAV file")
 	}
 
-	// Find data chunk.
-	dataOffset := 12
-	for dataOffset < len(wav)-8 {
-		chunkID := string(wav[dataOffset : dataOffset+4])
-		chunkSize := int(binary.LittleEndian.Uint32(wav[dataOffset+4 : dataOffset+8]))
-		if chunkID == "data" {
-			dataOffset += 8
-			pcmBytes := wav[dataOffset:]
+	// Parse fmt and data chunks.
+	var channels, bitsPerSample int
+	var sampleRate int
+	var pcmBytes []byte
+	offset := 12
+	for offset < len(wav)-8 {
+		chunkID := string(wav[offset : offset+4])
+		chunkSize := int(binary.LittleEndian.Uint32(wav[offset+4 : offset+8]))
+		if chunkID == "fmt " && chunkSize >= 16 {
+			channels = int(binary.LittleEndian.Uint16(wav[offset+10 : offset+12]))
+			sampleRate = int(binary.LittleEndian.Uint32(wav[offset+12 : offset+16]))
+			bitsPerSample = int(binary.LittleEndian.Uint16(wav[offset+22 : offset+24]))
+		} else if chunkID == "data" {
+			pcmBytes = wav[offset+8:]
 			if len(pcmBytes) > chunkSize {
 				pcmBytes = pcmBytes[:chunkSize]
 			}
-
-			// Convert 16-bit signed PCM to float32.
-			nSamples := len(pcmBytes) / 2
-			floats := make([]float32, nSamples)
-			for i := 0; i < nSamples; i++ {
-				sample := int16(binary.LittleEndian.Uint16(pcmBytes[i*2 : i*2+2]))
-				floats[i] = float32(sample) / float32(math.MaxInt16)
-			}
-			return floats, nil
 		}
-		dataOffset += 8 + chunkSize
+		offset += 8 + chunkSize
 		if chunkSize%2 != 0 {
-			dataOffset++ // padding byte
+			offset++
 		}
 	}
+	if pcmBytes == nil {
+		return nil, fmt.Errorf("WAV data chunk not found")
+	}
+	if channels == 0 {
+		channels = 1
+	}
+	if sampleRate == 0 {
+		sampleRate = 16000
+	}
+	if bitsPerSample == 0 {
+		bitsPerSample = 16
+	}
 
-	return nil, fmt.Errorf("WAV data chunk not found")
+	slog.Info("[ghost-voice] WAV format", "channels", channels, "sampleRate", sampleRate, "bitsPerSample", bitsPerSample, "dataBytes", len(pcmBytes))
+
+	// Convert to float32 mono.
+	bytesPerSample := bitsPerSample / 8
+	stride := channels * bytesPerSample
+	nFrames := len(pcmBytes) / stride
+
+	monoFloat := make([]float32, nFrames)
+	for i := 0; i < nFrames; i++ {
+		var sum float64
+		for ch := 0; ch < channels; ch++ {
+			pos := i*stride + ch*bytesPerSample
+			if pos+1 < len(pcmBytes) {
+				s := int16(binary.LittleEndian.Uint16(pcmBytes[pos : pos+2]))
+				sum += float64(s)
+			}
+		}
+		monoFloat[i] = float32(sum / float64(channels) / float64(math.MaxInt16))
+	}
+
+	// Resample to 16kHz if needed.
+	if sampleRate != 16000 {
+		ratio := float64(sampleRate) / 16000.0
+		outLen := int(float64(nFrames) / ratio)
+		resampled := make([]float32, outLen)
+		for i := 0; i < outLen; i++ {
+			srcIdx := float64(i) * ratio
+			idx := int(srcIdx)
+			if idx >= nFrames-1 {
+				idx = nFrames - 2
+			}
+			frac := float32(srcIdx - float64(idx))
+			resampled[i] = monoFloat[idx]*(1-frac) + monoFloat[idx+1]*frac
+		}
+		slog.Info("[ghost-voice] resampled", "from", sampleRate, "to", 16000, "frames", nFrames, "resampled", outLen)
+		return resampled, nil
+	}
+
+	return monoFloat, nil
 }
