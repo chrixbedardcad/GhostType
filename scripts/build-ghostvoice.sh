@@ -64,7 +64,7 @@ CMAKE_ARGS=(
     -DCMAKE_BUILD_TYPE=Release
     -DBUILD_SHARED_LIBS=OFF
     -DWHISPER_BUILD_TESTS=OFF
-    -DWHISPER_BUILD_EXAMPLES=OFF
+    -DWHISPER_BUILD_EXAMPLES=ON
     -DGGML_STATIC=ON
     -DGGML_CUDA=OFF
     -DGGML_VULKAN=OFF
@@ -100,8 +100,8 @@ cmake --build . --config Release -j "$JOBS"
 
 # --- Step 3: Copy outputs ---
 
-echo "[3/3] Copying headers and libraries..."
-mkdir -p "$WHISPER_OUT/include" "$WHISPER_OUT/lib"
+echo "[3/3] Copying headers, libraries, and whisper-cli..."
+mkdir -p "$WHISPER_OUT/include" "$WHISPER_OUT/lib" "$WHISPER_OUT/bin"
 
 # Headers.
 cp "$WHISPER_SRC/include/whisper.h" "$WHISPER_OUT/include/" 2>/dev/null || true
@@ -119,11 +119,22 @@ for f in "$WHISPER_OUT/lib"/*.dll.a; do
     [ -f "$f" ] && mv "$f" "${f%.dll.a}.a"
 done
 
+# Copy whisper-cli binary — used as the STT subprocess.
+CLI_BIN=$(find "$WHISPER_SRC/build-static" -name "whisper-cli" -o -name "whisper-cli.exe" 2>/dev/null | head -1)
+if [ -n "$CLI_BIN" ]; then
+    cp "$CLI_BIN" "$WHISPER_OUT/bin/"
+    echo "whisper-cli: $WHISPER_OUT/bin/$(basename "$CLI_BIN")"
+else
+    echo "WARNING: whisper-cli not found in build output"
+fi
+
 echo ""
 echo "=== Ghost Voice Build Complete ==="
 echo "Headers: $WHISPER_OUT/include/"
 ls "$WHISPER_OUT/include/" 2>/dev/null
 echo "Libraries: $WHISPER_OUT/lib/"
 ls "$WHISPER_OUT/lib/" 2>/dev/null
+echo "Binaries: $WHISPER_OUT/bin/"
+ls "$WHISPER_OUT/bin/" 2>/dev/null
 echo ""
-echo "Build GhostSpell with: go build -tags 'ghostvoice' ./..."
+echo "Place whisper-cli next to ghostspell.exe, then run GhostSpell."

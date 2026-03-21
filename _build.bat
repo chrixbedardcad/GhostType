@@ -291,18 +291,10 @@ set WHISPER_VERSION=v1.7.5
 set WHISPER_SRC=%BUILD_DIR%\whisper-src
 set WHISPER_OUT=%BUILD_DIR%\whisper
 
-:: Skip if libraries AND headers already built (need 4+ libs, 5+ headers)
-set /a WLIBS=0
-set /a WHEADERS=0
-if exist "%WHISPER_OUT%\lib" (
-    for %%f in ("%WHISPER_OUT%\lib\*.a") do set /a WLIBS+=1
-)
-if exist "%WHISPER_OUT%\include" (
-    for %%f in ("%WHISPER_OUT%\include\*.h") do set /a WHEADERS+=1
-)
-if !WLIBS! geq 4 if !WHEADERS! geq 5 (
-    echo [1.5] Ghost Voice already built ^(!WLIBS! libs, !WHEADERS! headers^) — skipping.
-    echo     To rebuild: delete the build\whisper folder and re-run.
+:: Skip if whisper-cli already built
+if exist "%~dp0whisper-cli.exe" (
+    echo [1.5] Ghost Voice already built ^(whisper-cli.exe found^) — skipping.
+    echo     To rebuild: delete whisper-cli.exe and the build\whisper folder, then re-run.
     echo.
     goto :skip_ghostvoice
 )
@@ -466,11 +458,10 @@ cd /d "%~dp0"
 echo.
 
 :: ============================================================
-:: Step 3 — Build Go binaries (separate processes)
+:: Step 3 — Build Go binary
 :: ============================================================
-:: ghostspell.exe links Ghost-AI (llama.cpp) only — no whisper CGo.
-:: ghostvoice.exe links Ghost Voice (whisper.cpp) only — no llama CGo.
-:: Separate binaries = separate ggml = zero symbol collision.
+:: ghostspell.exe links Ghost-AI (llama.cpp) only.
+:: Voice (whisper.cpp) runs via whisper-cli.exe subprocess — no CGo needed.
 
 set MAIN_TAGS=production
 if !GHOSTAI!==1 set MAIN_TAGS=!MAIN_TAGS! ghostai
@@ -497,23 +488,11 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-:: Build ghostvoice.exe separately (whisper.cpp in its own process).
-:: Use -a to force rebuild of CGo packages (bridge.c changes need fresh compilation).
-if !GHOSTVOICE!==1 (
-    echo.
-    echo [4] Building ghostvoice.exe ^(whisper.cpp helper^)...
-    go build -a -tags "ghostvoice" -o ghostvoice.exe ./cmd/ghostvoice/
-    if !errorlevel! neq 0 (
-        echo   WARNING: ghostvoice.exe build failed — voice skills will not work
-        set GHOSTVOICE=0
-    )
-)
-
 echo.
 echo ============================================
 echo   BUILD COMPLETE: ghostspell.exe
 if !GHOSTAI!==1 echo   + Ghost-AI ^(local text AI^)
-if !GHOSTVOICE!==1 echo   + ghostvoice.exe ^(local speech-to-text^)
+if !GHOSTVOICE!==1 echo   + whisper-cli.exe ^(local speech-to-text^)
 if !GHOSTAI!==0 if !GHOSTVOICE!==0 echo   Mode: API-only
 echo ============================================
 echo.

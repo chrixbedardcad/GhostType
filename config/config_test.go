@@ -16,8 +16,8 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.TimeoutMs != 30000 {
 		t.Errorf("expected default timeout_ms 30000, got %d", cfg.TimeoutMs)
 	}
-	if cfg.Hotkeys.Action != "Ctrl+G" {
-		t.Errorf("expected default action hotkey 'Ctrl+G', got '%s'", cfg.Hotkeys.Action)
+	if cfg.Hotkeys.Action != "F7" {
+		t.Errorf("expected default action hotkey 'F7', got '%s'", cfg.Hotkeys.Action)
 	}
 	if len(cfg.Prompts) != 12 {
 		t.Errorf("expected 12 default prompts, got %d", len(cfg.Prompts))
@@ -362,8 +362,8 @@ func TestLoadOptionalHotkeysEmpty(t *testing.T) {
 	}
 
 	// Action hotkey should have a default
-	if loaded.Hotkeys.Action != "Ctrl+G" {
-		t.Errorf("expected action hotkey 'Ctrl+G', got '%s'", loaded.Hotkeys.Action)
+	if loaded.Hotkeys.Action != "F7" {
+		t.Errorf("expected action hotkey 'F7', got '%s'", loaded.Hotkeys.Action)
 	}
 	// CyclePrompt should have default
 	if loaded.Hotkeys.CyclePrompt != "Ctrl+Shift+T" {
@@ -391,8 +391,8 @@ func TestWriteDefault(t *testing.T) {
 		t.Fatalf("written file is not valid JSON: %v", err)
 	}
 
-	if loaded.Hotkeys.Action != "Ctrl+G" {
-		t.Errorf("expected hotkey 'Ctrl+G' in written file, got '%s'", loaded.Hotkeys.Action)
+	if loaded.Hotkeys.Action != "F7" {
+		t.Errorf("expected hotkey 'F7' in written file, got '%s'", loaded.Hotkeys.Action)
 	}
 	if len(loaded.Prompts) != 12 {
 		t.Errorf("expected 12 prompts in written file, got %d", len(loaded.Prompts))

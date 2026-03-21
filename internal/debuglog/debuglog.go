@@ -85,21 +85,16 @@ func (s *State) Disable() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if !s.enabled {
-		return
-	}
-
-	slog.Info("=== Debug logging disabled ===")
-
-	// Switch to no-op logger.
-	slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelError + 1})))
-
 	if s.autoTimer != nil {
 		s.autoTimer.Stop()
 		s.autoTimer = nil
 	}
 
 	if s.logFile != nil {
+		if s.enabled {
+			slog.Info("=== Debug logging disabled ===")
+			slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelError + 1})))
+		}
 		s.logFile.Close()
 		s.logFile = nil
 	}
