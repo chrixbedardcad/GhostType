@@ -54,7 +54,9 @@ func (r *Recorder) MicAvailable() bool {
 
 	available := len(devices) > 0
 	if available {
-		slog.Debug("[mic] capture devices found", "count", len(devices), "default", devices[0].Name())
+		for i, d := range devices {
+			slog.Info("[mic] capture device", "index", i, "name", d.Name(), "is_default", d.IsDefault != 0)
+		}
 	}
 	return available
 }
