@@ -29,14 +29,11 @@ cp "${BINARY}" "${MACOS_DIR}/GhostSpell"
 chmod +x "${MACOS_DIR}/GhostSpell"
 
 # Copy ghostvoice helper if built.
-if [ -f "ghostvoice_bin" ]; then
-    cp "ghostvoice_bin" "${MACOS_DIR}/ghostvoice"
+GHOSTVOICE_BIN=$(ls ghostvoice-darwin-* ghostvoice_bin ghostvoice 2>/dev/null | head -1)
+if [ -n "$GHOSTVOICE_BIN" ] && [ -f "$GHOSTVOICE_BIN" ]; then
+    cp "$GHOSTVOICE_BIN" "${MACOS_DIR}/ghostvoice"
     chmod +x "${MACOS_DIR}/ghostvoice"
-    echo "ghostvoice helper bundled"
-elif [ -f "ghostvoice" ]; then
-    cp "ghostvoice" "${MACOS_DIR}/ghostvoice"
-    chmod +x "${MACOS_DIR}/ghostvoice"
-    echo "ghostvoice helper bundled"
+    echo "ghostvoice helper bundled ($GHOSTVOICE_BIN)"
 else
     echo "Warning: ghostvoice helper not found — voice skills will not work"
 fi

@@ -280,23 +280,35 @@ func (c *GhostVoiceClient) Transcribe(ctx context.Context, wavData []byte, langu
 
 // findGhostVoice locates the ghostvoice helper binary.
 func findGhostVoice() (string, error) {
-	name := "ghostvoice"
+	ext := ""
 	if runtime.GOOS == "windows" {
-		name = "ghostvoice.exe"
+		ext = ".exe"
+	}
+
+	// Check multiple possible names next to the main executable.
+	names := []string{
+		"ghostvoice" + ext,
+		fmt.Sprintf("ghostvoice-%s-%s%s", runtime.GOOS, runtime.GOARCH, ext),
 	}
 
 	if exe, err := os.Executable(); err == nil {
-		path := filepath.Join(filepath.Dir(exe), name)
-		if _, err := os.Stat(path); err == nil {
+		dir := filepath.Dir(exe)
+		for _, name := range names {
+			path := filepath.Join(dir, name)
+			if _, err := os.Stat(path); err == nil {
+				return path, nil
+			}
+		}
+	}
+
+	// Check PATH.
+	for _, name := range names {
+		if path, err := exec.LookPath(name); err == nil {
 			return path, nil
 		}
 	}
 
-	if path, err := exec.LookPath(name); err == nil {
-		return path, nil
-	}
-
-	return "", fmt.Errorf("ghost-voice: %s not found — run _build.bat to build it", name)
+	return "", fmt.Errorf("ghost-voice: ghostvoice%s not found — run _build.bat to build it", ext)
 }
 
 // VoiceModel describes a downloadable whisper model.

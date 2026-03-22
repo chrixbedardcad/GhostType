@@ -105,13 +105,12 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: ${{ matrix.cgo }}
         run: |
-          TAGS="production ghostai ghostvoice"
+          # Main binary: ghostai only (no ghostvoice CGo — whisper runs as separate process).
+          TAGS="production ghostai"
           if [ "${{ matrix.goos }}" = "linux" ]; then
-            TAGS="webkit2_41 production ghostai ghostvoice"
+            TAGS="webkit2_41 production ghostai"
           fi
           if [ "${{ matrix.goos }}" = "windows" ]; then
-            # Static link MinGW runtime (libwinpthread, libgcc, libstdc++) so users don't need DLLs.
-            # Windowless (tray only, no console) — logging goes to debug log file.
             go build -tags "$TAGS" -ldflags "-H=windowsgui -extldflags '-static'" -o ghostspell-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
           else
             go build -tags "$TAGS" -o ghostspell-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
@@ -191,7 +190,9 @@ jobs:
         if: matrix.goos != 'darwin'
         with:
           name: release-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: ghostspell-*
+          path: |
+            ghostspell-*
+            ghostvoice*
       - uses: actions/upload-artifact@v4
         if: matrix.goos == 'darwin'
         with:

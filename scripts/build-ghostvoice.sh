@@ -122,10 +122,13 @@ done
 # Build ghostvoice binary — GhostSpell's own STT helper (pure C++).
 echo "Building ghostvoice..."
 GHOSTVOICE_SRC="$PROJECT_ROOT/ghostvoice/main.cpp"
-GHOSTVOICE_OUT="$PROJECT_ROOT/ghostvoice_bin"
+# Detect platform for output naming.
+ARCH=$(uname -m)
+case "$ARCH" in x86_64|amd64) ARCH="amd64" ;; arm64|aarch64) ARCH="arm64" ;; esac
+GHOSTVOICE_OUT="$PROJECT_ROOT/ghostvoice-linux-${ARCH}"
 case "$OS" in
     MINGW*|MSYS*|CYGWIN*)
-        GHOSTVOICE_OUT="$PROJECT_ROOT/ghostvoice.exe"
+        GHOSTVOICE_OUT="$PROJECT_ROOT/ghostvoice-windows-${ARCH}.exe"
         # Ensure lib prefix for MinGW linker.
         for f in "$WHISPER_OUT/lib/"*.a; do
             bn=$(basename "$f")
@@ -137,6 +140,7 @@ case "$OS" in
             -lstdc++ -lm -lpthread -lkernel32
         ;;
     Darwin)
+        GHOSTVOICE_OUT="$PROJECT_ROOT/ghostvoice-darwin-${ARCH}"
         g++ -O2 -o "$GHOSTVOICE_OUT" "$GHOSTVOICE_SRC" \
             -I"$WHISPER_OUT/include" -L"$WHISPER_OUT/lib" \
             -lwhisper -lggml -lggml-cpu -lggml-blas -lggml-base \
