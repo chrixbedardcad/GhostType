@@ -17,9 +17,14 @@
 
 ---
 
-Unlike traditional auto-correction tools that constantly interrupt your flow with inline suggestions and red underlines, GhostSpell stays invisible until you need it. No distractions, no popups — just press **Ctrl+G** when you're ready, and it does the work. Your workflow, your timing.
+Unlike traditional auto-correction tools that constantly interrupt your flow with inline suggestions and red underlines, GhostSpell stays invisible until you need it. No distractions, no popups — just press **F7** when you're ready, and it does the work. Your workflow, your timing.
 
-GhostSpell runs in the background as a system tray app. Select text (or let it select all), press **Ctrl+G**, and your text is corrected, translated, or rewritten — powered by your choice of LLM. Works in any application: browsers, chat clients, editors, email.
+GhostSpell runs in the background as a system tray app. Select text (or let it select all), press **F7**, and your text is corrected, translated, or rewritten — powered by your choice of LLM. Works in any application: browsers, chat clients, editors, email.
+
+**Check latest version** (works on macOS, Linux, and Windows):
+```
+curl -s https://api.github.com/repos/chrixbedardcad/GhostSpell/releases/latest | grep tag_name
+```
 
 ## Install
 
