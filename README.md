@@ -72,7 +72,7 @@ Scripts only download from official GitHub releases — inspect them at [`script
 <summary>Check latest version</summary>
 
 ```bash
-gh release view --repo chrixbedardcad/GhostSpell --json tagName -q .tagName
+curl -s https://api.github.com/repos/chrixbedardcad/GhostSpell/releases/latest | grep tag_name
 ```
 
 </details>
@@ -100,28 +100,54 @@ powershell -c "irm https://raw.githubusercontent.com/chrixbedardcad/GhostSpell/m
 
 1. **Install** GhostSpell using the one-liner above
 2. **Choose an AI engine** — the setup wizard opens on first launch. Pick **Ghost-AI** (free, local, private), **Log in with ChatGPT** (one click, no API key), or connect any cloud provider with an API key.
-3. **Use it** — type something in any app, press **Ctrl+G**
+3. **Use it** — type something in any app, press **F7**
 
-That's the whole workflow. GhostSpell auto-detects the language and fixes spelling, grammar, and syntax.
+That's the whole workflow. Set your writing language once in Settings, and all skills adapt automatically.
 
-### Prompts
+### Skills
 
-GhostSpell ships with 6 built-in prompts. Switch between them from the tray menu or press your **Cycle Prompt** hotkey.
+GhostSpell ships with 12 built-in skills. Switch between them from the tray menu, the ghost indicator, or press **Shift+F7** to cycle.
 
-| Prompt | What it does |
-|--------|-------------|
-| ✏️ **Correct** | Fix spelling, grammar, and syntax (default) |
-| 💎 **Polish** | Improve clarity and flow without changing meaning |
-| 😄 **Funny** | Rewrite with humor |
-| 📝 **Elaborate** | Expand on the text with more detail |
-| ✂️ **Shorten** | Make it more concise |
-| 🌐 **Translate** | Translate between configured language pairs |
+| Skill | Input | Output | What it does |
+|-------|-------|--------|-------------|
+| ✏️ **Correct** | Text | Replace | Fix spelling, grammar, and syntax |
+| 💎 **Polish** | Text | Replace | Improve clarity and flow |
+| 😄 **Funny** | Text | Replace | Rewrite with humor |
+| 📝 **Elaborate** | Text | Replace | Expand with more detail |
+| ✂️ **Shorten** | Text | Replace | Make it more concise |
+| 🌐 **Translate** | Text | Replace | Translate to target language |
+| ❓ **Ask** | Text | Replace | Answer a question |
+| 📖 **Define** | Text | Popup | Define a word or phrase |
+| 📸 **Describe Screenshot** | Screenshot | Popup | Describe what's on screen |
+| 🖥️ **Screenshot OCR** | Screenshot | Popup | Extract text from screen |
+| 💬 **Voice to Text** | Voice → Direct | Paste | Record speech, paste transcription |
+| 📝 **Voice Note** | Voice → LLM | Paste | Record speech, clean up with AI |
 
-Emoji icons show in the tray menu for quick recognition. You can create custom prompts and assign per-prompt LLM overrides in **Settings > Prompts**.
+Each skill can be configured with:
+- **Input mode** — Text, Voice → LLM, Voice → Direct, Screenshot
+- **Output mode** — Replace, Append, Popup
+- **LLM override** — use a different model per skill
+- **Enable/disable** — hide from tray and cycling without deleting
+
+Create custom skills in **Settings > Skills**. Use `{{language}}` in any skill prompt to reference your writing language.
+
+### Architecture
+
+GhostSpell uses separate processes for AI engines — no conflicts, clean isolation:
+
+| Binary | Engine | What it does |
+|--------|--------|-------------|
+| **ghostspell** | — | Main app: hotkeys, clipboard, UI, orchestration |
+| **ghostai** | llama.cpp | LLM text processing (Correct, Polish, Ask, etc.) |
+| **ghostvoice** | whisper.cpp | Speech-to-text transcription (Voice skills) |
+
+Each binary links its own AI libraries. If one crashes, the main app stays alive. Each can be tested independently from the command line.
 
 ### Local AI
 
-**Ghost-AI (built-in)** — No install needed. GhostSpell ships with an embedded llama.cpp engine. Pick a model in the wizard, download it (~1 GB), and you're running local AI with zero setup. Recommended model: Qwen3.5-2B.
+**Ghost-AI** — Built-in local LLM engine powered by llama.cpp. Pick a model in the wizard, download it (~1-3 GB), and you're running local AI with zero setup. Recommended: Qwen3.5-4B.
+
+**Ghost Voice** — Built-in local speech-to-text powered by whisper.cpp. Download a whisper model (75MB-3GB) in Settings > Voice. Recommended: whisper-base (142MB).
 
 **Ollama** — If you already use Ollama, select it in the setup wizard. GhostSpell detects your install, lets you pick a model, and connects automatically.
 
@@ -129,20 +155,22 @@ Emoji icons show in the tray menu for quick recognition. You can create custom p
 
 ## Features
 
-- **One hotkey** — Ctrl+G does everything. Optional Cycle Prompt hotkey for power users.
-- **Ghost-AI** — Built-in local AI engine (embedded llama.cpp). No account, no API key, works offline.
-- **Multi-provider** — Anthropic, OpenAI, Gemini, xAI, DeepSeek, Ollama. Use different models per prompt.
+- **One hotkey** — F7 does everything. Shift+F7 cycles skills.
+- **12 built-in skills** — Correct, Polish, Funny, Elaborate, Shorten, Translate, Ask, Define, Screenshot, OCR, Voice to Text, Voice Note.
+- **Voice input** — Record speech with push-to-talk (F7 start, F7 stop). Voice-reactive ghost indicator with red recording dot.
+- **Screenshot skills** — Capture the active window and send to a vision model (GPT-4o, Claude, Gemini).
+- **Ghost-AI** — Built-in local LLM engine (llama.cpp). No account, no API key, works offline.
+- **Ghost Voice** — Built-in local speech-to-text (whisper.cpp). Runs as a separate process.
+- **Multi-provider** — Anthropic, OpenAI, Gemini, xAI, DeepSeek, Ollama, LM Studio. Use different models per skill.
 - **ChatGPT OAuth** — Log in with your ChatGPT account, no API key needed.
-- **Setup wizard** — 4-step guided setup on first launch: Welcome → Permissions (macOS) → Model Selector → Ready.
-- **Prompt icons** — Emoji icons in the tray menu for each prompt (✏️ Correct, 💎 Polish, etc.).
-- **Settings GUI** — 8-tab settings panel built with React: About, General, Models, Prompts, Hotkeys, Stats, Debug, Help. Dark zen theme with custom-styled dropdowns.
+- **Global writing language** — Set once, all skills adapt. Use `{{language}}` in custom skill prompts.
+- **Native language accent correction** — Helps the LLM fix accent-related transcription errors in voice skills.
+- **Ghost indicator** — Floating overlay shows active skill, processing status, recording state. Draggable.
+- **Settings GUI** — Tabbed settings panel: About, General, Models, Skills, Hotkeys, Stats, Debug, Help.
+- **Enable/disable skills** — Hide skills from tray and cycling without deleting them.
 - **One-click updates** — Check for updates and install from Settings > About.
-- **Ollama integration** — Detect, install, pull models from the GUI.
-- **Custom prompts** — Add your own prompt templates with optional per-prompt LLM overrides.
 - **Sound effects** — Audio feedback for every action. Toggleable.
-- **System tray** — Switch prompts, models, languages from the tray icon.
-- **Single instance** — Prevents duplicate processes across all platforms.
-- **Lightweight** — Single binary, under 50 MB memory, near-zero CPU at idle.
+- **System tray** — Switch skills, view models (LLM + Voice), report bugs.
 - **Cross-platform** — Windows, macOS, Linux.
 
 ---
@@ -151,16 +179,13 @@ Emoji icons show in the tray menu for quick recognition. You can create custom p
 
 | Hotkey | Action |
 |--------|--------|
-| **Ctrl+G** | Perform active prompt (correct, translate, etc.) |
+| **F7** | Perform active skill (correct, translate, record voice, etc.) |
+| **Shift+F7** | Cycle to next skill |
+| **F7** (during recording) | Stop voice recording |
+| **F7** (during processing) | Cancel active request |
 | **Ctrl+Z** | Undo replacement (native) |
 
-Configure an additional hotkey in **Settings > General**:
-
-| Hotkey | Action |
-|--------|--------|
-| Cycle Prompt | Cycle through prompt templates |
-
-> **macOS:** `Ctrl` maps to Command, `Alt` maps to Option.
+Hotkeys are configurable in **Settings > Hotkeys**.
 
 ---
 
