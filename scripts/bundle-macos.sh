@@ -24,9 +24,22 @@ RESOURCES_DIR="${CONTENTS}/Resources"
 rm -rf "${APP_NAME}"
 mkdir -p "${MACOS_DIR}" "${RESOURCES_DIR}"
 
-# Copy binary.
+# Copy main binary.
 cp "${BINARY}" "${MACOS_DIR}/GhostSpell"
 chmod +x "${MACOS_DIR}/GhostSpell"
+
+# Copy ghostvoice helper if built.
+if [ -f "ghostvoice_bin" ]; then
+    cp "ghostvoice_bin" "${MACOS_DIR}/ghostvoice"
+    chmod +x "${MACOS_DIR}/ghostvoice"
+    echo "ghostvoice helper bundled"
+elif [ -f "ghostvoice" ]; then
+    cp "ghostvoice" "${MACOS_DIR}/ghostvoice"
+    chmod +x "${MACOS_DIR}/ghostvoice"
+    echo "ghostvoice helper bundled"
+else
+    echo "Warning: ghostvoice helper not found — voice skills will not work"
+fi
 
 # Generate .icns from the 1024px PNG icon using macOS built-in tools.
 ICONSET_DIR="GhostSpell.iconset"
