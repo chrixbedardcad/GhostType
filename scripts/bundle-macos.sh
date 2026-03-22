@@ -29,8 +29,11 @@ cp "${BINARY}" "${MACOS_DIR}/GhostSpell"
 chmod +x "${MACOS_DIR}/GhostSpell"
 
 # Copy ghostvoice helper if built.
-GHOSTVOICE_BIN=$(ls ghostvoice-darwin-* ghostvoice_bin ghostvoice 2>/dev/null | head -1)
-if [ -n "$GHOSTVOICE_BIN" ] && [ -f "$GHOSTVOICE_BIN" ]; then
+GHOSTVOICE_BIN=""
+for f in ghostvoice-darwin-* ghostvoice_bin ghostvoice; do
+    [ -f "$f" ] && GHOSTVOICE_BIN="$f" && break
+done
+if [ -n "$GHOSTVOICE_BIN" ]; then
     cp "$GHOSTVOICE_BIN" "${MACOS_DIR}/ghostvoice"
     chmod +x "${MACOS_DIR}/ghostvoice"
     echo "ghostvoice helper bundled ($GHOSTVOICE_BIN)"
