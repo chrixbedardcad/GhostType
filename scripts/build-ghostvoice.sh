@@ -103,13 +103,13 @@ cmake --build . --config Release -j "$JOBS"
 echo "[3/3] Copying headers, libraries, and whisper-cli..."
 mkdir -p "$WHISPER_OUT/include" "$WHISPER_OUT/lib" "$WHISPER_OUT/bin"
 
-# Headers.
-cp "$WHISPER_SRC/include/whisper.h" "$WHISPER_OUT/include/" 2>/dev/null || true
-cp "$WHISPER_SRC/whisper.h" "$WHISPER_OUT/include/" 2>/dev/null || true
-# Also copy ggml headers if present.
-for h in ggml.h ggml-alloc.h ggml-backend.h; do
-    find "$WHISPER_SRC" -maxdepth 3 -name "$h" -exec cp {} "$WHISPER_OUT/include/" \; 2>/dev/null || true
-done
+# Headers — copy all .h files from whisper and ggml include directories.
+cp "$WHISPER_SRC/include/"*.h "$WHISPER_OUT/include/" 2>/dev/null || true
+if [ -d "$WHISPER_SRC/ggml/include" ]; then
+    cp "$WHISPER_SRC/ggml/include/"*.h "$WHISPER_OUT/include/" 2>/dev/null || true
+fi
+# Also search for any remaining headers in the ggml src directory.
+find "$WHISPER_SRC" -maxdepth 4 -name "ggml*.h" -exec cp {} "$WHISPER_OUT/include/" \; 2>/dev/null || true
 
 # Libraries — find all .a files from the build.
 find "$WHISPER_SRC/build-static" -name "*.a" -exec cp {} "$WHISPER_OUT/lib/" \;
@@ -127,9 +127,8 @@ case "$OS" in
     MINGW*|MSYS*|CYGWIN*)
         GHOSTVOICE_OUT="$PROJECT_ROOT/ghostvoice.exe"
         g++ -O2 -static -o "$GHOSTVOICE_OUT" "$GHOSTVOICE_SRC" \
-            -I"$WHISPER_SRC/include" -I"$WHISPER_SRC/ggml/include" \
-            -L"$WHISPER_SRC/build-static/src" -L"$WHISPER_SRC/build-static/ggml/src" \
-            -l:libwhisper.a -l:ggml.a -l:ggml-cpu.a -l:ggml-base.a \
+            -I"$WHISPER_OUT/include" -L"$WHISPER_OUT/lib" \
+            -l:libwhisper.a -l:libggml.a -l:libggml-cpu.a -l:libggml-base.a \
             -lstdc++ -lm -lpthread -lkernel32
         ;;
     Darwin)
