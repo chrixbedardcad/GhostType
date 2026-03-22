@@ -126,9 +126,14 @@ GHOSTVOICE_OUT="$PROJECT_ROOT/ghostvoice_bin"
 case "$OS" in
     MINGW*|MSYS*|CYGWIN*)
         GHOSTVOICE_OUT="$PROJECT_ROOT/ghostvoice.exe"
+        # Ensure lib prefix for MinGW linker.
+        for f in "$WHISPER_OUT/lib/"*.a; do
+            bn=$(basename "$f")
+            case "$bn" in lib*) ;; *) mv "$f" "$WHISPER_OUT/lib/lib$bn" ;; esac
+        done
         g++ -O2 -static -o "$GHOSTVOICE_OUT" "$GHOSTVOICE_SRC" \
             -I"$WHISPER_OUT/include" -L"$WHISPER_OUT/lib" \
-            -l:libwhisper.a -l:libggml.a -l:libggml-cpu.a -l:libggml-base.a \
+            -lwhisper -lggml -lggml-cpu -lggml-base \
             -lstdc++ -lm -lpthread -lkernel32
         ;;
     Darwin)
