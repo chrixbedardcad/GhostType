@@ -109,15 +109,34 @@ powershell -c "irm https://raw.githubusercontent.com/chrixbedardcad/GhostSpell/m
 
 ## Build from Source
 
-**macOS:**
+### macOS — one-liner (installs everything)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/chrixbedardcad/GhostSpell/main/scripts/setup-mac-dev.sh | bash
 ```
 
-Installs Go, Node, CMake, Claude Code. Builds Ghost-AI (llama.cpp), Ghost Voice (whisper.cpp), React frontend, and the main app. Ready to run and debug.
+Installs Go, Node, CMake, Claude Code via Homebrew. Builds everything. Don't use `sudo` — run as your normal user.
 
-**Windows:**
+### macOS — manual steps (if Homebrew is already installed)
+
+```bash
+# Install tools
+brew install go node cmake
+npm install -g @anthropic-ai/claude-code
+
+# Clone and build
+git clone https://github.com/chrixbedardcad/GhostSpell.git
+cd GhostSpell
+./scripts/build-ghostai.sh
+./scripts/build-ghostvoice.sh
+cd gui/frontend && npm ci && npm run build && cd ../..
+CGO_ENABLED=1 go build -tags "production ghostai" -o ghostspell .
+
+# Run
+./ghostspell
+```
+
+### Windows
 
 Requires: [Go](https://go.dev/dl/), [Node.js](https://nodejs.org/), [MSYS2](https://www.msys2.org/) (MinGW64 toolchain).
 
