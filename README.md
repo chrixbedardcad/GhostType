@@ -107,8 +107,9 @@ powershell -c "irm https://raw.githubusercontent.com/chrixbedardcad/GhostSpell/m
 
 </details>
 
-<details>
-<summary>Build from source (macOS)</summary>
+## Build from Source
+
+**macOS:**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/chrixbedardcad/GhostSpell/main/scripts/setup-mac-dev.sh | bash
@@ -116,24 +117,15 @@ curl -fsSL https://raw.githubusercontent.com/chrixbedardcad/GhostSpell/main/scri
 
 Installs Go, Node, CMake, Claude Code. Builds Ghost-AI (llama.cpp), Ghost Voice (whisper.cpp), React frontend, and the main app. Ready to run and debug.
 
-</details>
+**Windows:**
 
-<details>
-<summary>Build from source (Windows)</summary>
-
-Requires: Go, Node.js, MSYS2 (MinGW64 toolchain).
+Requires: [Go](https://go.dev/dl/), [Node.js](https://nodejs.org/), [MSYS2](https://www.msys2.org/) (MinGW64 toolchain).
 
 ```cmd
 _build.bat
 ```
 
-Or full clean rebuild:
-
-```cmd
-_buildall.bat
-```
-
-</details>
+Full clean rebuild: `_buildall.bat`
 
 ---
 
